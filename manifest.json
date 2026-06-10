@@ -1,0 +1,18 @@
+{
+  "name": "いまここ！ - 現在駅チェッカー",
+  "short_name": "いまここ！",
+  "description": "電車内で現在いる駅・最寄り駅をすぐ確認できるアプリ",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
