@@ -24,26 +24,81 @@
     <section id="main-screen" class="screen hidden">
       <header class="status-bar">
         <span id="gps-status" class="badge">GPS取得中…</span>
-        <button id="wakelock-btn" class="icon-btn" title="画面を常時点灯">💡</button>
+        <div class="status-actions">
+          <button id="premium-btn" class="pill-btn">⭐ プレミアム</button>
+          <button id="wakelock-btn" class="icon-btn" title="画面を常時点灯">💡</button>
+        </div>
       </header>
+
+      <!-- 路線絞り込み (プレミアム / 路線データが取得できた場合のみ表示) -->
+      <div id="line-filter-wrap" class="line-filter hidden">
+        <label for="line-filter">路線で絞り込み</label>
+        <select id="line-filter">
+          <option value="">すべての路線</option>
+        </select>
+      </div>
 
       <div class="station-display">
         <p id="status-label" class="status-label">最寄り駅</p>
         <h2 id="station-name" class="station-name">---</h2>
         <p id="station-kana" class="station-sub"></p>
         <p id="distance" class="distance"></p>
+        <p id="next-station" class="next-station hidden"></p>
+      </div>
+
+      <!-- 降車アラート設定状態 -->
+      <div id="alert-status" class="alert-status hidden">
+        <span id="alert-status-text"></span>
+        <button id="alert-cancel-btn" class="text-btn">解除</button>
       </div>
 
       <div class="nearby">
-        <h3>周辺の駅</h3>
+        <h3>周辺の駅 <span class="hint">🔔で降車アラートを設定</span></h3>
         <ol id="nearby-list" class="nearby-list"></ol>
       </div>
+
+      <!-- 乗車履歴 (プレミアム) -->
+      <div id="history-section" class="history hidden">
+        <h3>乗車履歴</h3>
+        <ol id="history-list" class="nearby-list"></ol>
+      </div>
+
+      <!-- 無料プラン向け広告枠 -->
+      <!-- TODO(収益化): Google AdSense / 広告SDKのタグをここに挿入する -->
+      <div id="ad-slot" class="ad-slot">広告スペース</div>
 
       <footer class="footer">
         <p id="updated-at" class="updated"></p>
         <p class="credit">駅データ: © OpenStreetMap contributors</p>
       </footer>
     </section>
+
+    <!-- プレミアム案内モーダル -->
+    <div id="paywall" class="modal-overlay hidden">
+      <div class="modal">
+        <h2>⭐ プレミアムプラン</h2>
+        <ul class="feature-list">
+          <li>🔔 <b>降車アラート</b> — 降りる駅に近づくと振動・通知でお知らせ。寝過ごし防止に</li>
+          <li>🧭 <b>次の駅予測</b> — 進行方向から次に到着する駅を表示</li>
+          <li>🚃 <b>路線絞り込み</b> — 乗っている路線の駅だけを表示</li>
+          <li>📋 <b>乗車履歴</b> — 通過・停車した駅の記録を自動保存</li>
+          <li>🚫 <b>広告非表示</b></li>
+        </ul>
+        <p class="price">月額 240円 <span class="price-sub">/ 年額 1,800円（38%おトク）</span></p>
+        <!-- TODO(収益化): Stripe Checkout / アプリ内課金に置き換える。
+             現在はデモとして即時有効化する -->
+        <button id="purchase-btn" class="big-btn">アップグレードする（デモ）</button>
+        <button id="restore-btn" class="text-btn hidden">プレミアムを解約する（デモ）</button>
+        <button id="paywall-close" class="text-btn">閉じる</button>
+      </div>
+    </div>
+
+    <!-- 降車アラート発火時の全画面表示 -->
+    <div id="alert-overlay" class="alert-overlay hidden">
+      <p class="alert-title">🔔 まもなく</p>
+      <p id="alert-overlay-station" class="alert-station-name"></p>
+      <button id="alert-dismiss-btn" class="big-btn">OK・アラートを停止</button>
+    </div>
 
     <!-- エラー表示 -->
     <div id="error-banner" class="error-banner hidden"></div>
