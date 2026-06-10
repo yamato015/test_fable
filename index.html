@@ -85,9 +85,12 @@
           <li>🚫 <b>広告非表示</b></li>
         </ul>
         <p class="price">月額 240円 <span class="price-sub">/ 年額 1,800円（38%おトク）</span></p>
-        <!-- TODO(収益化): Stripe Checkout / アプリ内課金に置き換える。
-             現在はデモとして即時有効化する -->
-        <button id="purchase-btn" class="big-btn">アップグレードする（デモ）</button>
+        <!-- config.jsのbackendUrl設定時はStripe Checkoutへ遷移し、
+             未設定時はデモボタン (即時有効化) が表示される -->
+        <button id="buy-monthly-btn" class="big-btn hidden">月額プランに登録する</button>
+        <button id="buy-yearly-btn" class="big-btn hidden">年額プランに登録する</button>
+        <button id="purchase-btn" class="big-btn hidden">アップグレードする（デモ）</button>
+        <button id="manage-btn" class="text-btn hidden">サブスクリプションを管理・解約する</button>
         <button id="restore-btn" class="text-btn hidden">プレミアムを解約する（デモ）</button>
         <button id="paywall-close" class="text-btn">閉じる</button>
       </div>
@@ -104,6 +107,7 @@
     <div id="error-banner" class="error-banner hidden"></div>
   </main>
 
+  <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

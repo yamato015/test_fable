@@ -28,8 +28,23 @@
 - 📋 **乗車履歴** — 停車した駅を自動記録
 - 🚫 **広告非表示**
 
-※ 決済機能は未連携のため、現在は「アップグレードする（デモ）」で即時有効化されます。
 収益化の設計は [BUSINESS.md](BUSINESS.md) を参照してください。
+
+## 収益化のセットアップ
+
+動作モードは `config.js` で切り替わります（ファイル編集後はsw.jsの
+`CACHE_NAME` のバージョンを上げてキャッシュを更新してください）。
+
+| 設定 | 未設定時 | 設定時 |
+|---|---|---|
+| `backendUrl` | 課金はデモモード（即時有効化） | Stripe Checkoutで実課金 |
+| `adsenseClient` | 広告枠はプレースホルダ表示 | AdSense広告を配信 |
+
+- **Stripe課金**: [server/README.md](server/README.md) の手順でCloudflare Workersに
+  課金バックエンドをデプロイし、そのURLを `backendUrl` に設定
+- **広告**: [AdSense](https://adsense.google.com/) でサイトを登録し、
+  発行されたクライアントIDを `adsenseClient` に設定
+- **ストア配信**: [docs/store-distribution.md](docs/store-distribution.md) を参照
 
 ## 使い方
 

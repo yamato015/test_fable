@@ -43,11 +43,35 @@ const errorBanner = $("error-banner");
 // =====================================================================
 // プラン管理 (フリーミアム)
 // =====================================================================
-// TODO(収益化): 課金状態はlocalStorageではなくサーバー側で管理する。
-//   - Web: Stripe Checkout + 軽量なエンタイトルメントAPI
-//   - ストア配信時: App Store / Google Play のアプリ内課金レシート検証
+// config.jsのbackendUrlが設定されていればStripe課金 (server/ 参照)、
+// 未設定ならデモモード (localStorageで即時切り替え) で動作する。
+// 課金モードでは、バックエンドが発行するHMAC署名付きライセンストークンを
+// 保持し、期限が切れる前にStripeのサブスク状態を再検証して更新する。
+const CONFIG = window.APP_CONFIG || {};
+const BACKEND_URL = (CONFIG.backendUrl || "").replace(/\/+$/, "");
+const LICENSE_RECHECK_MS = 24 * 3600 * 1000; // サブスク状態の再確認間隔
+
+function billingEnabled() {
+  return BACKEND_URL !== "";
+}
+
+function getLicense() {
+  try {
+    return JSON.parse(localStorage.getItem("license"));
+  } catch {
+    return null;
+  }
+}
+
+function saveLicense(lic) {
+  localStorage.setItem("license", JSON.stringify(lic));
+  localStorage.setItem("licenseCheckedAt", String(Date.now()));
+}
+
 function isPremium() {
-  return localStorage.getItem("plan") === "premium";
+  if (!billingEnabled()) return localStorage.getItem("plan") === "premium";
+  const lic = getLicense();
+  return !!lic && lic.exp * 1000 > Date.now();
 }
 
 function setPlan(plan) {
@@ -55,12 +79,85 @@ function setPlan(plan) {
   applyPlanUI();
 }
 
+async function api(path, body) {
+  const res = await fetch(BACKEND_URL + path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = new Error(`API ${res.status}`);
+    err.status = res.status;
+    throw err;
+  }
+  return res.json();
+}
+
+// 起動時: 決済完了リダイレクト (?session_id=) の処理とライセンスの再検証
+async function initBilling() {
+  if (billingEnabled()) {
+    const sessionId = new URLSearchParams(location.search).get("session_id");
+    if (sessionId) {
+      history.replaceState(null, "", location.pathname);
+      try {
+        saveLicense(await api("/api/activate", { session_id: sessionId }));
+        showToast("プレミアムが有効になりました 🎉", false);
+      } catch {
+        showToast("購入の確認に失敗しました。時間をおいて再度開いてください。");
+      }
+    } else {
+      await maybeRefreshLicense();
+    }
+  }
+  applyPlanUI();
+}
+
+async function maybeRefreshLicense() {
+  const lic = getLicense();
+  if (!lic) return;
+  const checkedAt = Number(localStorage.getItem("licenseCheckedAt") || 0);
+  if (Date.now() - checkedAt < LICENSE_RECHECK_MS) return;
+  try {
+    saveLicense(await api("/api/refresh", { token: lic.token }));
+  } catch (e) {
+    // 401/402 = 解約済みや不正トークン。それ以外 (通信障害等) は現状維持
+    if (e.status === 401 || e.status === 402) {
+      localStorage.removeItem("license");
+    }
+    localStorage.setItem("licenseCheckedAt", String(Date.now()));
+  }
+}
+
+async function startCheckout(plan) {
+  try {
+    const r = await api("/api/checkout", { plan });
+    location.href = r.url;
+  } catch {
+    showToast("決済ページを開けませんでした。通信状態を確認してください。");
+  }
+}
+
+async function openPortal() {
+  const lic = getLicense();
+  if (!lic) return;
+  try {
+    const r = await api("/api/portal", { token: lic.token });
+    location.href = r.url;
+  } catch {
+    showToast("管理ページを開けませんでした。通信状態を確認してください。");
+  }
+}
+
 function applyPlanUI() {
   const premium = isPremium();
+  const billing = billingEnabled();
   $("premium-btn").textContent = premium ? "⭐ プレミアム会員" : "⭐ プレミアム";
   $("ad-slot").classList.toggle("hidden", premium);
-  $("restore-btn").classList.toggle("hidden", !premium);
-  $("purchase-btn").classList.toggle("hidden", premium);
+  $("buy-monthly-btn").classList.toggle("hidden", !billing || premium);
+  $("buy-yearly-btn").classList.toggle("hidden", !billing || premium);
+  $("purchase-btn").classList.toggle("hidden", billing || premium);
+  $("manage-btn").classList.toggle("hidden", !billing || !premium);
+  $("restore-btn").classList.toggle("hidden", billing || !premium);
   $("history-section").classList.toggle("hidden", !premium);
   $("line-filter-wrap").classList.toggle(
     "hidden",
@@ -70,6 +167,7 @@ function applyPlanUI() {
     nextStationEl.classList.add("hidden");
     selectedLine = "";
     cancelAlert();
+    initAds();
   }
   if (premium) renderHistory();
 }
@@ -87,9 +185,10 @@ $("premium-btn").addEventListener("click", () =>
 $("paywall-close").addEventListener("click", () =>
   $("paywall").classList.add("hidden")
 );
+$("buy-monthly-btn").addEventListener("click", () => startCheckout("monthly"));
+$("buy-yearly-btn").addEventListener("click", () => startCheckout("yearly"));
+$("manage-btn").addEventListener("click", openPortal);
 $("purchase-btn").addEventListener("click", () => {
-  // TODO(収益化): ここでStripe Checkoutへリダイレクトし、
-  // 決済完了Webhookでエンタイトルメントを付与する。デモでは即時有効化。
   setPlan("premium");
   $("paywall").classList.add("hidden");
 });
@@ -97,6 +196,37 @@ $("restore-btn").addEventListener("click", () => {
   setPlan("free");
   $("paywall").classList.add("hidden");
 });
+
+// =====================================================================
+// 広告 (無料プランのみ / Google AdSense)
+// =====================================================================
+// config.jsのadsenseClientが未設定の間はプレースホルダのまま表示する
+let adsInjected = false;
+
+function initAds() {
+  if (isPremium() || !CONFIG.adsenseClient || adsInjected) return;
+  adsInjected = true;
+
+  const script = document.createElement("script");
+  script.async = true;
+  script.crossOrigin = "anonymous";
+  script.src =
+    "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" +
+    encodeURIComponent(CONFIG.adsenseClient);
+  document.head.appendChild(script);
+
+  const slot = $("ad-slot");
+  slot.textContent = "";
+  const ins = document.createElement("ins");
+  ins.className = "adsbygoogle";
+  ins.style.display = "block";
+  ins.dataset.adClient = CONFIG.adsenseClient;
+  if (CONFIG.adsenseSlot) ins.dataset.adSlot = CONFIG.adsenseSlot;
+  ins.dataset.adFormat = "auto";
+  ins.dataset.fullWidthResponsive = "true";
+  slot.appendChild(ins);
+  (window.adsbygoogle = window.adsbygoogle || []).push({});
+}
 
 // =====================================================================
 // 起動
@@ -497,11 +627,16 @@ async function toggleWakeLock() {
 // エラー表示
 // =====================================================================
 let errorTimer = null;
-function showError(msg) {
+function showToast(msg, isError = true) {
   errorBanner.textContent = msg;
+  errorBanner.classList.toggle("success", !isError);
   errorBanner.classList.remove("hidden");
   clearTimeout(errorTimer);
   errorTimer = setTimeout(hideError, 8000);
+}
+
+function showError(msg) {
+  showToast(msg, true);
 }
 
 function hideError() {
@@ -512,3 +647,6 @@ function hideError() {
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js").catch(() => {});
 }
+
+// ---- 起動時に課金状態を初期化 (決済リダイレクト処理・ライセンス再検証) ----
+initBilling();

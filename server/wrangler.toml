@@ -1,0 +1,14 @@
+name = "imakoko-billing"
+main = "worker.mjs"
+compatibility_date = "2026-06-01"
+
+[vars]
+# アプリの公開URL (CORS許可と決済後のリダイレクト先)
+APP_URL = "https://<ユーザー名>.github.io/<リポジトリ名>/"
+# Stripeダッシュボードで作成したPrice ID
+PRICE_MONTHLY = "price_xxxxxxxxxxxxx"
+PRICE_YEARLY = "price_xxxxxxxxxxxxx"
+
+# シークレットは以下で登録する (wrangler.tomlに書かないこと):
+#   wrangler secret put STRIPE_SECRET_KEY
+#   wrangler secret put LICENSE_SECRET   (例: openssl rand -hex 32 の出力)

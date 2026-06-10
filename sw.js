@@ -1,7 +1,7 @@
 "use strict";
 
-const CACHE_NAME = "imakoko-v1";
-const ASSETS = ["./", "index.html", "style.css", "app.js", "manifest.json", "icon.svg"];
+const CACHE_NAME = "imakoko-v2";
+const ASSETS = ["./", "index.html", "style.css", "app.js", "config.js", "manifest.json", "icon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));
