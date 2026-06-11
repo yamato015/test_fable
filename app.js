@@ -417,11 +417,22 @@ function render(lat, lon) {
   const nearest = sorted[0];
   const atStation = nearest.dist <= AT_STATION_THRESHOLD_M;
 
+  if (stationName.textContent !== nearest.name) {
+    flashPop(stationName);
+    flashPop($("r-station"));
+  }
+
   statusLabel.textContent = atStation ? "🚉 いまここ！" : "最寄り駅";
   statusLabel.classList.toggle("at-station", atStation);
   stationName.textContent = nearest.name;
   stationKana.textContent = nearest.kana;
   distanceEl.textContent = atStation ? "" : `約 ${formatDistance(nearest.dist)}`;
+
+  // 車内モード側にも同じ内容を反映
+  $("r-status").textContent = statusLabel.textContent;
+  $("r-status").classList.toggle("at-station", atStation);
+  $("r-station").textContent = nearest.name;
+  $("r-dist").textContent = atStation ? "" : `約 ${formatDistance(nearest.dist)}`;
 
   if (atStation) recordHistory(nearest.name);
   renderNextStation(lat, lon, sorted, nearest);
@@ -457,6 +468,7 @@ function nearbyItem(s) {
 function renderNextStation(lat, lon, sorted, nearest) {
   if (!isPremium() || heading === null) {
     nextStationEl.classList.add("hidden");
+    $("r-next").textContent = "";
     return;
   }
   const candidate = sorted.find((s) => {
@@ -468,9 +480,17 @@ function renderNextStation(lat, lon, sorted, nearest) {
   if (candidate) {
     nextStationEl.textContent = `次は ${candidate.name}（${formatDistance(candidate.dist)}）`;
     nextStationEl.classList.remove("hidden");
+    $("r-next").textContent = `次は ${candidate.name}`;
   } else {
     nextStationEl.classList.add("hidden");
+    $("r-next").textContent = "";
   }
+}
+
+function flashPop(el) {
+  el.classList.remove("pulse");
+  void el.offsetWidth; // 再アニメーションのためリフローを挟む
+  el.classList.add("pulse");
 }
 
 function formatDistance(m) {
@@ -485,6 +505,7 @@ async function setAlert(station) {
   alertStation = { name: station.name, lat: station.lat, lon: station.lon };
   $("alert-status-text").textContent = `🔔 ${station.name} で降車アラート設定中`;
   $("alert-status").classList.remove("hidden");
+  $("r-alert").textContent = `🔔 ${station.name} で降車アラート設定中`;
   if ("Notification" in window && Notification.permission === "default") {
     try {
       await Notification.requestPermission();
@@ -498,6 +519,7 @@ async function setAlert(station) {
 function cancelAlert() {
   alertStation = null;
   $("alert-status").classList.add("hidden");
+  $("r-alert").textContent = "";
 }
 
 function checkAlert(lat, lon) {
@@ -601,24 +623,62 @@ function angleDiff(a, b) {
 }
 
 // =====================================================================
+// 車内モード (起動したまま膝上・手元でチラ見する特大全画面表示)
+// =====================================================================
+let ridingClockTimer = null;
+let ridingAcquiredWakeLock = false;
+
+$("riding-btn").addEventListener("click", enterRidingMode);
+$("riding-screen").addEventListener("click", exitRidingMode);
+
+async function enterRidingMode() {
+  $("riding-screen").classList.remove("hidden");
+  updateRidingClock();
+  ridingClockTimer = setInterval(updateRidingClock, 1000);
+  // 車内モード中は画面を消灯させない (非対応端末では表示のみ)
+  ridingAcquiredWakeLock = !wakeLock && (await acquireWakeLock());
+}
+
+function exitRidingMode() {
+  $("riding-screen").classList.add("hidden");
+  clearInterval(ridingClockTimer);
+  if (ridingAcquiredWakeLock) releaseWakeLock();
+  ridingAcquiredWakeLock = false;
+}
+
+function updateRidingClock() {
+  $("r-clock").textContent = new Date().toLocaleTimeString("ja-JP", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+// =====================================================================
 // 画面常時点灯 (Wake Lock)
 // =====================================================================
-async function toggleWakeLock() {
-  const btn = $("wakelock-btn");
-  if (wakeLock) {
-    await wakeLock.release();
-    wakeLock = null;
-    btn.classList.remove("active");
-    return;
-  }
+async function acquireWakeLock() {
+  if (wakeLock) return true;
   try {
     wakeLock = await navigator.wakeLock.request("screen");
-    btn.classList.add("active");
+    $("wakelock-btn").classList.add("active");
     wakeLock.addEventListener("release", () => {
       wakeLock = null;
-      btn.classList.remove("active");
+      $("wakelock-btn").classList.remove("active");
     });
+    return true;
   } catch {
+    return false;
+  }
+}
+
+async function releaseWakeLock() {
+  if (wakeLock) await wakeLock.release();
+}
+
+async function toggleWakeLock() {
+  if (wakeLock) {
+    await releaseWakeLock();
+  } else if (!(await acquireWakeLock())) {
     showError("この端末では画面の常時点灯に対応していません。");
   }
 }

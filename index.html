@@ -2,9 +2,14 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#0d1117">
   <meta name="description" content="電車内で現在いる駅・最寄り駅をすぐ確認できるアプリ">
+  <!-- iPhoneのホーム画面追加でアプリのように全画面起動させる -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="いまここ！">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <title>いまここ！ - 現在駅チェッカー</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -46,6 +51,8 @@
         <p id="next-station" class="next-station hidden"></p>
       </div>
 
+      <button id="riding-btn" class="mode-btn">🚆 車内モード（特大表示・画面オフ防止）</button>
+
       <!-- 降車アラート設定状態 -->
       <div id="alert-status" class="alert-status hidden">
         <span id="alert-status-text"></span>
@@ -71,6 +78,17 @@
         <p id="updated-at" class="updated"></p>
         <p class="credit">駅データ: © OpenStreetMap contributors</p>
       </footer>
+    </section>
+
+    <!-- 車内モード: 起動したまま膝上・手元でチラ見するための特大全画面表示 -->
+    <section id="riding-screen" class="riding hidden">
+      <p id="r-clock" class="r-clock"></p>
+      <p id="r-status" class="status-label">最寄り駅</p>
+      <h2 id="r-station" class="r-station">---</h2>
+      <p id="r-dist" class="r-dist"></p>
+      <p id="r-next" class="r-next"></p>
+      <p id="r-alert" class="r-alert"></p>
+      <p class="r-hint">タップで戻る</p>
     </section>
 
     <!-- プレミアム案内モーダル -->
