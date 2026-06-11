@@ -1,12 +1,13 @@
 "use strict";
 
-const CACHE_NAME = "imakoko-v3";
+const CACHE_NAME = "imakoko-v4";
 const ASSETS = [
   "./",
   "index.html",
   "style.css",
   "app.js",
   "config.js",
+  "stations.js",
   "manifest.json",
   "icon.svg",
   "icon-512.png",

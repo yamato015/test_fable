@@ -30,6 +30,7 @@
       <header class="status-bar">
         <span id="gps-status" class="badge">GPS取得中…</span>
         <div class="status-actions">
+          <button id="theme-btn" class="icon-btn" title="テーマ切り替え">🎨</button>
           <button id="premium-btn" class="pill-btn">⭐ プレミアム</button>
           <button id="wakelock-btn" class="icon-btn" title="画面を常時点灯">💡</button>
         </div>
@@ -44,14 +45,17 @@
       </div>
 
       <div class="station-display">
+        <p id="prev-next" class="prev-next"></p>
         <p id="status-label" class="status-label">最寄り駅</p>
         <h2 id="station-name" class="station-name">---</h2>
         <p id="station-kana" class="station-sub"></p>
+        <div id="station-lines" class="lines"></div>
         <p id="distance" class="distance"></p>
         <p id="next-station" class="next-station hidden"></p>
       </div>
 
       <button id="riding-btn" class="mode-btn">🚆 車内モード（特大表示・画面オフ防止）</button>
+      <button id="dest-btn" class="mode-btn secondary">🎯 目的地を設定（降車アラート）</button>
 
       <!-- 降車アラート設定状態 -->
       <div id="alert-status" class="alert-status hidden">
@@ -91,6 +95,20 @@
       <p class="r-hint">タップで戻る</p>
     </section>
 
+    <!-- 目的地ピッカー (駅名・ひらがな検索 / プレミアム) -->
+    <div id="dest-modal" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="modal-header-row">
+          <h2>目的地を選択</h2>
+          <button id="dest-close" class="text-btn">閉じる</button>
+        </div>
+        <input id="dest-search" class="search-input" type="search"
+               placeholder="駅名・ひらがなで検索..." autocomplete="off">
+        <button id="dest-clear" class="text-btn hidden">目的地をクリア</button>
+        <ul id="dest-list" class="nearby-list dest-list"></ul>
+      </div>
+    </div>
+
     <!-- プレミアム案内モーダル -->
     <div id="paywall" class="modal-overlay hidden">
       <div class="modal">
@@ -126,6 +144,7 @@
   </main>
 
   <script src="config.js"></script>
+  <script src="stations.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

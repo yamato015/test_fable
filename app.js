@@ -9,13 +9,25 @@ const ALERT_DISTANCE_M = 600;        // 降車アラートを発火させる距�
 const NEXT_MIN_MOVE_M = 25;          // 進行方向を判定するのに必要な移動距離
 const NEXT_MAX_ANGLE_DEG = 50;       // 進行方向と駅方向のずれの許容角度
 const HISTORY_MAX = 50;              // 乗車履歴の最大保存件数
+const EMBEDDED_COVERAGE_M = 8000;    // 埋め込みデータの最寄り駅がこれより遠い場合はOverpassへ切替
 const OVERPASS_ENDPOINTS = [
   "https://overpass-api.de/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter",
 ];
 
+// ---- 埋め込み駅データ (stations.js / 首都圏511駅) ----
+// 通信不要・路線名が確実なためこちらを優先し、圏外ではOverpassにフォールバック
+const EMBEDDED_STATIONS = (window.STATIONS || []).map((s) => ({
+  name: s.name,
+  kana: s.nameKana || "",
+  lat: s.lat,
+  lon: s.lng,
+  lines: s.lines || [],
+}));
+
 // ---- 状態 ----
-let stations = [];        // { id, name, kana, lat, lon, lines: [] }
+let stations = [];        // { name, kana, lat, lon, lines: [] }
+let usingEmbedded = false;
 let lineNames = [];       // 周辺で見つかった路線名の一覧
 let selectedLine = "";    // 絞り込み中の路線名 ("" = すべて)
 let lastFetchPos = null;  // 駅データを取得した時点の位置
@@ -268,11 +280,44 @@ async function onPosition(pos) {
 
   updateHeading(lat, lon, pos.coords.heading);
 
+  await selectStationSource(lat, lon);
+  render(lat, lon);
+  checkAlert(lat, lon);
+}
+
+// 埋め込みデータのカバー圏内ならそれを使い、圏外ならOverpassから取得する
+async function selectStationSource(lat, lon) {
+  const covered =
+    EMBEDDED_STATIONS.length > 0 &&
+    nearestEmbeddedDist(lat, lon) <= EMBEDDED_COVERAGE_M;
+
+  if (covered) {
+    if (!usingEmbedded) {
+      usingEmbedded = true;
+      stations = EMBEDDED_STATIONS;
+      lineNames = [...new Set(stations.flatMap((s) => s.lines))].sort();
+      renderLineFilter();
+    }
+    return;
+  }
+
+  if (usingEmbedded) {
+    usingEmbedded = false;
+    stations = [];
+    lastFetchPos = null;
+  }
   if (needsRefetch(lat, lon)) {
     await fetchStations(lat, lon);
   }
-  render(lat, lon);
-  checkAlert(lat, lon);
+}
+
+function nearestEmbeddedDist(lat, lon) {
+  let min = Infinity;
+  for (const s of EMBEDDED_STATIONS) {
+    const d = haversine(lat, lon, s.lat, s.lon);
+    if (d < min) min = d;
+  }
+  return min;
 }
 
 // 進行方向を更新する。GPSのheadingが取れない端末では位置の差分から算出
@@ -427,6 +472,7 @@ function render(lat, lon) {
   stationName.textContent = nearest.name;
   stationKana.textContent = nearest.kana;
   distanceEl.textContent = atStation ? "" : `約 ${formatDistance(nearest.dist)}`;
+  renderLineChips(nearest);
 
   // 車内モード側にも同じ内容を反映
   $("r-status").textContent = statusLabel.textContent;
@@ -464,23 +510,55 @@ function nearbyItem(s) {
   return li;
 }
 
-// 次の駅予測 (プレミアム): 進行方向と駅方向の角度差が小さい最寄りの駅を表示
+// 駅名の下に路線タグを表示 (埋め込みデータ利用時のみ路線名が入る)
+function renderLineChips(nearest) {
+  const wrap = $("station-lines");
+  wrap.innerHTML = "";
+  for (const line of (nearest.lines || []).slice(0, 4)) {
+    const chip = document.createElement("span");
+    chip.className = "line-chip";
+    chip.textContent = line;
+    wrap.appendChild(chip);
+  }
+}
+
+// 前の駅・次の駅予測 (プレミアム):
+// 進行方向との角度差で前後を判定し、同じ路線の駅を優先する
 function renderNextStation(lat, lon, sorted, nearest) {
+  const prevNextEl = $("prev-next");
   if (!isPremium() || heading === null) {
     nextStationEl.classList.add("hidden");
+    prevNextEl.textContent = "";
     $("r-next").textContent = "";
     return;
   }
-  const candidate = sorted.find((s) => {
-    if (s.name === nearest.name) return false;
-    if (s.dist < 250 || s.dist > 5000) return false;
-    const diff = angleDiff(heading, bearing(lat, lon, s.lat, s.lon));
-    return diff <= NEXT_MAX_ANGLE_DEG;
-  });
-  if (candidate) {
-    nextStationEl.textContent = `次は ${candidate.name}（${formatDistance(candidate.dist)}）`;
+
+  const candidates = sorted.filter(
+    (s) => s.name !== nearest.name && s.dist >= 250 && s.dist <= 8000
+  );
+  const sharesLine = (s) =>
+    !nearest.lines?.length ||
+    !s.lines?.length ||
+    s.lines.some((l) => nearest.lines.includes(l));
+  const pick = (test) =>
+    candidates.find((s) => test(s) && sharesLine(s)) || candidates.find(test);
+
+  const next = pick(
+    (s) => angleDiff(heading, bearing(lat, lon, s.lat, s.lon)) <= NEXT_MAX_ANGLE_DEG
+  );
+  const prev = pick(
+    (s) => angleDiff(heading, bearing(lat, lon, s.lat, s.lon)) >= 180 - NEXT_MAX_ANGLE_DEG
+  );
+
+  prevNextEl.textContent =
+    prev || next
+      ? `${prev ? `← ${prev.name}` : ""}${prev && next ? "　|　" : ""}${next ? `${next.name} →` : ""}`
+      : "";
+
+  if (next) {
+    nextStationEl.textContent = `次は ${next.name}（${formatDistance(next.dist)}）`;
     nextStationEl.classList.remove("hidden");
-    $("r-next").textContent = `次は ${candidate.name}`;
+    $("r-next").textContent = `次は ${next.name}`;
   } else {
     nextStationEl.classList.add("hidden");
     $("r-next").textContent = "";
@@ -506,6 +584,7 @@ async function setAlert(station) {
   $("alert-status-text").textContent = `🔔 ${station.name} で降車アラート設定中`;
   $("alert-status").classList.remove("hidden");
   $("r-alert").textContent = `🔔 ${station.name} で降車アラート設定中`;
+  $("dest-btn").textContent = `🎯 目的地: ${station.name}（タップで変更）`;
   if ("Notification" in window && Notification.permission === "default") {
     try {
       await Notification.requestPermission();
@@ -520,7 +599,93 @@ function cancelAlert() {
   alertStation = null;
   $("alert-status").classList.add("hidden");
   $("r-alert").textContent = "";
+  $("dest-btn").textContent = "🎯 目的地を設定（降車アラート）";
 }
+
+// =====================================================================
+// 目的地ピッカー (プレミアム): 駅名・ひらがな検索で降車アラートを設定
+// =====================================================================
+const DEST_RESULT_MAX = 50;
+
+$("dest-btn").addEventListener("click", () => {
+  if (!requirePremium()) return;
+  $("dest-modal").classList.remove("hidden");
+  $("dest-search").value = "";
+  $("dest-clear").classList.toggle("hidden", !alertStation);
+  renderDestList("");
+  $("dest-search").focus();
+});
+$("dest-close").addEventListener("click", closeDestModal);
+$("dest-clear").addEventListener("click", () => {
+  cancelAlert();
+  closeDestModal();
+});
+$("dest-search").addEventListener("input", (e) =>
+  renderDestList(e.target.value.trim())
+);
+
+function closeDestModal() {
+  $("dest-modal").classList.add("hidden");
+}
+
+// 検索対象 = 埋め込み全駅 + 取得済みの周辺駅 (同名はマージ)
+function destCandidates() {
+  const seen = new Map();
+  for (const s of [...EMBEDDED_STATIONS, ...stations]) {
+    const exist = seen.get(s.name);
+    if (!exist) {
+      seen.set(s.name, s);
+    } else if (s.lines?.length) {
+      exist.lines = [...new Set([...(exist.lines || []), ...s.lines])];
+    }
+  }
+  return [...seen.values()];
+}
+
+function renderDestList(query) {
+  const listEl = $("dest-list");
+  listEl.innerHTML = "";
+  const hits = destCandidates()
+    .filter((s) => !query || s.name.includes(query) || s.kana.includes(query))
+    .slice(0, DEST_RESULT_MAX);
+  for (const s of hits) {
+    const li = document.createElement("li");
+    li.className = "dest-item";
+    const name = document.createElement("span");
+    name.textContent = s.name;
+    const line = document.createElement("span");
+    line.className = "dist";
+    line.textContent = s.lines?.[0] || "";
+    li.append(name, line);
+    li.addEventListener("click", () => {
+      setAlert(s);
+      closeDestModal();
+    });
+    listEl.appendChild(li);
+  }
+}
+
+// =====================================================================
+// テーマ切り替え (グリーン / ブルー / ピンク)
+// =====================================================================
+const THEMES = ["green", "blue", "pink"];
+
+function applyTheme(name) {
+  document.body.dataset.theme = name;
+  localStorage.setItem("theme", name);
+}
+
+$("theme-btn").addEventListener("click", () => {
+  const current = document.body.dataset.theme || "green";
+  const next = THEMES[(THEMES.indexOf(current) + 1) % THEMES.length];
+  applyTheme(next);
+});
+
+applyTheme(
+  THEMES.includes(localStorage.getItem("theme"))
+    ? localStorage.getItem("theme")
+    : "green"
+);
 
 function checkAlert(lat, lon) {
   if (!alertStation) return;
