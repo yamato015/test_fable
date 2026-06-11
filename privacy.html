@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0d1117">
+  <title>プライバシーポリシー - いまここ！</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .doc { padding: 24px; line-height: 1.9; font-size: 0.92rem; }
+    .doc h1 { font-size: 1.4rem; margin-bottom: 16px; color: var(--accent); }
+    .doc h2 { font-size: 1.05rem; margin: 24px 0 8px; }
+    .doc p, .doc li { color: var(--fg); }
+    .doc ul { padding-left: 20px; }
+    .doc .muted { color: var(--sub); font-size: 0.8rem; }
+    .doc a { color: var(--accent2); }
+    .doc table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .doc td, .doc th { border: 1px solid #30363d; padding: 8px; text-align: left; }
+  </style>
+</head>
+<body>
+  <main id="app">
+    <article class="doc">
+      <h1>プライバシーポリシー</h1>
+      <p>
+        「いまここ！」（以下「本アプリ」）は、利用者のプライバシー保護を最優先に設計されています。
+        本アプリが扱う情報と、その取り扱いは以下のとおりです。
+      </p>
+
+      <h2>1. 位置情報</h2>
+      <ul>
+        <li>位置情報は<b>利用者の端末内でのみ処理</b>され、本アプリの運営者のサーバーに送信・保存されることはありません。</li>
+        <li>首都圏では端末に内蔵した駅データを使うため、位置情報は端末の外に一切出ません。</li>
+        <li>内蔵データの圏外でのみ、駅データの取得のためOpenStreetMapのOverpass APIに
+          <b>約1km単位に丸めたおおよその座標</b>を送信します。正確な現在地は送信されません。</li>
+      </ul>
+
+      <h2>2. 端末内に保存されるデータ</h2>
+      <ul>
+        <li>乗車履歴・目的地・テーマ設定・プレミアムのライセンス情報は端末内（localStorage）にのみ保存されます。</li>
+        <li>アプリ内フッターの「データ削除」から、これらをいつでも完全に削除できます。</li>
+      </ul>
+
+      <h2>3. 決済情報（プレミアムプラン）</h2>
+      <ul>
+        <li>決済は決済代行事業者<b>Stripe</b>が処理し、クレジットカード番号が本アプリや運営者のサーバーに保存されることはありません。</li>
+        <li>運営者のサーバーはユーザーデータベースを持たず、課金状態の確認に必要な最小限の識別子（Stripeの顧客ID・サブスクリプションID）のみを署名付きの形で端末に返します。</li>
+        <li>Stripeのプライバシーポリシーは<a href="https://stripe.com/jp/privacy" target="_blank" rel="noopener">こちら</a>。</li>
+      </ul>
+
+      <h2>4. アクセス解析</h2>
+      <ul>
+        <li>利用状況の把握にはCookieを使用しない<b>Cloudflare Web Analytics</b>のみを使用し、個人を特定する情報は収集しません（未設定の場合は解析自体を行いません）。</li>
+      </ul>
+
+      <h2>5. 広告</h2>
+      <ul>
+        <li>無料プランではGoogle AdSenseによる広告を表示する場合があります。広告配信に伴うCookie等の取り扱いは
+          <a href="https://policies.google.com/technologies/ads?hl=ja" target="_blank" rel="noopener">Googleのポリシー</a>に従います。</li>
+        <li>プレミアムプランでは広告および広告関連の第三者スクリプトは一切読み込まれません。</li>
+      </ul>
+
+      <h2>6. 第三者提供</h2>
+      <p>上記に記載した処理目的以外で、利用者の情報を第三者に提供・販売することはありません。</p>
+
+      <h2>7. お問い合わせ</h2>
+      <p>本ポリシーに関するお問い合わせ: <b>（公開用の連絡先を記載してください）</b></p>
+
+      <h2>特定商取引法に基づく表記</h2>
+      <table>
+        <tr><th>販売事業者</th><td>（氏名または名称 ※請求があった場合は遅滞なく開示します、とすることも可能）</td></tr>
+        <tr><th>運営責任者</th><td>（氏名）</td></tr>
+        <tr><th>所在地・連絡先</th><td>請求があった場合は遅滞なく開示します</td></tr>
+        <tr><th>販売価格</th><td>プレミアムプラン 月額240円 / 年額1,800円（税込）</td></tr>
+        <tr><th>支払方法</th><td>クレジットカード（Stripe決済）</td></tr>
+        <tr><th>提供時期</th><td>決済完了後ただちに利用可能</td></tr>
+        <tr><th>解約</th><td>アプリ内「サブスクリプションを管理・解約する」からいつでも解約可能。次回請求日以降の請求は発生しません</td></tr>
+        <tr><th>返品・返金</th><td>デジタルサービスの性質上、提供済み期間分の返金は行いません</td></tr>
+      </table>
+
+      <p class="muted">制定: 2026年6月 ／ 本ポリシーは改定されることがあります。重要な変更はアプリ内で告知します。</p>
+      <p><a href="./">← アプリに戻る</a></p>
+    </article>
+  </main>
+</body>
+</html>

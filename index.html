@@ -19,10 +19,11 @@
   <main id="app">
     <!-- 開始画面 -->
     <section id="start-screen" class="screen">
-      <h1 class="logo">いまここ！</h1>
+      <h1 class="logo">いまここ！<span class="beta">β</span></h1>
       <p class="tagline">混雑した電車内でも、<br>いまどの駅にいるかすぐわかる。</p>
       <button id="start-btn" class="big-btn">現在地を確認する</button>
-      <p class="note">位置情報の利用を許可してください。<br>位置情報は端末内でのみ使用され、保存されません。</p>
+      <p class="note">位置情報の利用を許可してください。<br>位置情報は端末内でのみ使用され、保存されません。<br>
+        <a class="policy-link" href="privacy.html">プライバシーポリシー</a></p>
     </section>
 
     <!-- メイン画面 -->
@@ -80,6 +81,11 @@
 
       <footer class="footer">
         <p id="updated-at" class="updated"></p>
+        <p class="footer-links">
+          <a href="privacy.html">プライバシー</a>
+          <a id="feedback-link" class="hidden" href="#" target="_blank" rel="noopener">フィードバック</a>
+          <button id="wipe-btn" class="link-btn">データ削除</button>
+        </p>
         <p class="credit">駅データ: © OpenStreetMap contributors</p>
       </footer>
     </section>

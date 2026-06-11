@@ -247,6 +247,39 @@ body {
   opacity: 0.7;
 }
 
+.beta {
+  font-size: 0.9rem;
+  vertical-align: super;
+  color: var(--accent2);
+  margin-left: 4px;
+}
+
+.policy-link {
+  color: var(--accent2);
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  font-size: 0.78rem;
+  margin-top: 6px;
+}
+
+.footer-links a {
+  color: var(--sub);
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--sub);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.78rem;
+  padding: 0;
+}
+
 /* 駅名が切り替わった瞬間にふわっと出すアニメーション */
 .station-name.pulse,
 .r-station.pulse {

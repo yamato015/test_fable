@@ -356,13 +356,18 @@ function needsRefetch(lat, lon) {
 async function fetchStations(lat, lon) {
   fetching = true;
   gpsStatus.textContent = "駅データ取得中…";
+  // プライバシー保護: 外部APIには約1km単位に丸めた座標のみ送信し、
+  // 正確な現在地を外部に出さない (丸め誤差ぶん検索半径を広げて補う)
+  const qLat = lat.toFixed(2);
+  const qLon = lon.toFixed(2);
+  const radius = SEARCH_RADIUS_M + 1500;
   // 駅ノードに加えて、その駅を含む路線リレーションも取得し、
   // 駅→路線名のひも付けを作る (データが無い地域では路線絞り込みを非表示にする)
   const query = `
     [out:json][timeout:15];
     (
-      node(around:${SEARCH_RADIUS_M},${lat},${lon})["railway"="station"];
-      node(around:${SEARCH_RADIUS_M},${lat},${lon})["railway"="halt"];
+      node(around:${radius},${qLat},${qLon})["railway"="station"];
+      node(around:${radius},${qLat},${qLon})["railway"="halt"];
     )->.sts;
     .sts out body;
     rel(bn.sts)["route"~"^(train|subway|monorail|tram|light_rail)$"];
@@ -866,6 +871,36 @@ function showError(msg) {
 
 function hideError() {
   errorBanner.classList.add("hidden");
+}
+
+// =====================================================================
+// ベータ運用: フィードバック導線・データ削除・アクセス解析
+// =====================================================================
+if (CONFIG.feedbackUrl) {
+  const link = $("feedback-link");
+  link.href = CONFIG.feedbackUrl;
+  link.classList.remove("hidden");
+}
+
+// 端末内に保存した全データ (履歴・設定・ライセンス) をユーザー自身で削除できる
+$("wipe-btn").addEventListener("click", () => {
+  const ok = confirm(
+    "端末に保存された履歴・目的地・テーマ設定・プレミアム情報をすべて削除します。よろしいですか？"
+  );
+  if (!ok) return;
+  localStorage.clear();
+  location.reload();
+});
+
+// Cookie不使用のCloudflare Web Analytics (トークン設定時のみ読み込む)
+if (CONFIG.cloudflareAnalyticsToken) {
+  const s = document.createElement("script");
+  s.defer = true;
+  s.src = "https://static.cloudflareinsights.com/beacon.min.js";
+  s.dataset.cfBeacon = JSON.stringify({
+    token: CONFIG.cloudflareAnalyticsToken,
+  });
+  document.head.appendChild(s);
 }
 
 // ---- PWA: Service Worker登録 ----

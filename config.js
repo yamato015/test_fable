@@ -11,4 +11,13 @@ window.APP_CONFIG = {
   // 空文字のままだと広告枠はプレースホルダ表示になる
   adsenseClient: "", // 例: "ca-pub-1234567890123456"
   adsenseSlot: "",   // 例: "1234567890"
+
+  // Cloudflare Web Analytics (Cookie不使用・無料)
+  // https://dash.cloudflare.com → Web Analytics でサイト登録して得たトークン。
+  // 空文字のままだとアクセス解析は一切行わない
+  cloudflareAnalyticsToken: "",
+
+  // ベータ版フィードバックの送り先 (GoogleフォームのURLや "mailto:..." など)
+  // 空文字のままだとフィードバックリンクは表示されない
+  feedbackUrl: "",
 };
