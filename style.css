@@ -297,6 +297,24 @@ body {
   }
 }
 
+/* ---- 乗車路線の自動推定チップ ---- */
+.ride-chip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 8px 14px;
+  background: var(--card);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: var(--accent);
+}
+
+.ride-chip .text-btn {
+  padding: 0 4px;
+}
+
 /* ---- 前の駅・次の駅 / 路線タグ ---- */
 .prev-next {
   font-size: 0.85rem;

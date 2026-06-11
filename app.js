@@ -33,8 +33,13 @@ let selectedLine = "";    // 絞り込み中の路線名 ("" = すべて)
 let lastFetchPos = null;  // 駅データを取得した時点の位置
 let fetching = false;
 let wakeLock = null;
+let curPos = null;        // 最新の現在位置
 let prevPos = null;       // 進行方向判定用の前回位置
 let heading = null;       // 進行方向 (度)
+let headingBuf = [];      // 方位の平滑化バッファ (直近3回が一致したときだけ更新)
+let departureAnchor = null; // 直近に停車した駅 (出発後の実移動ベクトル算出用)
+let rideLines = null;     // 乗車中と推定した路線名のSet (null = 未推定)
+let lastRideStation = null; // 乗車路線推定に使う直近の停車駅
 let alertStation = null;  // 降車アラート対象 { name, lat, lon }
 let lastHistoryName = null;
 
@@ -51,6 +56,197 @@ const nextStationEl = $("next-station");
 const nearbyList = $("nearby-list");
 const updatedAt = $("updated-at");
 const errorBanner = $("error-banner");
+
+// =====================================================================
+// 多言語対応 (日本語 / English)
+// =====================================================================
+// 静的な文言はHTMLのdata-i18n属性、動的な文言はt()で参照する。
+// 駅名は元データが日本語のため両言語で日本語表示 (ローマ字対応は今後の課題)
+const STRINGS = {
+  ja: {
+    tagline: "混雑した電車内でも、<br>いまどの駅にいるかすぐわかる。",
+    startBtn: "現在地を確認する",
+    startNote: "位置情報の利用を許可してください。<br>位置情報は端末内でのみ使用され、保存されません。",
+    privacyLink: "プライバシーポリシー",
+    gpsWait: "GPS取得中…",
+    gpsAcc: (n) => `GPS精度 ±${n}m`,
+    fetching: "駅データ取得中…",
+    fetchFail: "駅データの取得に失敗しました。通信状態を確認してください。",
+    geo1: "位置情報の利用が許可されていません。ブラウザの設定から許可してください。",
+    geo2: "位置情報を取得できません。地下やトンネル内ではGPSが届かないことがあります。",
+    geo3: "位置情報の取得がタイムアウトしました。",
+    geoFail: "位置情報の取得に失敗しました。",
+    geoUnsupported: "この端末では位置情報が利用できません。",
+    nearest: "最寄り駅",
+    here: "🚉 いまここ！",
+    noStations: "周辺に駅が見つかりません",
+    about: (d) => `約 ${d}`,
+    nextIs: (n, d) => `次は ${n}（${d}）`,
+    nextIsShort: (n) => `次は ${n}`,
+    ridingBtn: "🚆 車内モード（特大表示・画面オフ防止）",
+    destBtn: "🎯 目的地を設定（降車アラート）",
+    destSet: (n) => `🎯 目的地: ${n}（タップで変更）`,
+    alertSet: (n) => `🔔 ${n} で降車アラート設定中`,
+    cancel: "解除",
+    soonTitle: "🔔 まもなく",
+    notifTitle: "🔔 まもなく到着",
+    notifBody: (n) => `${n} に近づいています`,
+    alertDismiss: "OK・アラートを停止",
+    nearbyTitle: "周辺の駅",
+    nearbyHint: "🔔で降車アラートを設定",
+    historyTitle: "乗車履歴",
+    adPlaceholder: "広告スペース",
+    updated: (t) => `更新: ${t}`,
+    privacyFooter: "プライバシー",
+    feedback: "フィードバック",
+    wipe: "データ削除",
+    wipeConfirm: "端末に保存された履歴・目的地・テーマ設定・プレミアム情報をすべて削除します。よろしいですか？",
+    credit: "駅データ: © OpenStreetMap contributors",
+    lineFilterLabel: "路線で絞り込み",
+    allLines: "すべての路線",
+    rideChip: (l) => `🚆 ${l} に乗車中？`,
+    tapBack: "タップで戻る",
+    destTitle: "目的地を選択",
+    close: "閉じる",
+    searchTab: "🔍 検索",
+    linesTab: "🚇 路線図",
+    backToLines: "← 路線一覧に戻る",
+    clearDest: "目的地をクリア",
+    searchPh: "駅名・ひらがなで検索...",
+    stationsCount: (n) => `${n}駅`,
+    pwTitle: "⭐ プレミアムプラン",
+    pw1: "🔔 <b>降車アラート</b> — 降りる駅に近づくと振動・通知でお知らせ。寝過ごし防止に",
+    pw2: "🧭 <b>次の駅予測</b> — 進行方向から次に到着する駅を表示",
+    pw3: "🚃 <b>路線絞り込み</b> — 乗っている路線の駅だけを表示",
+    pw4: "📋 <b>乗車履歴</b> — 通過・停車した駅の記録を自動保存",
+    pw5: "🚫 <b>広告非表示</b>",
+    price: '月額 240円 <span class="price-sub">/ 年額 1,800円（38%おトク）</span>',
+    buyMonthly: "月額プランに登録する",
+    buyYearly: "年額プランに登録する",
+    buyDemo: "アップグレードする（デモ）",
+    manageSub: "サブスクリプションを管理・解約する",
+    cancelDemo: "プレミアムを解約する（デモ）",
+    premiumBtn: "⭐ プレミアム",
+    premiumMember: "⭐ プレミアム会員",
+    toastPremiumOn: "プレミアムが有効になりました 🎉",
+    toastActivateFail: "購入の確認に失敗しました。時間をおいて再度開いてください。",
+    toastCheckoutFail: "決済ページを開けませんでした。通信状態を確認してください。",
+    toastPortalFail: "管理ページを開けませんでした。通信状態を確認してください。",
+    wakeLockFail: "この端末では画面の常時点灯に対応していません。",
+  },
+  en: {
+    tagline: "Know exactly which station you're at,<br>even on a packed train.",
+    startBtn: "Show my location",
+    startNote: "Please allow location access.<br>Your location is processed only on this device and never stored.",
+    privacyLink: "Privacy Policy",
+    gpsWait: "Getting GPS…",
+    gpsAcc: (n) => `GPS ±${n}m`,
+    fetching: "Loading stations…",
+    fetchFail: "Failed to load station data. Please check your connection.",
+    geo1: "Location access is denied. Please allow it in your browser settings.",
+    geo2: "Couldn't get your location. GPS may not work underground or in tunnels.",
+    geo3: "Location request timed out.",
+    geoFail: "Failed to get your location.",
+    geoUnsupported: "Location is not available on this device.",
+    nearest: "Nearest station",
+    here: "🚉 You are here!",
+    noStations: "No stations found nearby",
+    about: (d) => `approx. ${d}`,
+    nextIs: (n, d) => `Next: ${n} (${d})`,
+    nextIsShort: (n) => `Next: ${n}`,
+    ridingBtn: "🚆 Onboard mode (large display, keeps screen on)",
+    destBtn: "🎯 Set destination (get-off alert)",
+    destSet: (n) => `🎯 Destination: ${n} (tap to change)`,
+    alertSet: (n) => `🔔 Get-off alert set for ${n}`,
+    cancel: "Clear",
+    soonTitle: "🔔 Arriving soon",
+    notifTitle: "🔔 Arriving soon",
+    notifBody: (n) => `Approaching ${n}`,
+    alertDismiss: "OK, stop the alert",
+    nearbyTitle: "Nearby stations",
+    nearbyHint: "Tap 🔔 to set a get-off alert",
+    historyTitle: "Ride history",
+    adPlaceholder: "Ad space",
+    updated: (t) => `Updated: ${t}`,
+    privacyFooter: "Privacy",
+    feedback: "Feedback",
+    wipe: "Delete my data",
+    wipeConfirm: "This will delete all data saved on this device (history, destination, theme, premium info). Continue?",
+    credit: "Station data © OpenStreetMap contributors",
+    lineFilterLabel: "Filter by line",
+    allLines: "All lines",
+    rideChip: (l) => `🚆 Riding ${l}?`,
+    tapBack: "Tap to go back",
+    destTitle: "Choose destination",
+    close: "Close",
+    searchTab: "🔍 Search",
+    linesTab: "🚇 Lines",
+    backToLines: "← Back to lines",
+    clearDest: "Clear destination",
+    searchPh: "Search by station name...",
+    stationsCount: (n) => `${n} stations`,
+    pwTitle: "⭐ Premium Plan",
+    pw1: "🔔 <b>Get-off alert</b> — vibration & notification as you approach your stop. Never sleep past it",
+    pw2: "🧭 <b>Next station</b> — predicts the next stop from your direction of travel",
+    pw3: "🚃 <b>Line filter</b> — show only stations on your line",
+    pw4: "📋 <b>Ride history</b> — automatically logs the stations you pass",
+    pw5: "🚫 <b>No ads</b>",
+    price: '¥240/month <span class="price-sub">or ¥1,800/year (save 38%)</span>',
+    buyMonthly: "Subscribe monthly",
+    buyYearly: "Subscribe yearly",
+    buyDemo: "Upgrade (demo)",
+    manageSub: "Manage / cancel subscription",
+    cancelDemo: "Cancel premium (demo)",
+    premiumBtn: "⭐ Premium",
+    premiumMember: "⭐ Premium member",
+    toastPremiumOn: "Premium is now active 🎉",
+    toastActivateFail: "Couldn't verify your purchase. Please reopen the app later.",
+    toastCheckoutFail: "Couldn't open the checkout page. Please check your connection.",
+    toastPortalFail: "Couldn't open the management page. Please check your connection.",
+    wakeLockFail: "Keeping the screen on is not supported on this device.",
+  },
+};
+
+let lang = localStorage.getItem("lang");
+if (!STRINGS[lang]) {
+  lang = (navigator.language || "ja").startsWith("ja") ? "ja" : "en";
+}
+
+function t(key, ...args) {
+  const v = STRINGS[lang][key] ?? STRINGS.ja[key] ?? key;
+  return typeof v === "function" ? v(...args) : v;
+}
+
+function applyLang() {
+  document.documentElement.lang = lang;
+  localStorage.setItem("lang", lang);
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll("[data-i18n-html]").forEach((el) => {
+    el.innerHTML = t(el.dataset.i18nHtml);
+  });
+  document.querySelectorAll("[data-i18n-ph]").forEach((el) => {
+    el.placeholder = t(el.dataset.i18nPh);
+  });
+  // 動的に組み立てている文言を現在の状態で再描画
+  $("dest-btn").textContent = alertStation
+    ? t("destSet", alertStation.name)
+    : t("destBtn");
+  if (alertStation) {
+    $("alert-status-text").textContent = t("alertSet", alertStation.name);
+    $("r-alert").textContent = t("alertSet", alertStation.name);
+  }
+  applyPlanUI();
+  renderRideChip();
+  renderLineFilter();
+  if (curPos) render(curPos.lat, curPos.lon);
+}
+
+$("lang-btn").addEventListener("click", () => {
+  lang = lang === "ja" ? "en" : "ja";
+  applyLang();
+});
 
 // =====================================================================
 // プラン管理 (フリーミアム)
@@ -113,9 +309,9 @@ async function initBilling() {
       history.replaceState(null, "", location.pathname);
       try {
         saveLicense(await api("/api/activate", { session_id: sessionId }));
-        showToast("プレミアムが有効になりました 🎉", false);
+        showToast(t("toastPremiumOn"), false);
       } catch {
-        showToast("購入の確認に失敗しました。時間をおいて再度開いてください。");
+        showToast(t("toastActivateFail"));
       }
     } else {
       await maybeRefreshLicense();
@@ -145,7 +341,7 @@ async function startCheckout(plan) {
     const r = await api("/api/checkout", { plan });
     location.href = r.url;
   } catch {
-    showToast("決済ページを開けませんでした。通信状態を確認してください。");
+    showToast(t("toastCheckoutFail"));
   }
 }
 
@@ -156,14 +352,14 @@ async function openPortal() {
     const r = await api("/api/portal", { token: lic.token });
     location.href = r.url;
   } catch {
-    showToast("管理ページを開けませんでした。通信状態を確認してください。");
+    showToast(t("toastPortalFail"));
   }
 }
 
 function applyPlanUI() {
   const premium = isPremium();
   const billing = billingEnabled();
-  $("premium-btn").textContent = premium ? "⭐ プレミアム会員" : "⭐ プレミアム";
+  $("premium-btn").textContent = premium ? t("premiumMember") : t("premiumBtn");
   $("ad-slot").classList.toggle("hidden", premium);
   $("buy-monthly-btn").classList.toggle("hidden", !billing || premium);
   $("buy-yearly-btn").classList.toggle("hidden", !billing || premium);
@@ -245,7 +441,7 @@ function initAds() {
 // =====================================================================
 $("start-btn").addEventListener("click", () => {
   if (!("geolocation" in navigator)) {
-    showError("この端末では位置情報が利用できません。");
+    showError(t("geoUnsupported"));
     return;
   }
   startScreen.classList.add("hidden");
@@ -266,7 +462,7 @@ $("alert-dismiss-btn").addEventListener("click", () => {
 });
 $("line-filter").addEventListener("change", (e) => {
   selectedLine = e.target.value;
-  if (prevPos) render(prevPos.lat, prevPos.lon);
+  if (curPos) render(curPos.lat, curPos.lon);
 });
 
 // =====================================================================
@@ -274,11 +470,12 @@ $("line-filter").addEventListener("change", (e) => {
 // =====================================================================
 async function onPosition(pos) {
   const { latitude: lat, longitude: lon, accuracy } = pos.coords;
-  gpsStatus.textContent = `GPS精度 ±${Math.round(accuracy)}m`;
+  curPos = { lat, lon };
+  gpsStatus.textContent = t("gpsAcc", Math.round(accuracy));
   gpsStatus.classList.add("ok");
   hideError();
 
-  updateHeading(lat, lon, pos.coords.heading);
+  updateHeading(lat, lon, pos.coords.heading, pos.coords.speed);
 
   await selectStationSource(lat, lon);
   render(lat, lon);
@@ -320,28 +517,65 @@ function nearestEmbeddedDist(lat, lon) {
   return min;
 }
 
-// 進行方向を更新する。GPSのheadingが取れない端末では位置の差分から算出
-function updateHeading(lat, lon, gpsHeading) {
-  if (typeof gpsHeading === "number" && !Number.isNaN(gpsHeading)) {
-    heading = gpsHeading;
-  } else if (prevPos) {
-    const moved = haversine(prevPos.lat, prevPos.lon, lat, lon);
-    if (moved >= NEXT_MIN_MOVE_M) {
-      heading = bearing(prevPos.lat, prevPos.lon, lat, lon);
+// 進行方向を更新する。低速時のGPS方位はノイズが大きく逆向きに出ることが
+// あるため、信頼度の高い順に3つの情報源を使い、さらに直近3回の方位が
+// 一致したときだけ表示用の方向を更新する (1回のノイズで反転させない)
+function updateHeading(lat, lon, gpsHeading, speed) {
+  let candidate = null;
+
+  // 1) 直近に停車した駅からの実移動ベクトル (最も信頼できる)
+  if (departureAnchor) {
+    const d = haversine(departureAnchor.lat, departureAnchor.lon, lat, lon);
+    if (d >= 250 && d <= 3000) {
+      candidate = bearing(departureAnchor.lat, departureAnchor.lon, lat, lon);
     }
   }
+  // 2) GPSの方位 (走行速度が十分あるときだけ信用する)
+  if (
+    candidate === null &&
+    typeof gpsHeading === "number" &&
+    !Number.isNaN(gpsHeading) &&
+    typeof speed === "number" &&
+    speed >= 3
+  ) {
+    candidate = gpsHeading;
+  }
+  // 3) 位置の差分
+  if (candidate === null && prevPos) {
+    const moved = haversine(prevPos.lat, prevPos.lon, lat, lon);
+    if (moved >= NEXT_MIN_MOVE_M) {
+      candidate = bearing(prevPos.lat, prevPos.lon, lat, lon);
+    }
+  }
+
+  if (candidate !== null) {
+    headingBuf.push(candidate);
+    if (headingBuf.length > 3) headingBuf.shift();
+    const mean = circularMean(headingBuf);
+    const consistent = headingBuf.every((h) => angleDiff(h, mean) <= 45);
+    if (consistent && headingBuf.length >= 2) heading = mean;
+    // 一致しない間は前回の方向を保持し、表示が暴れないようにする
+  }
+
   if (!prevPos || haversine(prevPos.lat, prevPos.lon, lat, lon) >= NEXT_MIN_MOVE_M) {
     prevPos = { lat, lon };
   }
 }
 
+// 角度の平均 (0度/360度の境界をまたいでも正しく平均できる円形平均)
+function circularMean(arr) {
+  let x = 0;
+  let y = 0;
+  for (const h of arr) {
+    x += Math.cos((h * Math.PI) / 180);
+    y += Math.sin((h * Math.PI) / 180);
+  }
+  return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
+}
+
 function onGeoError(err) {
-  const messages = {
-    1: "位置情報の利用が許可されていません。ブラウザの設定から許可してください。",
-    2: "位置情報を取得できません。地下やトンネル内ではGPSが届かないことがあります。",
-    3: "位置情報の取得がタイムアウトしました。",
-  };
-  showError(messages[err.code] || "位置情報の取得に失敗しました。");
+  const messages = { 1: t("geo1"), 2: t("geo2"), 3: t("geo3") };
+  showError(messages[err.code] || t("geoFail"));
 }
 
 function needsRefetch(lat, lon) {
@@ -355,7 +589,7 @@ function needsRefetch(lat, lon) {
 // =====================================================================
 async function fetchStations(lat, lon) {
   fetching = true;
-  gpsStatus.textContent = "駅データ取得中…";
+  gpsStatus.textContent = t("fetching");
   // プライバシー保護: 外部APIには約1km単位に丸めた座標のみ送信し、
   // 正確な現在地を外部に出さない (丸め誤差ぶん検索半径を広げて補う)
   const qLat = lat.toFixed(2);
@@ -393,7 +627,7 @@ async function fetchStations(lat, lon) {
   }
 
   fetching = false;
-  showError("駅データの取得に失敗しました。通信状態を確認してください。");
+  showError(t("fetchFail"));
 }
 
 function parseOverpass(elements) {
@@ -431,7 +665,11 @@ function renderLineFilter() {
     return;
   }
   const current = selectedLine;
-  select.innerHTML = '<option value="">すべての路線</option>';
+  select.innerHTML = "";
+  const allOpt = document.createElement("option");
+  allOpt.value = "";
+  allOpt.textContent = t("allLines");
+  select.appendChild(allOpt);
   for (const name of lineNames) {
     const opt = document.createElement("option");
     opt.value = name;
@@ -456,7 +694,7 @@ function render(lat, lon) {
   const list = visibleStations();
   if (list.length === 0) {
     stationName.textContent = "---";
-    statusLabel.textContent = "周辺に駅が見つかりません";
+    statusLabel.textContent = t("noStations");
     return;
   }
 
@@ -464,26 +702,40 @@ function render(lat, lon) {
     .map((s) => ({ ...s, dist: haversine(lat, lon, s.lat, s.lon) }))
     .sort((a, b) => a.dist - b.dist);
 
-  const nearest = sorted[0];
+  // 乗車中と推定した路線の駅を優先する (並走する別路線の駅が出る問題への対策)。
+  // ただし極端に遠い駅は選ばず、絶対的な最寄りに戻す
+  let nearest = sorted[0];
+  if (rideLines) {
+    const onLine = sorted.find((s) => s.lines?.some((l) => rideLines.has(l)));
+    if (onLine && onLine.dist <= sorted[0].dist * 1.6 + 200) {
+      nearest = onLine;
+    }
+  }
   const atStation = nearest.dist <= AT_STATION_THRESHOLD_M;
+
+  if (atStation) {
+    // 停車駅の履歴から乗車路線を推定し、出発後の方向判定の基準点にする
+    updateRideInference(nearest);
+    departureAnchor = { name: nearest.name, lat: nearest.lat, lon: nearest.lon };
+  }
 
   if (stationName.textContent !== nearest.name) {
     flashPop(stationName);
     flashPop($("r-station"));
   }
 
-  statusLabel.textContent = atStation ? "🚉 いまここ！" : "最寄り駅";
+  statusLabel.textContent = atStation ? t("here") : t("nearest");
   statusLabel.classList.toggle("at-station", atStation);
   stationName.textContent = nearest.name;
   stationKana.textContent = nearest.kana;
-  distanceEl.textContent = atStation ? "" : `約 ${formatDistance(nearest.dist)}`;
+  distanceEl.textContent = atStation ? "" : t("about", formatDistance(nearest.dist));
   renderLineChips(nearest);
 
   // 車内モード側にも同じ内容を反映
   $("r-status").textContent = statusLabel.textContent;
   $("r-status").classList.toggle("at-station", atStation);
   $("r-station").textContent = nearest.name;
-  $("r-dist").textContent = atStation ? "" : `約 ${formatDistance(nearest.dist)}`;
+  $("r-dist").textContent = atStation ? "" : t("about", formatDistance(nearest.dist));
 
   if (atStation) recordHistory(nearest.name);
   renderNextStation(lat, lon, sorted, nearest);
@@ -493,8 +745,47 @@ function render(lat, lon) {
     nearbyList.appendChild(nearbyItem(s));
   }
 
-  updatedAt.textContent = `更新: ${new Date().toLocaleTimeString("ja-JP")}`;
+  updatedAt.textContent = t(
+    "updated",
+    new Date().toLocaleTimeString(lang === "ja" ? "ja-JP" : "en-US")
+  );
 }
+
+// =====================================================================
+// 乗車路線の自動推定
+// =====================================================================
+// 連続して停車した2駅に共通する路線を「いま乗っている路線」とみなす。
+// 共通路線がない場合 (乗り換えなど) は推定をリセットする
+function updateRideInference(station) {
+  if (lastRideStation?.name === station.name) return;
+  if (lastRideStation) {
+    const common = (station.lines || []).filter((l) =>
+      (lastRideStation.lines || []).includes(l)
+    );
+    rideLines = common.length > 0 ? new Set(common) : null;
+  }
+  lastRideStation = { name: station.name, lines: station.lines || [] };
+  renderRideChip();
+}
+
+function renderRideChip() {
+  const chip = $("ride-chip");
+  if (!rideLines || rideLines.size === 0) {
+    chip.classList.add("hidden");
+    return;
+  }
+  const names = [...rideLines];
+  const label = names[0] + (names.length > 1 ? ` +${names.length - 1}` : "");
+  $("ride-chip-text").textContent = t("rideChip", label);
+  chip.classList.remove("hidden");
+}
+
+$("ride-chip-clear").addEventListener("click", () => {
+  rideLines = null;
+  lastRideStation = null;
+  renderRideChip();
+  if (curPos) render(curPos.lat, curPos.lon);
+});
 
 function nearbyItem(s) {
   const li = document.createElement("li");
@@ -561,9 +852,9 @@ function renderNextStation(lat, lon, sorted, nearest) {
       : "";
 
   if (next) {
-    nextStationEl.textContent = `次は ${next.name}（${formatDistance(next.dist)}）`;
+    nextStationEl.textContent = t("nextIs", next.name, formatDistance(next.dist));
     nextStationEl.classList.remove("hidden");
-    $("r-next").textContent = `次は ${next.name}`;
+    $("r-next").textContent = t("nextIsShort", next.name);
   } else {
     nextStationEl.classList.add("hidden");
     $("r-next").textContent = "";
@@ -586,10 +877,10 @@ function formatDistance(m) {
 async function setAlert(station) {
   if (!requirePremium()) return;
   alertStation = { name: station.name, lat: station.lat, lon: station.lon };
-  $("alert-status-text").textContent = `🔔 ${station.name} で降車アラート設定中`;
+  $("alert-status-text").textContent = t("alertSet", station.name);
   $("alert-status").classList.remove("hidden");
-  $("r-alert").textContent = `🔔 ${station.name} で降車アラート設定中`;
-  $("dest-btn").textContent = `🎯 目的地: ${station.name}（タップで変更）`;
+  $("r-alert").textContent = t("alertSet", station.name);
+  $("dest-btn").textContent = t("destSet", station.name);
   if ("Notification" in window && Notification.permission === "default") {
     try {
       await Notification.requestPermission();
@@ -597,14 +888,14 @@ async function setAlert(station) {
       /* 通知が使えなくても振動と画面表示で知らせる */
     }
   }
-  if (prevPos) render(prevPos.lat, prevPos.lon);
+  if (curPos) render(curPos.lat, curPos.lon);
 }
 
 function cancelAlert() {
   alertStation = null;
   $("alert-status").classList.add("hidden");
   $("r-alert").textContent = "";
-  $("dest-btn").textContent = "🎯 目的地を設定（降車アラート）";
+  $("dest-btn").textContent = t("destBtn");
 }
 
 // =====================================================================
@@ -776,7 +1067,7 @@ function renderLineList() {
     label.append(dot, document.createTextNode(name));
     const count = document.createElement("span");
     count.className = "dist";
-    count.textContent = `${index.get(name).length}駅`;
+    count.textContent = t("stationsCount", index.get(name).length);
     li.append(label, count);
     li.addEventListener("click", () => renderRouteList(name));
     listEl.appendChild(li);
@@ -841,7 +1132,7 @@ function checkAlert(lat, lon) {
   navigator.vibrate?.([400, 200, 400, 200, 800]);
   beep();
   if ("Notification" in window && Notification.permission === "granted") {
-    new Notification("🔔 まもなく到着", { body: `${name} に近づいています`, icon: "icon.svg" });
+    new Notification(t("notifTitle"), { body: t("notifBody", name), icon: "icon.svg" });
   }
 }
 
@@ -986,7 +1277,7 @@ async function toggleWakeLock() {
   if (wakeLock) {
     await releaseWakeLock();
   } else if (!(await acquireWakeLock())) {
-    showError("この端末では画面の常時点灯に対応していません。");
+    showError(t("wakeLockFail"));
   }
 }
 
@@ -1021,9 +1312,7 @@ if (CONFIG.feedbackUrl) {
 
 // 端末内に保存した全データ (履歴・設定・ライセンス) をユーザー自身で削除できる
 $("wipe-btn").addEventListener("click", () => {
-  const ok = confirm(
-    "端末に保存された履歴・目的地・テーマ設定・プレミアム情報をすべて削除します。よろしいですか？"
-  );
+  const ok = confirm(t("wipeConfirm"));
   if (!ok) return;
   localStorage.clear();
   location.reload();
@@ -1045,5 +1334,6 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js").catch(() => {});
 }
 
-// ---- 起動時に課金状態を初期化 (決済リダイレクト処理・ライセンス再検証) ----
+// ---- 起動時に言語と課金状態を初期化 ----
+applyLang();
 initBilling();
