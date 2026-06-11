@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:my-best.com)",
+      "WebFetch(domain:blog-transit.yahoo.co.jp)",
+      "WebFetch(domain:support.yahoo-net.jp)",
+      "WebFetch(domain:apps.apple.com)",
+      "WebFetch(domain:play.google.com)",
+      "Bash(Select-String -Path \"C:\\\\Users\\\\yamat\\\\OneDrive\\\\デスクトップ\\\\IMA_KOKO\\\\imakoko-app\\\\src\\\\data\\\\stations.ts\" -Pattern \"name: '\")",
+      "Bash(Measure-Object)",
+      "Bash(Select-Object -ExpandProperty Count)"
+    ]
+  }
+}

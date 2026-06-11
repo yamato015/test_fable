@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "いまここ！",
+    "slug": "imakoko-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "現在地から最寄り駅を表示するために位置情報を使用します。",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "現在地から最寄り駅を表示するために位置情報を使用します。"
+      }
+    },
+    "android": {
+      "permissions": [
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "現在地から最寄り駅を表示するために位置情報を使用します。"
+        }
+      ]
+    ]
+  }
+}
