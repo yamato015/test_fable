@@ -347,6 +347,104 @@ body {
   cursor: pointer;
 }
 
+/* ---- 路線図ピッカー ---- */
+.dest-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #30363d;
+  background: transparent;
+  color: var(--sub);
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.tab-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+#dest-search-view,
+#dest-lines-view,
+#dest-stations-view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.line-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 10px;
+  vertical-align: -1px;
+}
+
+.line-title {
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.route-list {
+  list-style: none;
+  overflow-y: auto;
+  max-height: 48vh;
+}
+
+.route-list li {
+  position: relative;
+  padding: 12px 8px 12px 38px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+/* 路線図風の縦ライン */
+.route-list li::before {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--route-color, var(--accent2));
+}
+
+.route-list li:first-child::before {
+  top: 50%;
+}
+
+.route-list li:last-child::before {
+  bottom: 50%;
+}
+
+/* 駅の丸 */
+.route-list li::after {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 3px solid var(--route-color, var(--accent2));
+}
+
+.route-list .kana {
+  color: var(--sub);
+  font-size: 0.75rem;
+  margin-left: 10px;
+}
+
 .mode-btn.secondary {
   border-color: var(--accent2);
   color: var(--accent2);

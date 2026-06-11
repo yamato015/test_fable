@@ -615,6 +615,7 @@ const DEST_RESULT_MAX = 50;
 $("dest-btn").addEventListener("click", () => {
   if (!requirePremium()) return;
   $("dest-modal").classList.remove("hidden");
+  showDestView("search");
   $("dest-search").value = "";
   $("dest-clear").classList.toggle("hidden", !alertStation);
   renderDestList("");
@@ -668,6 +669,142 @@ function renderDestList(query) {
     });
     listEl.appendChild(li);
   }
+}
+
+// =====================================================================
+// 路線図ピッカー: 路線 → 駅の2タップで目的地を設定 (通信ゼロ・端末内データのみ)
+// =====================================================================
+// 主要路線の公式に近いラインカラー (未定義の路線はアクセント色で描画)
+const LINE_COLORS = {
+  "JR山手線": "#9acd32",
+  "JR中央線快速": "#f15a22",
+  "JR京浜東北線": "#00b2e5",
+  "JR総武線": "#fdbc00",
+  "JR埼京線": "#00ac84",
+  "JR常磐線": "#00b261",
+  "東京メトロ銀座線": "#ff9500",
+  "東京メトロ丸ノ内線": "#f62e36",
+  "東京メトロ日比谷線": "#b5b5ac",
+  "東京メトロ東西線": "#009bbf",
+  "東京メトロ千代田線": "#00bb85",
+  "東京メトロ有楽町線": "#c1a470",
+  "東京メトロ半蔵門線": "#8f76d6",
+  "東京メトロ南北線": "#00ac9b",
+  "東京メトロ副都心線": "#9c5e31",
+  "都営浅草線": "#e85298",
+  "都営三田線": "#0079c2",
+  "都営新宿線": "#6cbb5a",
+  "都営大江戸線": "#b6007a",
+};
+
+let lineIndexCache = null;
+
+function getLineIndex() {
+  if (!lineIndexCache) {
+    lineIndexCache = new Map();
+    for (const s of EMBEDDED_STATIONS) {
+      for (const l of s.lines) {
+        if (!lineIndexCache.has(l)) lineIndexCache.set(l, []);
+        lineIndexCache.get(l).push(s);
+      }
+    }
+  }
+  return lineIndexCache;
+}
+
+// 駅データは路線順に並んでいる保証がないため、地理的に並べ直す:
+// 最も離れた2駅を端点とみなし、片端から最近傍をたどる (環状線もそのまま一周になる)
+function orderAlongRoute(list) {
+  if (list.length <= 2) return list;
+  let start = 0;
+  let max = -1;
+  for (let i = 0; i < list.length; i++) {
+    for (let j = i + 1; j < list.length; j++) {
+      const d = haversine(list[i].lat, list[i].lon, list[j].lat, list[j].lon);
+      if (d > max) {
+        max = d;
+        start = i;
+      }
+    }
+  }
+  const remaining = new Set(list.keys());
+  const order = [start];
+  remaining.delete(start);
+  while (remaining.size > 0) {
+    const last = list[order[order.length - 1]];
+    let best = -1;
+    let bestDist = Infinity;
+    for (const i of remaining) {
+      const d = haversine(last.lat, last.lon, list[i].lat, list[i].lon);
+      if (d < bestDist) {
+        bestDist = d;
+        best = i;
+      }
+    }
+    order.push(best);
+    remaining.delete(best);
+  }
+  return order.map((i) => list[i]);
+}
+
+function showDestView(view) {
+  $("dest-search-view").classList.toggle("hidden", view !== "search");
+  $("dest-lines-view").classList.toggle("hidden", view !== "lines");
+  $("dest-stations-view").classList.toggle("hidden", view !== "stations");
+  $("dest-tab-search").classList.toggle("active", view === "search");
+  $("dest-tab-lines").classList.toggle("active", view !== "search");
+}
+
+$("dest-tab-search").addEventListener("click", () => showDestView("search"));
+$("dest-tab-lines").addEventListener("click", () => {
+  renderLineList();
+  showDestView("lines");
+});
+$("dest-back").addEventListener("click", () => showDestView("lines"));
+
+function renderLineList() {
+  const listEl = $("line-list");
+  listEl.innerHTML = "";
+  const index = getLineIndex();
+  for (const name of [...index.keys()].sort()) {
+    const li = document.createElement("li");
+    li.className = "dest-item";
+    const label = document.createElement("span");
+    const dot = document.createElement("span");
+    dot.className = "line-dot";
+    dot.style.background = LINE_COLORS[name] || "var(--accent2)";
+    label.append(dot, document.createTextNode(name));
+    const count = document.createElement("span");
+    count.className = "dist";
+    count.textContent = `${index.get(name).length}駅`;
+    li.append(label, count);
+    li.addEventListener("click", () => renderRouteList(name));
+    listEl.appendChild(li);
+  }
+}
+
+function renderRouteList(lineName) {
+  const color = LINE_COLORS[lineName] || "#58a6ff";
+  $("dest-line-title").textContent = lineName;
+  $("dest-line-title").style.color = color;
+  const listEl = $("route-list");
+  listEl.style.setProperty("--route-color", color);
+  listEl.innerHTML = "";
+  for (const s of orderAlongRoute(getLineIndex().get(lineName))) {
+    const li = document.createElement("li");
+    const name = document.createElement("span");
+    name.textContent = s.name;
+    const kana = document.createElement("span");
+    kana.className = "kana";
+    kana.textContent = s.kana;
+    li.append(name, kana);
+    li.addEventListener("click", () => {
+      setAlert(s);
+      closeDestModal();
+    });
+    listEl.appendChild(li);
+  }
+  showDestView("stations");
 }
 
 // =====================================================================

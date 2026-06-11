@@ -101,17 +101,31 @@
       <p class="r-hint">タップで戻る</p>
     </section>
 
-    <!-- 目的地ピッカー (駅名・ひらがな検索 / プレミアム) -->
+    <!-- 目的地ピッカー (検索 / 路線図 / プレミアム) -->
     <div id="dest-modal" class="modal-overlay hidden">
       <div class="modal">
         <div class="modal-header-row">
           <h2>目的地を選択</h2>
           <button id="dest-close" class="text-btn">閉じる</button>
         </div>
-        <input id="dest-search" class="search-input" type="search"
-               placeholder="駅名・ひらがなで検索..." autocomplete="off">
-        <button id="dest-clear" class="text-btn hidden">目的地をクリア</button>
-        <ul id="dest-list" class="nearby-list dest-list"></ul>
+        <div class="dest-tabs">
+          <button id="dest-tab-search" class="tab-btn active">🔍 検索</button>
+          <button id="dest-tab-lines" class="tab-btn">🚇 路線図</button>
+        </div>
+        <div id="dest-search-view">
+          <input id="dest-search" class="search-input" type="search"
+                 placeholder="駅名・ひらがなで検索..." autocomplete="off">
+          <button id="dest-clear" class="text-btn hidden">目的地をクリア</button>
+          <ul id="dest-list" class="nearby-list dest-list"></ul>
+        </div>
+        <div id="dest-lines-view" class="hidden">
+          <ul id="line-list" class="nearby-list dest-list"></ul>
+        </div>
+        <div id="dest-stations-view" class="hidden">
+          <button id="dest-back" class="text-btn">← 路線一覧に戻る</button>
+          <p id="dest-line-title" class="line-title"></p>
+          <ul id="route-list" class="route-list"></ul>
+        </div>
       </div>
     </div>
 
