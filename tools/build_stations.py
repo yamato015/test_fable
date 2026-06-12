@@ -76,7 +76,7 @@ for n, code in enumerate(sorted(line_codes)):
     name = d['name']
     order[name] = [s['name'] for s in d.get('station_list', []) if not s.get('closed')]
     kana = ''
-    meta[name] = {'c': d.get('color') or ''}
+    meta[name] = {'c': d.get('color') or '', 'k': d.get('name_kana') or ''}
     if n % 30 == 0: print(f'{n}/{len(line_codes)} lines...')
 
 # ---- 駅リスト生成 ----

@@ -132,6 +132,7 @@ const STRINGS = {
     backToLines: "← 路線一覧に戻る",
     clearDest: "目的地をクリア",
     searchPh: "駅名・ひらがなで検索...",
+    lineSearchPh: "路線名・駅名で検索...",
     stationsCount: (n) => `${n}駅`,
     pwTitle: "⭐ プレミアムプラン",
     pw1: "🔔 <b>降車アラート</b> — 降りる駅に近づくと振動・通知でお知らせ。寝過ごし防止に",
@@ -204,6 +205,7 @@ const STRINGS = {
     backToLines: "← Back to lines",
     clearDest: "Clear destination",
     searchPh: "Search by station name...",
+    lineSearchPh: "Search lines or stations...",
     stationsCount: (n) => `${n} stations`,
     pwTitle: "⭐ Premium Plan",
     pw1: "🔔 <b>Get-off alert</b> — vibration & notification as you approach your stop. Never sleep past it",
@@ -1080,16 +1082,35 @@ function showDestView(view) {
 
 $("dest-tab-search").addEventListener("click", () => showDestView("search"));
 $("dest-tab-lines").addEventListener("click", () => {
-  renderLineList();
+  renderLineList($("line-search").value.trim());
   showDestView("lines");
 });
+$("line-search").addEventListener("input", (e) =>
+  renderLineList(e.target.value.trim())
+);
 $("dest-back").addEventListener("click", () => showDestView("lines"));
 
-function renderLineList() {
+// 路線名・路線かな・経由駅名のいずれかにマッチする路線を表示
+function lineMatches(name, members, query) {
+  if (!query) return true;
+  const q = query.toLowerCase();
+  if (name.toLowerCase().includes(q)) return true;
+  const kana = (window.LINE_META || {})[name]?.k || "";
+  if (kana.includes(query)) return true;
+  return members.some(
+    (s) =>
+      s.name.includes(query) ||
+      (s.kana || "").includes(query) ||
+      (s.romaji || "").toLowerCase().includes(q)
+  );
+}
+
+function renderLineList(query = "") {
   const listEl = $("line-list");
   listEl.innerHTML = "";
   const index = getLineIndex();
   for (const name of [...index.keys()].sort()) {
+    if (!lineMatches(name, index.get(name), query)) continue;
     const li = document.createElement("li");
     li.className = "dest-item";
     const label = document.createElement("span");
