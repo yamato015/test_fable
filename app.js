@@ -15,15 +15,33 @@ const OVERPASS_ENDPOINTS = [
   "https://overpass.kumi.systems/api/interpreter",
 ];
 
-// ---- 埋め込み駅データ (stations.js / 首都圏511駅) ----
+// ---- 埋め込み駅データ (stations.js / 首都圏+関西 約3,100駅・公式座標) ----
 // 通信不要・路線名が確実なためこちらを優先し、圏外ではOverpassにフォールバック
 const EMBEDDED_STATIONS = (window.STATIONS || []).map((s) => ({
   name: s.name,
   kana: s.nameKana || "",
+  romaji: s.r || "",
   lat: s.lat,
   lon: s.lng,
   lines: s.lines || [],
 }));
+
+// 駅名の表示用ヘルパー。データ上の駅名は同名駅の区別のため
+// 「中津(OsakaMetro)」のような接尾辞が付くことがあるので表示時に外す。
+// 英語モードではローマ字があればローマ字を表示する
+function dispName(s) {
+  const base = (s.name || "").replace(/\(.+?\)$/, "");
+  return lang === "en" && s.romaji ? s.romaji : base;
+}
+
+function dispSub(s) {
+  return lang === "en" ? (s.name || "").replace(/\(.+?\)$/, "") : s.kana || "";
+}
+
+// 路線の公式カラー (stations.jsのLINE_META由来)
+function lineColor(name) {
+  return (window.LINE_META || {})[name]?.c || "#58a6ff";
+}
 
 // ---- 状態 ----
 let stations = [];        // { name, kana, lat, lon, lines: [] }
@@ -87,6 +105,7 @@ const STRINGS = {
     destBtn: "🎯 目的地を設定（降車アラート）",
     destSet: (n) => `🎯 目的地: ${n}（タップで変更）`,
     alertSet: (n) => `🔔 ${n} で降車アラート設定中`,
+    stopsLeft: (n) => `あと${n}駅`,
     cancel: "解除",
     soonTitle: "🔔 まもなく",
     notifTitle: "🔔 まもなく到着",
@@ -158,6 +177,7 @@ const STRINGS = {
     destBtn: "🎯 Set destination (get-off alert)",
     destSet: (n) => `🎯 Destination: ${n} (tap to change)`,
     alertSet: (n) => `🔔 Get-off alert set for ${n}`,
+    stopsLeft: (n) => `${n} ${n === 1 ? "stop" : "stops"} to go`,
     cancel: "Clear",
     soonTitle: "🔔 Arriving soon",
     notifTitle: "🔔 Arriving soon",
@@ -231,11 +251,11 @@ function applyLang() {
   });
   // 動的に組み立てている文言を現在の状態で再描画
   $("dest-btn").textContent = alertStation
-    ? t("destSet", alertStation.name)
+    ? t("destSet", dispName(alertStation))
     : t("destBtn");
   if (alertStation) {
-    $("alert-status-text").textContent = t("alertSet", alertStation.name);
-    $("r-alert").textContent = t("alertSet", alertStation.name);
+    $("alert-status-text").textContent = t("alertSet", dispName(alertStation));
+    $("r-alert").textContent = t("alertSet", dispName(alertStation));
   }
   applyPlanUI();
   renderRideChip();
@@ -719,26 +739,28 @@ function render(lat, lon) {
     departureAnchor = { name: nearest.name, lat: nearest.lat, lon: nearest.lon };
   }
 
-  if (stationName.textContent !== nearest.name) {
+  if (stationName.dataset.raw !== nearest.name) {
+    stationName.dataset.raw = nearest.name;
     flashPop(stationName);
     flashPop($("r-station"));
   }
 
   statusLabel.textContent = atStation ? t("here") : t("nearest");
   statusLabel.classList.toggle("at-station", atStation);
-  stationName.textContent = nearest.name;
-  stationKana.textContent = nearest.kana;
+  stationName.textContent = dispName(nearest);
+  stationKana.textContent = dispSub(nearest);
   distanceEl.textContent = atStation ? "" : t("about", formatDistance(nearest.dist));
   renderLineChips(nearest);
 
   // 車内モード側にも同じ内容を反映
   $("r-status").textContent = statusLabel.textContent;
   $("r-status").classList.toggle("at-station", atStation);
-  $("r-station").textContent = nearest.name;
+  $("r-station").textContent = dispName(nearest);
   $("r-dist").textContent = atStation ? "" : t("about", formatDistance(nearest.dist));
 
   if (atStation) recordHistory(nearest.name);
   renderNextStation(lat, lon, sorted, nearest);
+  renderAlertProgress(lat, lon, nearest);
 
   nearbyList.innerHTML = "";
   for (const s of sorted.slice(1, 1 + NEARBY_COUNT)) {
@@ -790,7 +812,7 @@ $("ride-chip-clear").addEventListener("click", () => {
 function nearbyItem(s) {
   const li = document.createElement("li");
   const name = document.createElement("span");
-  name.textContent = s.name;
+  name.textContent = dispName(s);
   const right = document.createElement("span");
   right.className = "item-right";
   const dist = document.createElement("span");
@@ -848,13 +870,13 @@ function renderNextStation(lat, lon, sorted, nearest) {
 
   prevNextEl.textContent =
     prev || next
-      ? `${prev ? `← ${prev.name}` : ""}${prev && next ? "　|　" : ""}${next ? `${next.name} →` : ""}`
+      ? `${prev ? `← ${dispName(prev)}` : ""}${prev && next ? "　|　" : ""}${next ? `${dispName(next)} →` : ""}`
       : "";
 
   if (next) {
-    nextStationEl.textContent = t("nextIs", next.name, formatDistance(next.dist));
+    nextStationEl.textContent = t("nextIs", dispName(next), formatDistance(next.dist));
     nextStationEl.classList.remove("hidden");
-    $("r-next").textContent = t("nextIsShort", next.name);
+    $("r-next").textContent = t("nextIsShort", dispName(next));
   } else {
     nextStationEl.classList.add("hidden");
     $("r-next").textContent = "";
@@ -876,11 +898,19 @@ function formatDistance(m) {
 // =====================================================================
 async function setAlert(station) {
   if (!requirePremium()) return;
-  alertStation = { name: station.name, lat: station.lat, lon: station.lon };
-  $("alert-status-text").textContent = t("alertSet", station.name);
+  alertStation = {
+    name: station.name,
+    kana: station.kana || "",
+    romaji: station.romaji || "",
+    lat: station.lat,
+    lon: station.lon,
+    lines: station.lines || [],
+  };
+  $("alert-status-text").textContent = t("alertSet", dispName(alertStation));
   $("alert-status").classList.remove("hidden");
-  $("r-alert").textContent = t("alertSet", station.name);
-  $("dest-btn").textContent = t("destSet", station.name);
+  $("r-alert").textContent = t("alertSet", dispName(alertStation));
+  $("dest-btn").textContent = t("destSet", dispName(alertStation));
+  rememberDest(alertStation);
   if ("Notification" in window && Notification.permission === "default") {
     try {
       await Notification.requestPermission();
@@ -943,13 +973,26 @@ function renderDestList(query) {
   const listEl = $("dest-list");
   listEl.innerHTML = "";
   const hits = destCandidates()
-    .filter((s) => !query || s.name.includes(query) || s.kana.includes(query))
+    .filter(
+      (s) =>
+        !query ||
+        s.name.includes(query) ||
+        s.kana.includes(query) ||
+        (s.romaji || "").toLowerCase().includes(query.toLowerCase())
+    )
     .slice(0, DEST_RESULT_MAX);
-  for (const s of hits) {
+  // 検索語が空のときは「最近の目的地」を先頭に出す (毎日同じ駅を使う通勤者向け)
+  let items = hits;
+  if (!query) {
+    const recents = loadRecentDests().map((s) => ({ ...s, recent: true }));
+    const names = new Set(recents.map((s) => s.name));
+    items = [...recents, ...hits.filter((s) => !names.has(s.name))].slice(0, DEST_RESULT_MAX);
+  }
+  for (const s of items) {
     const li = document.createElement("li");
     li.className = "dest-item";
     const name = document.createElement("span");
-    name.textContent = s.name;
+    name.textContent = (s.recent ? "🕐 " : "") + dispName(s);
     const line = document.createElement("span");
     line.className = "dist";
     line.textContent = s.lines?.[0] || "";
@@ -965,29 +1008,6 @@ function renderDestList(query) {
 // =====================================================================
 // 路線図ピッカー: 路線 → 駅の2タップで目的地を設定 (通信ゼロ・端末内データのみ)
 // =====================================================================
-// 主要路線の公式に近いラインカラー (未定義の路線はアクセント色で描画)
-const LINE_COLORS = {
-  "JR山手線": "#9acd32",
-  "JR中央線快速": "#f15a22",
-  "JR京浜東北線": "#00b2e5",
-  "JR総武線": "#fdbc00",
-  "JR埼京線": "#00ac84",
-  "JR常磐線": "#00b261",
-  "東京メトロ銀座線": "#ff9500",
-  "東京メトロ丸ノ内線": "#f62e36",
-  "東京メトロ日比谷線": "#b5b5ac",
-  "東京メトロ東西線": "#009bbf",
-  "東京メトロ千代田線": "#00bb85",
-  "東京メトロ有楽町線": "#c1a470",
-  "東京メトロ半蔵門線": "#8f76d6",
-  "東京メトロ南北線": "#00ac9b",
-  "東京メトロ副都心線": "#9c5e31",
-  "都営浅草線": "#e85298",
-  "都営三田線": "#0079c2",
-  "都営新宿線": "#6cbb5a",
-  "都営大江戸線": "#b6007a",
-};
-
 let lineIndexCache = null;
 
 function getLineIndex() {
@@ -1038,6 +1058,18 @@ function orderAlongRoute(list) {
   return order.map((i) => list[i]);
 }
 
+// 正確な路線順データがあればそれを使い、なければ地理的に並べ直す
+function orderedStations(lineName) {
+  const members = getLineIndex().get(lineName) || [];
+  const order = (window.LINE_ORDER || {})[lineName];
+  if (order) {
+    const byName = new Map(members.map((s) => [s.name, s]));
+    const seq = order.map((n) => byName.get(n)).filter(Boolean);
+    if (seq.length >= members.length * 0.8) return seq;
+  }
+  return orderAlongRoute(members);
+}
+
 function showDestView(view) {
   $("dest-search-view").classList.toggle("hidden", view !== "search");
   $("dest-lines-view").classList.toggle("hidden", view !== "lines");
@@ -1063,7 +1095,7 @@ function renderLineList() {
     const label = document.createElement("span");
     const dot = document.createElement("span");
     dot.className = "line-dot";
-    dot.style.background = LINE_COLORS[name] || "var(--accent2)";
+    dot.style.background = lineColor(name);
     label.append(dot, document.createTextNode(name));
     const count = document.createElement("span");
     count.className = "dist";
@@ -1075,19 +1107,19 @@ function renderLineList() {
 }
 
 function renderRouteList(lineName) {
-  const color = LINE_COLORS[lineName] || "#58a6ff";
+  const color = lineColor(lineName);
   $("dest-line-title").textContent = lineName;
   $("dest-line-title").style.color = color;
   const listEl = $("route-list");
   listEl.style.setProperty("--route-color", color);
   listEl.innerHTML = "";
-  for (const s of orderAlongRoute(getLineIndex().get(lineName))) {
+  for (const s of orderedStations(lineName)) {
     const li = document.createElement("li");
     const name = document.createElement("span");
-    name.textContent = s.name;
+    name.textContent = dispName(s);
     const kana = document.createElement("span");
     kana.className = "kana";
-    kana.textContent = s.kana;
+    kana.textContent = lang === "en" ? "" : s.kana;
     li.append(name, kana);
     li.addEventListener("click", () => {
       setAlert(s);
@@ -1120,12 +1152,58 @@ applyTheme(
     : "green"
 );
 
+// 目的地までの残り距離と駅数を表示する (路線順データがある場合のみ駅数を計算)
+function renderAlertProgress(lat, lon, nearest) {
+  if (!alertStation) return;
+  const d = haversine(lat, lon, alertStation.lat, alertStation.lon);
+  let extra = " ・ " + formatDistance(d);
+  const stops = stopsBetween(nearest.name, alertStation.name, nearest.lines);
+  if (stops !== null && stops > 0) extra += " ・ " + t("stopsLeft", stops);
+  const text = t("alertSet", dispName(alertStation)) + extra;
+  $("alert-status-text").textContent = text;
+  $("r-alert").textContent = text;
+}
+
+function stopsBetween(fromName, toName, lines) {
+  const orderMap = window.LINE_ORDER || {};
+  for (const l of lines || []) {
+    const arr = orderMap[l];
+    if (!arr) continue;
+    const i = arr.indexOf(fromName);
+    const j = arr.indexOf(toName);
+    if (i >= 0 && j >= 0) return Math.abs(i - j);
+  }
+  return null;
+}
+
+// 最近の目的地 (最大5件・端末内のみ)
+function loadRecentDests() {
+  try {
+    return JSON.parse(localStorage.getItem("recentDests")) || [];
+  } catch {
+    return [];
+  }
+}
+
+function rememberDest(st) {
+  const list = loadRecentDests().filter((s) => s.name !== st.name);
+  list.unshift({
+    name: st.name,
+    kana: st.kana || "",
+    romaji: st.romaji || "",
+    lat: st.lat,
+    lon: st.lon,
+    lines: st.lines || [],
+  });
+  localStorage.setItem("recentDests", JSON.stringify(list.slice(0, 5)));
+}
+
 function checkAlert(lat, lon) {
   if (!alertStation) return;
   const dist = haversine(lat, lon, alertStation.lat, alertStation.lon);
   if (dist > ALERT_DISTANCE_M) return;
 
-  const name = alertStation.name;
+  const name = dispName(alertStation);
   cancelAlert();
   $("alert-overlay-station").textContent = name;
   $("alert-overlay").classList.remove("hidden");
