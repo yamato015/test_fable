@@ -15,7 +15,7 @@ window.APP_CONFIG = {
   // Cloudflare Web Analytics (Cookie不使用・無料)
   // https://dash.cloudflare.com → Web Analytics でサイト登録して得たトークン。
   // 空文字のままだとアクセス解析は一切行わない
-  cloudflareAnalyticsToken: "",
+  cloudflareAnalyticsToken: "aac7b4535a5644789782592fc6258e2a",
 
   // ベータ版フィードバックの送り先 (GoogleフォームのURLや "mailto:..." など)
   // 空文字のままだとフィードバックリンクは表示されない
