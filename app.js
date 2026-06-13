@@ -82,6 +82,7 @@ const errorBanner = $("error-banner");
 // 駅名は元データが日本語のため両言語で日本語表示 (ローマ字対応は今後の課題)
 const STRINGS = {
   ja: {
+    appName: "エキココ",
     tagline: "混雑した電車内でも、<br>いまどの駅にいるかすぐわかる。",
     startBtn: "現在地を確認する",
     startNote: "位置情報の利用を許可してください。<br>位置情報は端末内でのみ使用され、保存されません。",
@@ -155,6 +156,7 @@ const STRINGS = {
     wakeLockFail: "この端末では画面の常時点灯に対応していません。",
   },
   en: {
+    appName: "EkiKoko",
     tagline: "Know exactly which station you're at,<br>even on a packed train.",
     startBtn: "Show my location",
     startNote: "Please allow location access.<br>Your location is processed only on this device and never stored.",

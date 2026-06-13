@@ -1,4 +1,4 @@
-name = "imakoko-billing"
+name = "ekikoko-billing"
 main = "worker.mjs"
 compatibility_date = "2026-06-01"
 

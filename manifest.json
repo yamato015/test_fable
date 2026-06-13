@@ -1,6 +1,6 @@
 {
-  "name": "いまここ！ - 現在駅チェッカー",
-  "short_name": "いまここ！",
+  "name": "エキココ - 今どの駅かわかるアプリ",
+  "short_name": "エキココ",
   "description": "電車内で現在いる駅・最寄り駅をすぐ確認できるアプリ",
   "start_url": "./",
   "display": "standalone",

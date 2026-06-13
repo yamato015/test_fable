@@ -40,7 +40,7 @@ iOSはTWA相当の仕組みがないため [Capacitor](https://capacitorjs.com/)
 
 ```bash
 npm init -y && npm i @capacitor/core @capacitor/cli
-npx cap init いまここ jp.imakoko.app --web-dir .
+npx cap init エキココ jp.ekikoko.app --web-dir .
 npx cap add ios
 ```
 

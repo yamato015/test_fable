@@ -3,7 +3,7 @@
 // デプロイ環境ごとの設定。アプリ本体のロジックは app.js を参照。
 window.APP_CONFIG = {
   // 課金バックエンドのURL (server/ をCloudflare Workersにデプロイして得たURL)
-  // 例: "https://imakoko-billing.example.workers.dev"
+  // 例: "https://ekikoko-billing.example.workers.dev"
   // 空文字のままだと課金はデモモード (即時有効化) で動作する
   backendUrl: "",
 
