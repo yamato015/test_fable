@@ -50,8 +50,15 @@ wrangler deploy
 - 端末をまたぐ復元（機種変更）は現状非対応。必要になったら
   Stripeの`customer_email`を使った再ログイン導線を追加する
 
+## 解約の反映タイミング
+
+`/api/refresh` は毎回Stripeにサブスク状態を問い合わせるため、解約は
+**クライアントが次に再チェックしたとき**に反映される。再チェック間隔は
+アプリ側の `LICENSE_RECHECK_MS`（現在1時間）で制御。つまり解約後、
+ユーザーが次にアプリを開いて1時間以上経っていれば失効する。
+
 ## 将来の拡張
 
-- Stripe Webhook (`customer.subscription.deleted` 等) で即時失効を反映
-  （現状は最大30日のトークン期限で自然失効）
+- Stripe Webhook (`customer.subscription.deleted` 等) + KV で「本当の即時失効」。
+  ただしプレミアム機能は端末内で完結するため、効果は限定的。スケール後に検討
 - KVを追加してレート制限・監査ログを実装

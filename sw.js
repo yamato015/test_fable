@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "ekikoko-v13";
+const CACHE_NAME = "ekikoko-v14";
 const ASSETS = [
   "./",
   "index.html",

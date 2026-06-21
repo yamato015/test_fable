@@ -281,7 +281,7 @@ $("lang-btn").addEventListener("click", () => {
 // 保持し、期限が切れる前にStripeのサブスク状態を再検証して更新する。
 const CONFIG = window.APP_CONFIG || {};
 const BACKEND_URL = (CONFIG.backendUrl || "").replace(/\/+$/, "");
-const LICENSE_RECHECK_MS = 24 * 3600 * 1000; // サブスク状態の再確認間隔
+const LICENSE_RECHECK_MS = 1 * 3600 * 1000; // サブスク状態の再確認間隔 (解約を約1時間以内に反映)
 
 function billingEnabled() {
   return BACKEND_URL !== "";
