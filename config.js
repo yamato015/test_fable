@@ -19,5 +19,5 @@ window.APP_CONFIG = {
 
   // ベータ版フィードバックの送り先 (GoogleフォームのURLや "mailto:..." など)
   // 空文字のままだとフィードバックリンクは表示されない
-  feedbackUrl: "",
+  feedbackUrl: "https://tally.so/r/PdgXxx",
 };
