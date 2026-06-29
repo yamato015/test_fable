@@ -22,7 +22,8 @@
 |---|---|
 | `index.html` | 画面構造。文言は `data-i18n` 属性で多言語化 |
 | `app.js` | 本体ロジック（位置取得・最寄り判定・課金・i18n・全機能） |
-| `stations.js` | 駅データ（`window.STATIONS` / `LINE_ORDER` / `LINE_META`）。**自動生成物・手編集しない** |
+| `stations.js` | 駅データ（`window.STATIONS` / `LINE_ORDER` / `LINE_META`）。首都圏+関西・フル。**自動生成物・手編集しない** |
+| `stations_jp.js` | 全国の駅 検索用最小インデックス（`window.STATIONS_JP`）。目的地検索を開いたとき**遅延ロード**（初回ロードを軽く保つ）。**自動生成物** |
 | `config.js` | デプロイ環境ごとの設定（後述）。機能のON/OFFはここ |
 | `style.css` | スタイル。テーマは `body[data-theme]` で切替 |
 | `sw.js` | Service Worker。`CACHE_NAME` がキャッシュのバージョン |
@@ -63,7 +64,6 @@ python3 tools/build_stations.py
 | `adsenseClient` | 広告枠はプレースホルダ | AdSense配信 |
 | `cloudflareAnalyticsToken` | 解析なし | アクセス解析（設定済み） |
 | `feedbackUrl` | フィードバック非表示 | フィードバックリンク表示 |
-| `transitApiUrl` | 目的地検索は内蔵データのみ | 全国の駅を検索（Transit API・駅名テキストのみ送信） |
 
 ## コード規約・注意
 

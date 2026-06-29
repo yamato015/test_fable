@@ -134,7 +134,7 @@ const STRINGS = {
     clearDest: "目的地をクリア",
     searchPh: "駅名・ひらがなで検索...",
     lineSearchPh: "路線名・駅名で検索...",
-    apiCredit: "🌐 は全国検索(Transit API)の結果",
+    apiCredit: "🌐 は全国の駅（首都圏・関西以外）",
     stationsCount: (n) => `${n}駅`,
     pwTitle: "⭐ プレミアムプラン",
     pw1: "🔔 <b>降車アラート</b> — 降りる駅に近づくと振動・通知でお知らせ。寝過ごし防止に",
@@ -209,7 +209,7 @@ const STRINGS = {
     clearDest: "Clear destination",
     searchPh: "Search by station name...",
     lineSearchPh: "Search lines or stations...",
-    apiCredit: "🌐 = nationwide results (Transit API)",
+    apiCredit: "🌐 = nationwide stations (outside Tokyo/Kansai)",
     stationsCount: (n) => `${n} stations`,
     pwTitle: "⭐ Premium Plan",
     pw1: "🔔 <b>Get-off alert</b> — vibration & notification as you approach your stop. Never sleep past it",
@@ -962,54 +962,76 @@ function closeDestModal() {
 }
 
 // =====================================================================
-// 全国駅検索 (Transit API / locations/suggest)
+// 全国駅検索 (自前データ / stations_jp.js を遅延ロード)
 // =====================================================================
-// 内蔵データ(首都圏+関西)に無い駅も目的地に設定できるよう、入力テキストで
-// 全国の駅を検索する。送るのは駅名テキストのみ＝現在地は送らない。
-// オフラインやAPI障害時は内蔵検索だけで動作する (graceful degradation)。
-const TRANSIT_API = (CONFIG.transitApiUrl || "").replace(/\/+$/, "");
-let apiSearchResults = []; // 直近のAPI検索結果 (内蔵結果とマージして表示)
-let apiSearchSeq = 0;      // 競合する非同期検索のうち最新だけ採用するための番号
-let apiSearchTimer = null;
+// 内蔵データ(首都圏+関西)に無い駅も目的地に設定できるよう、全国の駅インデックス
+// (約9,000駅・名前/かな/ローマ字/座標のみ) を別ファイルで持つ。初回ロードを
+// 軽く保つため目的地検索を使ったときだけ取得し、以降はSWがキャッシュする。
+// 検索は端末内で完結し、外部に何も送信しない。
+let jpIndex = null;        // window.STATIONS_JP (ロード後)
+let jpIndexLoading = null; // 多重ロード防止
+let jpResults = [];        // 直近の全国検索結果 (内蔵結果とマージして表示)
+let jpSearchSeq = 0;
 
-function transitSearchEnabled() {
-  return TRANSIT_API !== "";
+function loadJpIndex() {
+  if (jpIndex) return Promise.resolve(jpIndex);
+  if (jpIndexLoading) return jpIndexLoading;
+  jpIndexLoading = new Promise((resolve) => {
+    if (window.STATIONS_JP) {
+      jpIndex = window.STATIONS_JP;
+      resolve(jpIndex);
+      return;
+    }
+    const sc = document.createElement("script");
+    sc.src = "stations_jp.js";
+    sc.onload = () => {
+      jpIndex = window.STATIONS_JP || [];
+      resolve(jpIndex);
+    };
+    sc.onerror = () => {
+      // オフラインで未キャッシュなら内蔵検索のみで継続
+      jpIndex = [];
+      resolve(jpIndex);
+    };
+    document.head.appendChild(sc);
+  });
+  return jpIndexLoading;
 }
 
 function onDestSearchInput(query) {
-  renderDestList(query); // まず内蔵データで即時表示 (オフラインでもここは動く)
-  if (!transitSearchEnabled() || query.length < 2) {
-    apiSearchResults = [];
+  renderDestList(query); // まず内蔵データで即時表示
+  if (query.length < 2) {
+    jpResults = [];
     return;
   }
-  clearTimeout(apiSearchTimer);
-  apiSearchTimer = setTimeout(() => searchTransitApi(query), 300);
+  loadJpIndex().then((idx) => searchJp(query, idx));
 }
 
-async function searchTransitApi(query) {
-  const seq = ++apiSearchSeq;
-  try {
-    const res = await fetch(
-      `${TRANSIT_API}/api/v1/locations/suggest?q=${encodeURIComponent(query)}&limit=15`
-    );
-    if (!res.ok) return;
-    const data = await res.json();
-    if (seq !== apiSearchSeq) return; // より新しい入力が来ていたら破棄
-    apiSearchResults = (data.stations || [])
-      .filter((s) => typeof s.lat === "number" && typeof s.lon === "number")
-      .map((s) => ({
+function searchJp(query, idx) {
+  const seq = ++jpSearchSeq;
+  const q = query.toLowerCase();
+  const hits = [];
+  for (const s of idx) {
+    if (
+      s.name.includes(query) ||
+      (s.k || "").includes(query) ||
+      (s.r || "").toLowerCase().includes(q)
+    ) {
+      hits.push({
         name: s.name,
-        kana: s.nameKana || "",
-        romaji: "",
+        kana: s.k || "",
+        romaji: s.r || "",
         lat: s.lat,
-        lon: s.lon,
+        lon: s.lng,
         lines: [],
-        source: "api",
-      }));
-    renderDestList(query);
-  } catch {
-    /* オフライン・通信失敗時は内蔵検索のみで継続 */
+        source: "jp",
+      });
+      if (hits.length >= 30) break;
+    }
   }
+  if (seq !== jpSearchSeq) return; // より新しい入力が来ていたら破棄
+  jpResults = hits;
+  renderDestList(query);
 }
 
 // 検索対象 = 埋め込み全駅 + 取得済みの周辺駅 (同名はマージ)
@@ -1026,6 +1048,15 @@ function destCandidates() {
   return [...seen.values()];
 }
 
+// 検索語との一致度 (小さいほど上位): 完全一致 < 前方一致 < かな前方 < ローマ字前方 < 部分一致
+function destRelevance(s, query, q) {
+  if (s.name === query) return 0;
+  if (s.name.startsWith(query)) return 1;
+  if ((s.kana || "").startsWith(query)) return 2;
+  if ((s.romaji || "").toLowerCase().startsWith(q)) return 3;
+  return 4;
+}
+
 function renderDestList(query) {
   const listEl = $("dest-list");
   listEl.innerHTML = "";
@@ -1037,25 +1068,35 @@ function renderDestList(query) {
       (s.romaji || "").toLowerCase().includes(query.toLowerCase())
   );
 
-  // 内蔵に無い駅は全国検索(API)の結果で補完。同名は内蔵を優先(路線情報を持つため)
-  const localNames = new Set(hits.map((s) => s.name));
-  const apiExtra = query
-    ? apiSearchResults.filter((s) => !localNames.has(s.name))
-    : [];
-  let items = [...hits, ...apiExtra].slice(0, DEST_RESULT_MAX);
-
-  // 検索語が空のときは「最近の目的地」を先頭に出す (毎日同じ駅を使う通勤者向け)
+  let items;
   if (!query) {
+    // 検索語が空のときは「最近の目的地」を先頭に (毎日同じ駅を使う通勤者向け)
     const recents = loadRecentDests().map((s) => ({ ...s, recent: true }));
     const names = new Set(recents.map((s) => s.name));
     items = [...recents, ...hits.filter((s) => !names.has(s.name))].slice(0, DEST_RESULT_MAX);
+  } else {
+    // 内蔵に無い駅は全国データで補完し、完全一致→前方一致→部分一致の順に並べる
+    const localNames = new Set(hits.map((s) => s.name));
+    const jpExtra = jpResults.filter((s) => !localNames.has(s.name));
+    const q = query.toLowerCase();
+    items = [...hits, ...jpExtra]
+      .sort((a, b) => {
+        const sa = destRelevance(a, query, q);
+        const sb = destRelevance(b, query, q);
+        if (sa !== sb) return sa - sb;
+        const la = a.source === "jp" ? 1 : 0; // 同点なら内蔵(路線情報あり)を優先
+        const lb = b.source === "jp" ? 1 : 0;
+        if (la !== lb) return la - lb;
+        return a.name.length - b.name.length;
+      })
+      .slice(0, DEST_RESULT_MAX);
   }
 
   for (const s of items) {
     const li = document.createElement("li");
     li.className = "dest-item";
     const name = document.createElement("span");
-    const prefix = s.recent ? "🕐 " : s.source === "api" ? "🌐 " : "";
+    const prefix = s.recent ? "🕐 " : s.source === "jp" ? "🌐 " : "";
     name.textContent = prefix + dispName(s);
     const line = document.createElement("span");
     line.className = "dist";
@@ -1068,12 +1109,12 @@ function renderDestList(query) {
     listEl.appendChild(li);
   }
 
-  // API由来の結果を表示しているときは出典を明示
+  // 全国データ由来の結果を表示しているときは目印を説明
   const credit = $("dest-credit");
   if (credit) {
-    const usingApi = items.some((s) => s.source === "api");
-    credit.textContent = usingApi ? t("apiCredit") : "";
-    credit.classList.toggle("hidden", !usingApi);
+    const usingJp = items.some((s) => s.source === "jp");
+    credit.textContent = usingJp ? t("apiCredit") : "";
+    credit.classList.toggle("hidden", !usingJp);
   }
 }
 

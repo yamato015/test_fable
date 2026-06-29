@@ -60,6 +60,28 @@ def kana_to_romaji(kana):
     r = re.sub(r'([aiueo])\1', r'\1', r)
     return r.capitalize()
 
+# ---- 全国の検索用最小インデックス (stations_jp.js) ----
+# 目的地の「全国検索」用。名前・かな・ローマ字・座標のみで路線情報は持たない。
+# stations.js とは別ファイルにして遅延ロードし、初回ロードを軽く保つ。
+all_st = [s for s in json.load(open('/tmp/sdb_station.json')) if not s['closed']]
+jp_seen = {}
+for s in all_st:
+    if s['name'] in jp_seen:
+        continue
+    jp_seen[s['name']] = {
+        'name': s['name'],
+        'k': s.get('name_kana') or '',
+        'r': kana_to_romaji(s['name_kana']) if s.get('name_kana') else '',
+        'lat': round(s['lat'], 5),
+        'lng': round(s['lng'], 5),
+    }
+jp_arr = list(jp_seen.values())
+jp_body = ('// 全国の駅 検索用最小インデックス (遅延ロード)。出典/再生成は stations.js と同じ。\n'
+           '"use strict";\nwindow.STATIONS_JP = '
+           + json.dumps(jp_arr, ensure_ascii=False, separators=(',', ':')) + ';\n')
+open('/home/user/test_fable/stations_jp.js', 'w').write(jp_body)
+print('全国インデックス:', len(jp_arr), '駅 /', len(jp_body.encode()) // 1024, 'KB')
+
 # ---- 路線詳細 (駅順・公式カラー) を取得 ----
 order, meta = {}, {}
 for n, code in enumerate(sorted(line_codes)):
