@@ -365,6 +365,14 @@ body {
   cursor: pointer;
 }
 
+.api-credit {
+  font-size: 0.72rem;
+  color: var(--sub);
+  text-align: center;
+  padding-top: 4px;
+  opacity: 0.8;
+}
+
 /* ---- 路線図ピッカー ---- */
 .dest-tabs {
   display: flex;

@@ -134,6 +134,7 @@ const STRINGS = {
     clearDest: "目的地をクリア",
     searchPh: "駅名・ひらがなで検索...",
     lineSearchPh: "路線名・駅名で検索...",
+    apiCredit: "🌐 は全国検索(Transit API)の結果",
     stationsCount: (n) => `${n}駅`,
     pwTitle: "⭐ プレミアムプラン",
     pw1: "🔔 <b>降車アラート</b> — 降りる駅に近づくと振動・通知でお知らせ。寝過ごし防止に",
@@ -208,6 +209,7 @@ const STRINGS = {
     clearDest: "Clear destination",
     searchPh: "Search by station name...",
     lineSearchPh: "Search lines or stations...",
+    apiCredit: "🌐 = nationwide results (Transit API)",
     stationsCount: (n) => `${n} stations`,
     pwTitle: "⭐ Premium Plan",
     pw1: "🔔 <b>Get-off alert</b> — vibration & notification as you approach your stop. Never sleep past it",
@@ -952,11 +954,62 @@ $("dest-clear").addEventListener("click", () => {
   closeDestModal();
 });
 $("dest-search").addEventListener("input", (e) =>
-  renderDestList(e.target.value.trim())
+  onDestSearchInput(e.target.value.trim())
 );
 
 function closeDestModal() {
   $("dest-modal").classList.add("hidden");
+}
+
+// =====================================================================
+// 全国駅検索 (Transit API / locations/suggest)
+// =====================================================================
+// 内蔵データ(首都圏+関西)に無い駅も目的地に設定できるよう、入力テキストで
+// 全国の駅を検索する。送るのは駅名テキストのみ＝現在地は送らない。
+// オフラインやAPI障害時は内蔵検索だけで動作する (graceful degradation)。
+const TRANSIT_API = (CONFIG.transitApiUrl || "").replace(/\/+$/, "");
+let apiSearchResults = []; // 直近のAPI検索結果 (内蔵結果とマージして表示)
+let apiSearchSeq = 0;      // 競合する非同期検索のうち最新だけ採用するための番号
+let apiSearchTimer = null;
+
+function transitSearchEnabled() {
+  return TRANSIT_API !== "";
+}
+
+function onDestSearchInput(query) {
+  renderDestList(query); // まず内蔵データで即時表示 (オフラインでもここは動く)
+  if (!transitSearchEnabled() || query.length < 2) {
+    apiSearchResults = [];
+    return;
+  }
+  clearTimeout(apiSearchTimer);
+  apiSearchTimer = setTimeout(() => searchTransitApi(query), 300);
+}
+
+async function searchTransitApi(query) {
+  const seq = ++apiSearchSeq;
+  try {
+    const res = await fetch(
+      `${TRANSIT_API}/api/v1/locations/suggest?q=${encodeURIComponent(query)}&limit=15`
+    );
+    if (!res.ok) return;
+    const data = await res.json();
+    if (seq !== apiSearchSeq) return; // より新しい入力が来ていたら破棄
+    apiSearchResults = (data.stations || [])
+      .filter((s) => typeof s.lat === "number" && typeof s.lon === "number")
+      .map((s) => ({
+        name: s.name,
+        kana: s.nameKana || "",
+        romaji: "",
+        lat: s.lat,
+        lon: s.lon,
+        lines: [],
+        source: "api",
+      }));
+    renderDestList(query);
+  } catch {
+    /* オフライン・通信失敗時は内蔵検索のみで継続 */
+  }
 }
 
 // 検索対象 = 埋め込み全駅 + 取得済みの周辺駅 (同名はマージ)
@@ -976,27 +1029,34 @@ function destCandidates() {
 function renderDestList(query) {
   const listEl = $("dest-list");
   listEl.innerHTML = "";
-  const hits = destCandidates()
-    .filter(
-      (s) =>
-        !query ||
-        s.name.includes(query) ||
-        s.kana.includes(query) ||
-        (s.romaji || "").toLowerCase().includes(query.toLowerCase())
-    )
-    .slice(0, DEST_RESULT_MAX);
+  const hits = destCandidates().filter(
+    (s) =>
+      !query ||
+      s.name.includes(query) ||
+      s.kana.includes(query) ||
+      (s.romaji || "").toLowerCase().includes(query.toLowerCase())
+  );
+
+  // 内蔵に無い駅は全国検索(API)の結果で補完。同名は内蔵を優先(路線情報を持つため)
+  const localNames = new Set(hits.map((s) => s.name));
+  const apiExtra = query
+    ? apiSearchResults.filter((s) => !localNames.has(s.name))
+    : [];
+  let items = [...hits, ...apiExtra].slice(0, DEST_RESULT_MAX);
+
   // 検索語が空のときは「最近の目的地」を先頭に出す (毎日同じ駅を使う通勤者向け)
-  let items = hits;
   if (!query) {
     const recents = loadRecentDests().map((s) => ({ ...s, recent: true }));
     const names = new Set(recents.map((s) => s.name));
     items = [...recents, ...hits.filter((s) => !names.has(s.name))].slice(0, DEST_RESULT_MAX);
   }
+
   for (const s of items) {
     const li = document.createElement("li");
     li.className = "dest-item";
     const name = document.createElement("span");
-    name.textContent = (s.recent ? "🕐 " : "") + dispName(s);
+    const prefix = s.recent ? "🕐 " : s.source === "api" ? "🌐 " : "";
+    name.textContent = prefix + dispName(s);
     const line = document.createElement("span");
     line.className = "dist";
     line.textContent = s.lines?.[0] || "";
@@ -1006,6 +1066,14 @@ function renderDestList(query) {
       closeDestModal();
     });
     listEl.appendChild(li);
+  }
+
+  // API由来の結果を表示しているときは出典を明示
+  const credit = $("dest-credit");
+  if (credit) {
+    const usingApi = items.some((s) => s.source === "api");
+    credit.textContent = usingApi ? t("apiCredit") : "";
+    credit.classList.toggle("hidden", !usingApi);
   }
 }
 

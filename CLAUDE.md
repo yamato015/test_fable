@@ -63,6 +63,7 @@ python3 tools/build_stations.py
 | `adsenseClient` | 広告枠はプレースホルダ | AdSense配信 |
 | `cloudflareAnalyticsToken` | 解析なし | アクセス解析（設定済み） |
 | `feedbackUrl` | フィードバック非表示 | フィードバックリンク表示 |
+| `transitApiUrl` | 目的地検索は内蔵データのみ | 全国の駅を検索（Transit API・駅名テキストのみ送信） |
 
 ## コード規約・注意
 
