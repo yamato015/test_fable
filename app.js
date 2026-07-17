@@ -135,6 +135,44 @@ const STRINGS = {
     searchPh: "駅名・ひらがなで検索...",
     lineSearchPh: "路線名・駅名で検索...",
     apiCredit: "🌐 は全国の駅（首都圏・関西以外）",
+    guideBtn: "🎫 駅の乗り方ガイド",
+    guideTitle: "🎫 駅の乗り方ガイド",
+    guideAsk: "何で乗りますか？（選ぶと案内が絞られます）",
+    ticketQr: "📱 QRチケット",
+    ticketIc: "💳 ICカード",
+    ticketPaper: "🎫 紙のきっぷ",
+    ticketJrpass: "🚅 JR Pass",
+    gQrTitle: "📱 QRチケットでの通り方",
+    gQr:
+      "<li><b>QRリーダー付きの改札機を探す</b> — すべての改札がQR対応ではありません。読み取り面（小さなガラスのスキャナ）が上面にある改札機へ。多くは有人窓口の近くにあります</li>" +
+      "<li>画面の明るさを上げ、QRコードをスキャナに<b>かざして静止</b>。扉が開いてから進みます</li>" +
+      "<li>紙に印刷したQRも同じくかざします。<b>出場時にも同じQRを使う</b>ので捨てないでください</li>" +
+      "<li>読み取れない・QR改札が見つからないときは<b>有人改札</b>で係員にチケットを見せれば通れます</li>",
+    gIcTitle: "💳 ICカードでの通り方",
+    gIc:
+      "<li>Suica/PASMO等は駅の券売機で購入・チャージできます（訪日客は空港のWelcome Suicaや、iPhoneのApple WalletでSuica追加も便利）</li>" +
+      "<li>改札の<b>青く光るIC読み取り部に約1秒タッチ</b>。ピッと鳴って扉が開きます</li>" +
+      "<li><b>入場と出場は同じカード</b>で。残高不足だと出場時に閉まります → 精算機へ（下記）</li>",
+    gPaperTitle: "🎫 紙のきっぷでの通り方",
+    gPaper:
+      "<li>券売機で購入。運賃表が読めなければ<b>最安のきっぷを買ってOK</b>（降車駅で精算できます）</li>" +
+      "<li>改札の<b>投入口にきっぷを入れて</b>通り、<b>出てきたきっぷを必ず取って</b>ください</li>" +
+      "<li>降車駅の改札では回収されるので、そのまま通ればOKです</li>",
+    gJrTitle: "🚅 JR Pass・周遊パスでの通り方",
+    gJr:
+      "<li>新しいJR Passは自動改札に<b>きっぷと同じように投入</b>できます（出てきたら受け取る）</li>" +
+      "<li>投入できないタイプの周遊パスは<b>有人改札で提示</b>して通ります</li>" +
+      "<li><b>JR PassはJR線のみ有効</b>。地下鉄・私鉄では使えません（別料金）</li>",
+    gFareTitle: "💰 改札が閉まったら（精算）",
+    gFare:
+      "<li>出場時に扉が閉まっても慌てなくて大丈夫。改札近くの<b>「のりこし精算機 (Fare Adjustment)」</b>へ</li>" +
+      "<li>きっぷ/ICを入れて不足分を払うと出場券が出ます。それで改札を通れます</li>" +
+      "<li>精算機が見つからなければ有人改札で係員に伝えればOKです</li>",
+    gTransferTitle: "🔁 会社をまたぐ乗り換え",
+    gTransfer:
+      "<li>JR・東京メトロ・都営・私鉄は<b>別会社で運賃も別</b>。乗り換えでは一度改札を出て、入り直すのが基本です</li>" +
+      "<li><b>オレンジ色の乗換改札</b>は「連絡乗換用」。きっぷ/ICをそのまま使って乗り換えられます</li>" +
+      "<li>迷ったら案内サイン（Transfer / のりかえ）の色と会社ロゴを目印に</li>",
     stationsCount: (n) => `${n}駅`,
     pwTitle: "⭐ プレミアムプラン",
     pw1: "🔔 <b>降車アラート</b> — 降りる駅に近づくと振動・通知でお知らせ。寝過ごし防止に",
@@ -210,6 +248,44 @@ const STRINGS = {
     searchPh: "Search by station name...",
     lineSearchPh: "Search lines or stations...",
     apiCredit: "🌐 = nationwide stations (outside Tokyo/Kansai)",
+    guideBtn: "🎫 Station Guide (how to ride)",
+    guideTitle: "🎫 Station Guide",
+    guideAsk: "What are you traveling with? (pick one to personalize)",
+    ticketQr: "📱 QR ticket",
+    ticketIc: "💳 IC card",
+    ticketPaper: "🎫 Paper ticket",
+    ticketJrpass: "🚅 JR Pass",
+    gQrTitle: "📱 Passing the gate with a QR ticket",
+    gQr:
+      "<li><b>Find a gate with a QR reader</b> — not every gate accepts QR. Look for a small glass scanner on top of the gate; these are often near the staffed window</li>" +
+      "<li>Turn your screen brightness up, <b>hold the QR code still over the scanner</b>, and walk through once the doors open</li>" +
+      "<li>Printed QR works the same way. <b>Keep it — you need the same QR to exit</b></li>" +
+      "<li>If it won't scan or you can't find a QR gate, go to the <b>staffed gate</b> and show your ticket</li>",
+    gIcTitle: "💳 Passing the gate with an IC card",
+    gIc:
+      "<li>Buy/charge Suica or PASMO at station machines (Welcome Suica at airports; on iPhone you can add Suica in Apple Wallet)</li>" +
+      "<li><b>Touch the card flat on the glowing blue IC reader for about 1 second</b> — beep, doors open</li>" +
+      "<li><b>Enter and exit with the same card.</b> If your balance is too low the exit gate closes → use Fare Adjustment (below)</li>",
+    gPaperTitle: "🎫 Passing the gate with a paper ticket",
+    gPaper:
+      "<li>Buy at the ticket machine. Can't read the fare map? <b>Buy the cheapest ticket</b> — you can pay the difference at your destination</li>" +
+      "<li><b>Insert the ticket into the slot</b> at the gate, walk through, and <b>take the ticket as it pops out</b></li>" +
+      "<li>At your final station the gate keeps the ticket — just walk through</li>",
+    gJrTitle: "🚅 Passing the gate with a JR Pass",
+    gJr:
+      "<li>Newer JR Passes go <b>into the automatic gate like a paper ticket</b> (take it as it pops out)</li>" +
+      "<li>Passes that can't be inserted: <b>show them at the staffed gate</b></li>" +
+      "<li><b>JR Pass is valid on JR lines only</b> — subways and private railways charge separately</li>",
+    gFareTitle: "💰 Gate closed on you? (Fare Adjustment)",
+    gFare:
+      "<li>Don't panic. Find the <b>\"Fare Adjustment\" machine</b> near the exit gates</li>" +
+      "<li>Insert your ticket/IC, pay the difference, and you'll get an exit ticket</li>" +
+      "<li>No machine in sight? The staff at the staffed gate will sort it out</li>",
+    gTransferTitle: "🔁 Transferring between companies",
+    gTransfer:
+      "<li>JR, Tokyo Metro, Toei and private railways are <b>separate companies with separate fares</b> — transferring usually means exiting the gates and entering again</li>" +
+      "<li><b>Orange transfer gates</b> are for connected transfers — use your ticket/IC there without fully exiting</li>" +
+      "<li>When lost, follow the Transfer signs and match the line color and company logo</li>",
     stationsCount: (n) => `${n} stations`,
     pwTitle: "⭐ Premium Plan",
     pw1: "🔔 <b>Get-off alert</b> — vibration & notification as you approach your stop. Never sleep past it",
@@ -419,6 +495,48 @@ $("premium-btn").addEventListener("click", () =>
 $("paywall-close").addEventListener("click", () =>
   $("paywall").classList.add("hidden")
 );
+
+// =====================================================================
+// 駅の乗り方ガイド (訪日客向け・無料機能)
+// =====================================================================
+// きっぷ種別 (QR/IC/紙/JR Pass) を1回選んでもらい、その種別の通り方に
+// 案内を絞る。選択は端末内 (localStorage) のみに保存。未選択なら全種別を表示。
+// 2027年春からの首都圏QR乗車券移行で、QRの「リーダー付き改札を探す」案内が要になる。
+function getTicketType() {
+  const v = localStorage.getItem("ticketType");
+  return ["qr", "ic", "paper", "jrpass"].includes(v) ? v : null;
+}
+
+function renderGuide() {
+  const sel = getTicketType();
+  document.querySelectorAll("#guide-modal .chip-btn").forEach((b) => {
+    b.classList.toggle("active", b.dataset.ticket === sel);
+  });
+  document.querySelectorAll("#guide-modal .guide-sec").forEach((sec) => {
+    const key = sec.dataset.sec;
+    const common = key === "common" || key === "common2";
+    sec.classList.toggle("hidden", !common && sel !== null && key !== sel);
+  });
+}
+
+$("guide-btn").addEventListener("click", () => {
+  renderGuide();
+  $("guide-modal").classList.remove("hidden");
+});
+$("guide-close").addEventListener("click", () =>
+  $("guide-modal").classList.add("hidden")
+);
+document.querySelectorAll("#guide-modal .chip-btn").forEach((b) => {
+  b.addEventListener("click", () => {
+    // 同じ種別をもう一度タップすると選択解除 (全種別表示に戻る)
+    if (getTicketType() === b.dataset.ticket) {
+      localStorage.removeItem("ticketType");
+    } else {
+      localStorage.setItem("ticketType", b.dataset.ticket);
+    }
+    renderGuide();
+  });
+});
 $("buy-monthly-btn").addEventListener("click", () => startCheckout("monthly"));
 $("buy-yearly-btn").addEventListener("click", () => startCheckout("yearly"));
 $("manage-btn").addEventListener("click", openPortal);

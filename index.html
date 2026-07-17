@@ -64,6 +64,7 @@
 
       <button id="riding-btn" class="mode-btn" data-i18n="ridingBtn">🚆 車内モード（特大表示・画面オフ防止）</button>
       <button id="dest-btn" class="mode-btn secondary" data-i18n="destBtn">🎯 目的地を設定（降車アラート）</button>
+      <button id="guide-btn" class="mode-btn secondary" data-i18n="guideBtn">🎫 駅の乗り方ガイド</button>
 
       <!-- 降車アラート設定状態 -->
       <div id="alert-status" class="alert-status hidden">
@@ -135,6 +136,49 @@
           <button id="dest-back" class="text-btn" data-i18n="backToLines">← 路線一覧に戻る</button>
           <p id="dest-line-title" class="line-title"></p>
           <ul id="route-list" class="route-list"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 駅の乗り方ガイド (訪日客向け・きっぷ種別で出し分け) -->
+    <div id="guide-modal" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="modal-header-row">
+          <h2 data-i18n="guideTitle">🎫 駅の乗り方ガイド</h2>
+          <button id="guide-close" class="text-btn" data-i18n="close">閉じる</button>
+        </div>
+        <p class="guide-ask" data-i18n="guideAsk">何で乗りますか？（選ぶと案内が絞られます）</p>
+        <div class="guide-chips">
+          <button class="chip-btn" data-ticket="qr" data-i18n="ticketQr">📱 QRチケット</button>
+          <button class="chip-btn" data-ticket="ic" data-i18n="ticketIc">💳 ICカード</button>
+          <button class="chip-btn" data-ticket="paper" data-i18n="ticketPaper">🎫 紙のきっぷ</button>
+          <button class="chip-btn" data-ticket="jrpass" data-i18n="ticketJrpass">🚅 JR Pass</button>
+        </div>
+        <div id="guide-body">
+          <section class="guide-sec" data-sec="qr">
+            <h3 data-i18n="gQrTitle">📱 QRチケットでの通り方</h3>
+            <ul class="feature-list" data-i18n-html="gQr"></ul>
+          </section>
+          <section class="guide-sec" data-sec="ic">
+            <h3 data-i18n="gIcTitle">💳 ICカードでの通り方</h3>
+            <ul class="feature-list" data-i18n-html="gIc"></ul>
+          </section>
+          <section class="guide-sec" data-sec="paper">
+            <h3 data-i18n="gPaperTitle">🎫 紙のきっぷでの通り方</h3>
+            <ul class="feature-list" data-i18n-html="gPaper"></ul>
+          </section>
+          <section class="guide-sec" data-sec="jrpass">
+            <h3 data-i18n="gJrTitle">🚅 JR Pass・周遊パスでの通り方</h3>
+            <ul class="feature-list" data-i18n-html="gJr"></ul>
+          </section>
+          <section class="guide-sec" data-sec="common">
+            <h3 data-i18n="gFareTitle">💰 改札が閉まったら（精算）</h3>
+            <ul class="feature-list" data-i18n-html="gFare"></ul>
+          </section>
+          <section class="guide-sec" data-sec="common2">
+            <h3 data-i18n="gTransferTitle">🔁 会社をまたぐ乗り換え</h3>
+            <ul class="feature-list" data-i18n-html="gTransfer"></ul>
+          </section>
         </div>
       </div>
     </div>
