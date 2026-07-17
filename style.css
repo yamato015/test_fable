@@ -1,22 +1,40 @@
 :root {
-  --bg: #0d1117;
-  --fg: #e6edf3;
-  --sub: #8b949e;
-  --accent: #3fb950;
-  --accent2: #58a6ff;
-  --card: #161b22;
+  --bg: #0a0b10;
+  --fg: #f3efe6;
+  --sub: #8d90a0;
+  --accent: #ffb020;
+  --accent2: #ff6b4a;
+  --card: #15161d;
+  --card-border: rgba(255, 255, 255, 0.07);
+  --line: rgba(255, 255, 255, 0.08);
   --danger: #f85149;
+  --on-accent: #151007;
 }
 
-/* テーマ切り替え (🎨ボタン / my-prototype由来のアイデア) */
+/* ライトモード (🌙/☀️ボタンで切替) */
+body[data-mode="light"] {
+  --bg: #f6f2ea;
+  --fg: #181920;
+  --sub: #6d7080;
+  --card: #ffffff;
+  --card-border: rgba(20, 20, 30, 0.08);
+  --line: rgba(20, 20, 30, 0.08);
+}
+
+/* アクセントカラー切り替え (🎨ボタン) */
+body[data-theme="amber"] {
+  --accent: #ffb020;
+  --accent2: #ff6b4a;
+}
+
 body[data-theme="blue"] {
-  --accent: #58a6ff;
-  --accent2: #3fb950;
+  --accent: #4fc3f7;
+  --accent2: #ffb020;
 }
 
 body[data-theme="pink"] {
-  --accent: #f778ba;
-  --accent2: #58a6ff;
+  --accent: #ff6fa5;
+  --accent2: #4fc3f7;
 }
 
 * {
@@ -60,32 +78,90 @@ body {
 
 /* ---- 開始画面 ---- */
 #start-screen {
+  position: relative;
+  overflow: hidden;
   justify-content: center;
   align-items: center;
   text-align: center;
-  gap: 24px;
+  gap: 20px;
+}
+
+/* 背景の路線: 横線 + 往復する現在地ドット (エキココのモチーフ) */
+#start-screen::before {
+  content: "";
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 38%;
+  height: 2px;
+  background: var(--line);
+}
+
+#start-screen::after {
+  content: "";
+  position: absolute;
+  top: 38%;
+  width: 10px;
+  height: 10px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 16px 4px var(--accent);
+  animation: dotTravel 7s ease-in-out infinite;
+}
+
+@keyframes dotTravel {
+  0%, 100% { left: 6%; }
+  50% { left: 88%; }
+}
+
+/* 背景装飾より前面に出す (position:absoluteの装飾は通常フローより上に描画されるため) */
+#start-screen > * {
+  position: relative;
+}
+
+.logo-mark {
+  position: relative;
 }
 
 .logo {
+  position: relative;
   font-size: 2.6rem;
-  font-weight: 800;
-  color: var(--accent);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: var(--fg);
+}
+
+.wordmark-en {
+  position: relative;
+  font-size: 0.78rem;
+  letter-spacing: 0.28em;
+  color: var(--sub);
+  text-transform: uppercase;
+  margin-top: -12px;
 }
 
 .tagline {
+  position: relative;
   color: var(--sub);
   line-height: 1.8;
 }
 
 .big-btn {
   font-size: 1.2rem;
-  font-weight: 700;
+  font-weight: 800;
   padding: 18px 36px;
   border: none;
   border-radius: 999px;
-  background: var(--accent);
-  color: #04130a;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: var(--on-accent);
+  box-shadow: 0 10px 30px -8px var(--accent);
   cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.big-btn:hover {
+  transform: translateY(-2px);
 }
 
 .big-btn:active {
@@ -130,7 +206,7 @@ body {
   padding: 8px 14px;
   border: 1px solid var(--accent2);
   border-radius: 999px;
-  background: transparent;
+  background: color-mix(in srgb, var(--accent2) 12%, transparent);
   color: var(--accent2);
   cursor: pointer;
 }
@@ -148,7 +224,7 @@ body {
 .icon-btn {
   font-size: 1.2rem;
   background: var(--card);
-  border: none;
+  border: 1px solid var(--card-border);
   border-radius: 50%;
   width: 42px;
   height: 42px;
@@ -162,10 +238,28 @@ body {
 }
 
 .station-display {
+  position: relative;
   text-align: center;
   padding: 32px 8px;
   background: var(--card);
-  border-radius: 20px;
+  border: 1px solid var(--card-border);
+  border-radius: 28px;
+  box-shadow: 0 20px 40px -24px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.station-display::before {
+  content: "";
+  position: absolute;
+  right: -30px;
+  top: -30px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: var(--accent);
+  filter: blur(50px);
+  opacity: 0.18;
+  pointer-events: none;
 }
 
 .status-label {
@@ -181,9 +275,10 @@ body {
 
 /* 座席からでも読めるように駅名は特大表示 */
 .station-name {
+  position: relative;
   font-size: clamp(2.4rem, 13vw, 4rem);
-  font-weight: 800;
-  line-height: 1.2;
+  font-weight: 900;
+  line-height: 1.05;
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
@@ -219,7 +314,8 @@ body {
   justify-content: space-between;
   padding: 12px 16px;
   background: var(--card);
-  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
   margin-bottom: 8px;
   font-size: 1rem;
 }
@@ -388,8 +484,8 @@ body {
 }
 
 .chip-btn {
-  border: 1px solid var(--sub);
-  background: transparent;
+  border: 1px solid var(--card-border);
+  background: var(--card);
   color: inherit;
   border-radius: 999px;
   padding: 8px 14px;
@@ -422,8 +518,8 @@ body {
 .tab-btn {
   flex: 1;
   padding: 10px;
-  border-radius: 10px;
-  border: 1px solid #30363d;
+  border-radius: 12px;
+  border: 1px solid var(--line);
   background: transparent;
   color: var(--sub);
   cursor: pointer;
@@ -512,8 +608,8 @@ body {
 }
 
 .mode-btn.secondary {
-  border-color: var(--accent2);
-  color: var(--accent2);
+  border-color: var(--card-border);
+  color: var(--fg);
   margin-top: 10px;
 }
 
@@ -525,10 +621,16 @@ body {
   font-size: 1.05rem;
   font-weight: 700;
   border: 1px solid var(--accent);
-  border-radius: 16px;
-  background: transparent;
+  border-radius: 18px;
+  background: var(--card);
   color: var(--accent);
+  box-shadow: 0 20px 40px -28px rgba(0, 0, 0, 0.5);
   cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.mode-btn:hover {
+  transform: translateY(-1px);
 }
 
 .mode-btn:active {
@@ -540,7 +642,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: 40;
-  /* OLEDで消費電力を抑えるため純黒 */
+  /* OLEDで消費電力を抑えるため純黒 (テーマ・アクセントに関わらず固定) */
   background: #000;
   display: flex;
   flex-direction: column;
@@ -551,6 +653,31 @@ body {
   padding: 24px;
   padding-top: calc(24px + env(safe-area-inset-top));
   padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  overflow: hidden;
+}
+
+.riding::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: var(--accent);
+  filter: blur(70px);
+  transform: translate(-50%, -50%);
+  animation: glowPulse 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.22; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.4; transform: translate(-50%, -50%) scale(1.18); }
+}
+
+.riding > * {
+  position: relative;
 }
 
 .r-clock {
@@ -606,12 +733,17 @@ body {
   color: var(--sub);
 }
 
+.line-filter label {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 .line-filter select {
   flex: 1;
   background: var(--card);
   color: var(--fg);
-  border: 1px solid #30363d;
-  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
   padding: 10px;
   font-size: 0.95rem;
 }
@@ -659,8 +791,10 @@ body {
 .alert-overlay {
   position: fixed;
   inset: 0;
-  background: var(--accent);
-  color: #04130a;
+  overflow: hidden;
+  /* 車内モードと同じ黒基調。アクセント色のリングパルスで気づかせる */
+  background: #000;
+  color: var(--fg);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -668,27 +802,44 @@ body {
   gap: 20px;
   text-align: center;
   z-index: 100;
-  animation: flash 0.8s infinite alternate;
 }
 
-@keyframes flash {
-  from { opacity: 1; }
-  to { opacity: 0.82; }
+.alert-overlay::before,
+.alert-overlay::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  animation: ringPing 1.8s ease-out infinite;
+  pointer-events: none;
+}
+
+.alert-overlay::after {
+  animation-delay: 0.9s;
+}
+
+@keyframes ringPing {
+  0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.55; }
+  100% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; }
+}
+
+.alert-overlay > * {
+  position: relative;
 }
 
 .alert-title {
   font-size: 1.4rem;
   font-weight: 700;
+  color: var(--accent);
 }
 
 .alert-station-name {
   font-size: clamp(2.4rem, 14vw, 4.2rem);
-  font-weight: 800;
-}
-
-.alert-overlay .big-btn {
-  background: #04130a;
-  color: var(--fg);
+  font-weight: 900;
 }
 
 /* ---- 乗車履歴 ---- */
@@ -708,7 +859,7 @@ body {
   padding: 28px 16px;
   text-align: center;
   background: var(--card);
-  border: 1px dashed #30363d;
+  border: 1px dashed var(--line);
   border-radius: 12px;
   color: var(--sub);
   font-size: 0.8rem;
@@ -718,25 +869,48 @@ body {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 24px;
+  align-items: flex-end;
   z-index: 50;
+  animation: backdropIn 0.25s ease both;
+}
+
+@keyframes backdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal {
   background: var(--card);
-  border-radius: 20px;
-  padding: 28px 24px;
-  max-width: 420px;
+  border: 1px solid var(--card-border);
+  border-radius: 26px 26px 0 0;
+  padding: 20px 20px calc(26px + env(safe-area-inset-bottom));
+  max-width: 480px;
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 16px;
   max-height: 85vh;
   overflow-y: auto;
+  animation: sheetUp 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.modal::before {
+  content: "";
+  align-self: center;
+  width: 36px;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--sub);
+  opacity: 0.35;
+  margin-bottom: 2px;
+}
+
+@keyframes sheetUp {
+  from { opacity: 0; transform: translateY(48px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .feature-list {
@@ -763,7 +937,7 @@ body {
 
 .error-banner.success {
   background: var(--accent);
-  color: #04130a;
+  color: var(--on-accent);
 }
 
 .error-banner {

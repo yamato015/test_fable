@@ -1381,9 +1381,9 @@ function renderRouteList(lineName) {
 }
 
 // =====================================================================
-// テーマ切り替え (グリーン / ブルー / ピンク)
+// テーマ切り替え (アンバー / ブルー / ピンク)
 // =====================================================================
-const THEMES = ["green", "blue", "pink"];
+const THEMES = ["amber", "blue", "pink"];
 
 function applyTheme(name) {
   document.body.dataset.theme = name;
@@ -1391,7 +1391,7 @@ function applyTheme(name) {
 }
 
 $("theme-btn").addEventListener("click", () => {
-  const current = document.body.dataset.theme || "green";
+  const current = document.body.dataset.theme || "amber";
   const next = THEMES[(THEMES.indexOf(current) + 1) % THEMES.length];
   applyTheme(next);
 });
@@ -1399,8 +1399,27 @@ $("theme-btn").addEventListener("click", () => {
 applyTheme(
   THEMES.includes(localStorage.getItem("theme"))
     ? localStorage.getItem("theme")
-    : "green"
+    : "amber"
 );
+
+// =====================================================================
+// ライト/ダークモード切り替え
+// =====================================================================
+const MODE_BG = { light: "#f6f2ea", dark: "#0a0b10" };
+
+function applyMode(mode) {
+  document.body.dataset.mode = mode;
+  localStorage.setItem("mode", mode);
+  $("daynight-btn").textContent = mode === "light" ? "☀️" : "🌙";
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", MODE_BG[mode]);
+}
+
+$("daynight-btn").addEventListener("click", () => {
+  applyMode(document.body.dataset.mode === "light" ? "dark" : "light");
+});
+
+applyMode(localStorage.getItem("mode") === "light" ? "light" : "dark");
 
 // 目的地までの残り距離と駅数を表示する (路線順データがある場合のみ駅数を計算)
 function renderAlertProgress(lat, lon, nearest) {

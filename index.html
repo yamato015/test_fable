@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#0d1117">
+  <meta name="theme-color" content="#0a0b10">
   <meta name="description" content="電車内で現在いる駅・最寄り駅をすぐ確認できるアプリ">
   <!-- iPhoneのホーム画面追加でアプリのように全画面起動させる -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19,7 +19,15 @@
   <main id="app">
     <!-- 開始画面 -->
     <section id="start-screen" class="screen">
+      <div class="logo-mark">
+        <svg viewBox="0 0 72 72" width="72" height="72">
+          <circle cx="36" cy="36" r="33" stroke="var(--accent2)" stroke-width="2" opacity=".4" fill="none"/>
+          <line x1="10" y1="47" x2="62" y2="47" stroke="var(--fg)" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+          <circle cx="36" cy="47" r="13" fill="var(--accent)"/>
+        </svg>
+      </div>
       <h1 class="logo"><span data-i18n="appName">エキココ</span><span class="beta">β</span></h1>
+      <p class="wordmark-en">EKIKOKO</p>
       <p class="tagline" data-i18n-html="tagline">混雑した電車内でも、<br>いまどの駅にいるかすぐわかる。</p>
       <button id="start-btn" class="big-btn" data-i18n="startBtn">現在地を確認する</button>
       <p class="note"><span data-i18n-html="startNote">位置情報の利用を許可してください。<br>位置情報は端末内でのみ使用され、保存されません。</span><br>
@@ -32,6 +40,7 @@
         <span id="gps-status" class="badge" data-i18n="gpsWait">GPS取得中…</span>
         <div class="status-actions">
           <button id="lang-btn" class="icon-btn" title="Language">🌐</button>
+          <button id="daynight-btn" class="icon-btn" title="ライト/ダーク切り替え">🌙</button>
           <button id="theme-btn" class="icon-btn" title="テーマ切り替え">🎨</button>
           <button id="premium-btn" class="pill-btn">⭐ プレミアム</button>
           <button id="wakelock-btn" class="icon-btn" title="画面を常時点灯">💡</button>
