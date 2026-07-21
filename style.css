@@ -842,6 +842,15 @@ body {
   font-weight: 900;
 }
 
+.alert-ticket-hint {
+  font-size: 1rem;
+  color: var(--sub);
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  padding: 8px 18px;
+}
+
 /* ---- 乗車履歴 ---- */
 .history {
   margin-top: 24px;

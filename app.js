@@ -168,6 +168,10 @@ const STRINGS = {
       "<li>出場時に扉が閉まっても慌てなくて大丈夫。改札近くの<b>「のりこし精算機 (Fare Adjustment)」</b>へ</li>" +
       "<li>きっぷ/ICを入れて不足分を払うと出場券が出ます。それで改札を通れます</li>" +
       "<li>精算機が見つからなければ有人改札で係員に伝えればOKです</li>",
+    ticketHintQr: "📱 出場も同じQRをかざしてください",
+    ticketHintIc: "💳 入場と同じICカードで出場できます",
+    ticketHintPaper: "🎫 きっぷは改札で回収されます",
+    ticketHintJrpass: "🚅 有人改札を通ってください",
     gTransferTitle: "🔁 会社をまたぐ乗り換え",
     gTransfer:
       "<li>JR・東京メトロ・都営・私鉄は<b>別会社で運賃も別</b>。乗り換えでは一度改札を出て、入り直すのが基本です</li>" +
@@ -281,6 +285,10 @@ const STRINGS = {
       "<li>Don't panic. Find the <b>\"Fare Adjustment\" machine</b> near the exit gates</li>" +
       "<li>Insert your ticket/IC, pay the difference, and you'll get an exit ticket</li>" +
       "<li>No machine in sight? The staff at the staffed gate will sort it out</li>",
+    ticketHintQr: "📱 Use the same QR code to exit",
+    ticketHintIc: "💳 Exit with the same IC card you entered with",
+    ticketHintPaper: "🎫 The gate will collect your ticket",
+    ticketHintJrpass: "🚅 Go through the staffed gate",
     gTransferTitle: "🔁 Transferring between companies",
     gTransfer:
       "<li>JR, Tokyo Metro, Toei and private railways are <b>separate companies with separate fares</b> — transferring usually means exiting the gates and entering again</li>" +
@@ -1475,6 +1483,12 @@ function checkAlert(lat, lon) {
   const name = dispName(alertStation);
   cancelAlert();
   $("alert-overlay-station").textContent = name;
+  // 乗り方ガイドで選んだきっぷ種別があれば、改札を通る直前の一言を添える
+  // (ガイド自体は自分から開かないと見ないため、必要な瞬間に自動で出す)
+  const ticket = getTicketType();
+  const hintKey = ticket && { qr: "ticketHintQr", ic: "ticketHintIc", paper: "ticketHintPaper", jrpass: "ticketHintJrpass" }[ticket];
+  $("alert-ticket-hint").textContent = hintKey ? t(hintKey) : "";
+  $("alert-ticket-hint").classList.toggle("hidden", !hintKey);
   $("alert-overlay").classList.remove("hidden");
   navigator.vibrate?.([400, 200, 400, 200, 800]);
   beep();
