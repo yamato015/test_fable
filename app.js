@@ -10,6 +10,7 @@ const NEXT_MIN_MOVE_M = 25;          // 進行方向を判定するのに必要�
 const NEXT_MAX_ANGLE_DEG = 50;       // 進行方向と駅方向のずれの許容角度
 const HISTORY_MAX = 50;              // 乗車履歴の最大保存件数
 const EMBEDDED_COVERAGE_M = 8000;    // 埋め込みデータの最寄り駅がこれより遠い場合はOverpassへ切替
+const ACCURACY_WARN_M = 300;         // この誤差半径を超える測位は「精度低め」として警告表示
 const OVERPASS_ENDPOINTS = [
   "https://overpass-api.de/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter",
@@ -89,6 +90,7 @@ const STRINGS = {
     privacyLink: "プライバシーポリシー",
     gpsWait: "GPS取得中…",
     gpsAcc: (n) => `GPS精度 ±${n}m`,
+    gpsAccLow: (n) => `GPS精度 ±${n}m (誤差大・参考程度に)`,
     fetching: "駅データ取得中…",
     fetchFail: "駅データの取得に失敗しました。通信状態を確認してください。",
     geo1: "位置情報の利用が許可されていません。ブラウザの設定から許可してください。",
@@ -206,6 +208,7 @@ const STRINGS = {
     privacyLink: "Privacy Policy",
     gpsWait: "Getting GPS…",
     gpsAcc: (n) => `GPS ±${n}m`,
+    gpsAccLow: (n) => `GPS ±${n}m (low accuracy, take with care)`,
     fetching: "Loading stations…",
     fetchFail: "Failed to load station data. Please check your connection.",
     geo1: "Location access is denied. Please allow it in your browser settings.",
@@ -623,8 +626,12 @@ $("line-filter").addEventListener("change", (e) => {
 async function onPosition(pos) {
   const { latitude: lat, longitude: lon, accuracy } = pos.coords;
   curPos = { lat, lon };
-  gpsStatus.textContent = t("gpsAcc", Math.round(accuracy));
-  gpsStatus.classList.add("ok");
+  // 誤差半径が大きい測位 (Wi-Fi/基地局による概算など) は駅を取り違えることがあるため、
+  // 「参考程度」と明示する。位置自体はそのまま使う (無視すると更新が止まって見えるため)
+  const lowAcc = accuracy > ACCURACY_WARN_M;
+  gpsStatus.textContent = t(lowAcc ? "gpsAccLow" : "gpsAcc", Math.round(accuracy));
+  gpsStatus.classList.toggle("ok", !lowAcc);
+  gpsStatus.classList.toggle("warn", lowAcc);
   hideError();
 
   updateHeading(lat, lon, pos.coords.heading, pos.coords.speed);

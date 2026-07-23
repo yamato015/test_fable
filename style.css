@@ -194,6 +194,10 @@ body {
   color: var(--accent);
 }
 
+.badge.warn {
+  color: var(--danger);
+}
+
 .status-actions {
   display: flex;
   align-items: center;
