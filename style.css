@@ -1008,3 +1008,374 @@ body {
   font-size: 0.9rem;
   line-height: 1.6;
 }
+
+/* =====================================================================
+   アイコン (絵文字をやめ、線幅を揃えた自前SVGに統一)
+   ===================================================================== */
+#icon-sprite {
+  display: none;
+}
+
+.ic {
+  width: 1.25em;
+  height: 1.25em;
+  flex-shrink: 0;
+  color: currentColor;
+}
+
+.ic-sm {
+  width: 1em;
+  height: 1em;
+  opacity: 0.75;
+  margin-right: 6px;
+  vertical-align: -0.15em;
+}
+
+/* アイコンとラベルを横に並べるボタン */
+.mode-btn,
+.pill-btn,
+.chip-btn,
+.tab-btn,
+.alert-title {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.mode-btn {
+  display: flex;
+}
+
+/* 主要動作は縦積み、副次動作は横2列に並べて縦の圧迫を減らす */
+.mode-row {
+  display: flex;
+  gap: 10px;
+}
+
+.mode-row .mode-btn {
+  flex: 1;
+  min-width: 0;
+}
+
+/* アイコンだけのボタン (閉じる・解除) */
+.icon-only-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sub);
+  cursor: pointer;
+}
+
+.icon-only-btn:active {
+  background: var(--card);
+}
+
+.bell-btn .ic {
+  width: 1.35em;
+  height: 1.35em;
+  color: var(--sub);
+}
+
+.bell-btn.on .ic {
+  color: var(--accent);
+}
+
+.feature-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.feature-list .ic {
+  color: var(--accent);
+  margin-top: 2px;
+}
+
+.line-filter .ic {
+  color: var(--sub);
+}
+
+/* スクリーンリーダー専用 (ラベルは視覚的にはアイコンで代替) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* =====================================================================
+   乗り方ガイドの図解 (文章を読ませず、動きで理解させる)
+   ===================================================================== */
+.guide-sec h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  margin: 18px 0 10px;
+}
+
+.guide-sec h3 .ic {
+  color: var(--accent);
+}
+
+.scene {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.scene svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* 図の共通パーツ */
+.sc-body {
+  fill: color-mix(in srgb, var(--fg) 12%, transparent);
+  stroke: var(--card-border);
+  stroke-width: 1.5;
+}
+
+.sc-window {
+  fill: color-mix(in srgb, var(--fg) 8%, transparent);
+  stroke: var(--card-border);
+  stroke-width: 1.5;
+}
+
+.sc-slot {
+  fill: var(--bg);
+}
+
+.sc-flap {
+  fill: color-mix(in srgb, var(--accent) 34%, transparent);
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.sc-dev {
+  fill: var(--plate);
+  stroke: var(--fg);
+  stroke-width: 1.6;
+}
+
+/* QRの読み取り面は実物と同じ「黒いガラスの窓」 */
+.sc-reader {
+  fill: #12141a;
+  stroke: color-mix(in srgb, var(--fg) 35%, transparent);
+  stroke-width: 1.4;
+}
+
+/* ICの読み取り部は実物が青く光るので、テーマ色ではなく青で固定する */
+.sc-pad {
+  fill: #2f80d2;
+  opacity: 0.92;
+}
+
+.sc-qr rect {
+  fill: none;
+  stroke: var(--fg);
+  stroke-width: 1.4;
+}
+
+.sc-qr-dots rect {
+  fill: var(--fg);
+  stroke: none;
+}
+
+.sc-chip {
+  fill: var(--accent);
+  stroke: none;
+}
+
+.sc-fill {
+  fill: color-mix(in srgb, var(--fg) 45%, transparent);
+}
+
+.sc-passline {
+  fill: none;
+  stroke: var(--fg);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  opacity: 0.65;
+}
+
+.sc-ping {
+  fill: none;
+  stroke: var(--accent2);
+  stroke-width: 2;
+  opacity: 0;
+}
+
+.sc-lineA {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.sc-lineB {
+  fill: none;
+  stroke: var(--accent2);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.sc-dotA {
+  fill: var(--plate);
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+
+.sc-dotB {
+  fill: var(--plate);
+  stroke: var(--accent2);
+  stroke-width: 3;
+}
+
+.sc-mover {
+  fill: var(--fg);
+}
+
+/* --- アニメーション (display:noneの節では自動的に止まる) --- */
+.sc-phone { animation: scTapDown 4s ease-in-out infinite; }
+.sc-card { animation: scTapDown 4s ease-in-out infinite; }
+.sc-flap-l { animation: scFlapL 4s ease-in-out infinite; transform-origin: 76px 83px; }
+.sc-flap-r { animation: scFlapR 4s ease-in-out infinite; transform-origin: 164px 83px; }
+.sc-ping { animation: scPing 4s ease-out infinite; }
+.sc-ping2 { animation-delay: .28s; }
+.sc-tk-in { animation: scTicketIn 4s ease-in-out infinite; }
+.sc-tk-out { animation: scTicketOut 4s ease-in-out infinite; }
+.sc-fare-in { animation: scFareIn 4s ease-in-out infinite; }
+.sc-fare-out { animation: scFareOut 4s ease-in-out infinite; }
+.sc-pass { animation: scShow 4s ease-in-out infinite; }
+.sc-mover { animation: scTransfer 5s ease-in-out infinite; }
+
+/* かざす/タッチする: 下降 → 静止 → 離す */
+@keyframes scTapDown {
+  0%   { transform: translateY(-6px); }
+  25%  { transform: translateY(0); }
+  50%  { transform: translateY(0); }
+  70%  { transform: translateY(-6px); }
+  100% { transform: translateY(-6px); }
+}
+
+/* 読み取り成功の輪 */
+@keyframes scPing {
+  0%, 24%  { transform: scale(.7); opacity: 0; }
+  30%      { opacity: .9; }
+  55%      { transform: scale(1.9); opacity: 0; }
+  100%     { transform: scale(1.9); opacity: 0; }
+}
+
+/* 扉が開く */
+@keyframes scFlapL {
+  0%, 28%   { transform: scaleX(1); }
+  40%, 68%  { transform: scaleX(.12); }
+  80%, 100% { transform: scaleX(1); }
+}
+
+@keyframes scFlapR {
+  0%, 28%   { transform: scaleX(1); }
+  40%, 68%  { transform: scaleX(.12); }
+  80%, 100% { transform: scaleX(1); }
+}
+
+/* きっぷを投入 → 反対側から出る */
+@keyframes scTicketIn {
+  0%       { transform: translateY(-8px); opacity: 1; }
+  22%      { transform: translateY(46px); opacity: 1; }
+  26%      { opacity: 0; }
+  100%     { transform: translateY(46px); opacity: 0; }
+}
+
+@keyframes scTicketOut {
+  0%, 30%  { transform: translateY(46px); opacity: 0; }
+  38%      { opacity: 1; }
+  55%, 88% { transform: translateY(-4px); opacity: 1; }
+  96%,100% { transform: translateY(-4px); opacity: 0; }
+}
+
+/* 精算機: 入れる → 精算券が出る */
+@keyframes scFareIn {
+  0%       { transform: translateY(0); opacity: 1; }
+  20%      { transform: translateY(-14px); opacity: 1; }
+  25%      { opacity: 0; }
+  100%     { transform: translateY(-14px); opacity: 0; }
+}
+
+@keyframes scFareOut {
+  0%, 34%  { transform: translateY(-14px); opacity: 0; }
+  42%      { opacity: 1; }
+  60%, 90% { transform: translateY(2px); opacity: 1; }
+  97%,100% { transform: translateY(2px); opacity: 0; }
+}
+
+/* 有人改札で見せる */
+@keyframes scShow {
+  0%, 100% { transform: translate(-14px, 6px); opacity: .35; }
+  30%, 70% { transform: translate(0, 0); opacity: 1; }
+}
+
+/* 一度出て、入り直す */
+@keyframes scTransfer {
+  0%       { transform: translate(0, 0); }
+  35%      { transform: translate(20px, 26px); }
+  65%      { transform: translate(38px, 26px); }
+  100%     { transform: translate(48px, 52px); }
+}
+
+/* 動きを減らす設定の端末では静止画として見せる */
+@media (prefers-reduced-motion: reduce) {
+  .sc-phone, .sc-card, .sc-flap-l, .sc-flap-r, .sc-ping,
+  .sc-tk-in, .sc-tk-out, .sc-fare-in, .sc-fare-out, .sc-pass, .sc-mover,
+  #start-screen::after, .alert-overlay::before, .alert-overlay::after {
+    animation: none;
+  }
+  .sc-tk-out, .sc-fare-out { opacity: 1; }
+}
+
+/* 手順は短く、番号を振って図と対応させる */
+.guide-steps {
+  list-style: none;
+  counter-reset: step;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.guide-steps li {
+  counter-increment: step;
+  position: relative;
+  padding-left: 26px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.guide-steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0.1em;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

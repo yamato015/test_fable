@@ -39,6 +39,24 @@ function dispSub(s) {
   return lang === "en" ? (s.name || "").replace(/\(.+?\)$/, "") : s.kana || "";
 }
 
+// アイコン付きボタンのラベルだけを差し替える (先頭のSVGを消さないため)
+function setBtnLabel(id, text) {
+  const span = $(id).querySelector("span");
+  if (span) span.textContent = text;
+  else $(id).textContent = text;
+}
+
+// index.html のスプライトからアイコン要素を作る (絵文字を使わないため)
+function icon(name, cls) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("class", cls ? `ic ${cls}` : "ic");
+  svg.setAttribute("aria-hidden", "true");
+  const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+  use.setAttribute("href", `#i-${name}`);
+  svg.appendChild(use);
+  return svg;
+}
+
 // 路線の公式カラー (stations.jsのLINE_META由来)
 function lineColor(name) {
   return (window.LINE_META || {})[name]?.c || "#58a6ff";
@@ -84,117 +102,119 @@ const errorBanner = $("error-banner");
 const STRINGS = {
   ja: {
     appName: "エキココ",
-    tagline: "混雑した電車内でも、<br>いまどの駅にいるかすぐわかる。",
+    tagline: "混雑した車内でも、<br>いまどの駅かひと目でわかる。",
     startBtn: "現在地を確認する",
-    startNote: "位置情報の利用を許可してください。<br>位置情報は端末内でのみ使用され、保存されません。",
+    startNote: "位置情報は端末内だけで使い、保存しません。",
     privacyLink: "プライバシーポリシー",
     gpsWait: "GPS取得中…",
-    gpsAcc: (n) => `GPS精度 ±${n}m`,
-    gpsAccLow: (n) => `GPS精度 ±${n}m (誤差大・参考程度に)`,
+    gpsAcc: (n) => `GPS ±${n}m`,
+    gpsAccLow: (n) => `GPS ±${n}m 誤差大`,
     fetching: "駅データ取得中…",
-    fetchFail: "駅データの取得に失敗しました。通信状態を確認してください。",
-    geo1: "位置情報の利用が許可されていません。ブラウザの設定から許可してください。",
-    geo2: "位置情報を取得できません。地下やトンネル内ではGPSが届かないことがあります。",
+    fetchFail: "駅データを取得できません。通信状態を確認してください。",
+    geo1: "位置情報が許可されていません。ブラウザの設定から許可してください。",
+    geo2: "位置情報を取得できません。地下やトンネルではGPSが届きません。",
     geo3: "位置情報の取得がタイムアウトしました。",
     geoFail: "位置情報の取得に失敗しました。",
     geoUnsupported: "この端末では位置情報が利用できません。",
     nearest: "最寄り駅",
-    here: "🚉 いまここ！",
+    here: "いまここ",
     noStations: "周辺に駅が見つかりません",
     about: (d) => `約 ${d}`,
     nextIs: (n, d) => `次は ${n}（${d}）`,
     nextIsShort: (n) => `次は ${n}`,
-    ridingBtn: "🚆 車内モード（特大表示・画面オフ防止）",
-    destBtn: "🎯 目的地を設定（降車アラート）",
-    destSet: (n) => `🎯 目的地: ${n}（タップで変更）`,
-    alertSet: (n) => `🔔 ${n} で降車アラート設定中`,
+    ridingBtn: "車内モード",
+    destBtn: "目的地",
+    destSet: (n) => `目的地 ${n}`,
+    alertSet: (n) => `${n} でアラート`,
     stopsLeft: (n) => `あと${n}駅`,
     cancel: "解除",
-    soonTitle: "🔔 まもなく",
-    notifTitle: "🔔 まもなく到着",
+    soonTitle: "まもなく",
+    notifTitle: "まもなく到着",
     notifBody: (n) => `${n} に近づいています`,
-    alertDismiss: "OK・アラートを停止",
+    alertDismiss: "アラートを停止",
     nearbyTitle: "周辺の駅",
-    nearbyHint: "🔔で降車アラートを設定",
+    nearbyHint: "",
     historyTitle: "乗車履歴",
     adPlaceholder: "広告スペース",
     updated: (t) => `更新: ${t}`,
     privacyFooter: "プライバシー",
     feedback: "フィードバック",
     wipe: "データ削除",
-    wipeConfirm: "端末に保存された履歴・目的地・テーマ設定・プレミアム情報をすべて削除します。よろしいですか？",
+    wipeConfirm: "端末に保存した履歴・目的地・設定をすべて削除します。よろしいですか？",
     credit: "駅データ: © OpenStreetMap contributors",
     lineFilterLabel: "路線で絞り込み",
     allLines: "すべての路線",
-    rideChip: (l) => `🚆 ${l} に乗車中？`,
+    rideChip: (l) => `${l} に乗車中？`,
     tapBack: "タップで戻る",
     destTitle: "目的地を選択",
     close: "閉じる",
-    searchTab: "🔍 検索",
-    linesTab: "🚇 路線図",
+    searchTab: "検索",
+    linesTab: "路線図",
     backToLines: "← 路線一覧に戻る",
     clearDest: "目的地をクリア",
     searchPh: "駅名・ひらがなで検索...",
     lineSearchPh: "路線名・駅名で検索...",
-    apiCredit: "🌐 は全国の駅（首都圏・関西以外）",
-    guideBtn: "🎫 駅の乗り方ガイド",
-    guideTitle: "🎫 駅の乗り方ガイド",
-    guideAsk: "何で乗りますか？（選ぶと案内が絞られます）",
-    ticketQr: "📱 QRチケット",
-    ticketIc: "💳 ICカード",
-    ticketPaper: "🎫 紙のきっぷ",
-    ticketJrpass: "🚅 JR Pass",
-    gQrTitle: "📱 QRチケットでの通り方",
+    apiCredit: "全国の駅を含む",
+    guideBtn: "乗り方ガイド",
+    guideTitle: "改札の通り方",
+    guideAsk: "何で乗りますか？",
+    ticketQr: "QR",
+    ticketIc: "ICカード",
+    ticketPaper: "きっぷ",
+    ticketJrpass: "JR Pass",
+    gQrTitle: "QRをかざす",
     gQr:
-      "<li><b>QRリーダー付きの改札機を探す</b> — すべての改札がQR対応ではありません。読み取り面（小さなガラスのスキャナ）が上面にある改札機へ。多くは有人窓口の近くにあります</li>" +
-      "<li>画面の明るさを上げ、QRコードをスキャナに<b>かざして静止</b>。扉が開いてから進みます</li>" +
-      "<li>紙に印刷したQRも同じくかざします。<b>出場時にも同じQRを使う</b>ので捨てないでください</li>" +
-      "<li>読み取れない・QR改札が見つからないときは<b>有人改札</b>で係員にチケットを見せれば通れます</li>",
-    gIcTitle: "💳 ICカードでの通り方",
+      "<li><b>読み取り面のある改札</b>を探す（上面にガラスの窓）</li>" +
+      "<li>画面を明るくして<b>かざして静止</b></li>" +
+      "<li><b>出るときも同じQR</b>。捨てない</li>" +
+      "<li>通らないときは<b>有人改札</b>へ</li>",
+    gIcTitle: "ICカードをタッチ",
     gIc:
-      "<li>Suica/PASMO等は駅の券売機で購入・チャージできます（訪日客は空港のWelcome Suicaや、iPhoneのApple WalletでSuica追加も便利）</li>" +
-      "<li>改札の<b>青く光るIC読み取り部に約1秒タッチ</b>。ピッと鳴って扉が開きます</li>" +
-      "<li><b>入場と出場は同じカード</b>で。残高不足だと出場時に閉まります → 精算機へ（下記）</li>",
-    gPaperTitle: "🎫 紙のきっぷでの通り方",
+      "<li><b>青く光る面に1秒タッチ</b></li>" +
+      "<li><b>入るときと同じカード</b>で出る</li>" +
+      "<li>残高不足なら精算機へ（下）</li>" +
+      "<li>Suica/PASMOは券売機で購入・チャージ</li>",
+    gPaperTitle: "きっぷを入れて取る",
     gPaper:
-      "<li>券売機で購入。運賃表が読めなければ<b>最安のきっぷを買ってOK</b>（降車駅で精算できます）</li>" +
-      "<li>改札の<b>投入口にきっぷを入れて</b>通り、<b>出てきたきっぷを必ず取って</b>ください</li>" +
-      "<li>降車駅の改札では回収されるので、そのまま通ればOKです</li>",
-    gJrTitle: "🚅 JR Pass・周遊パスでの通り方",
+      "<li><b>投入口に入れる</b></li>" +
+      "<li>反対側で<b>必ず取る</b></li>" +
+      "<li>降りる駅では回収される</li>" +
+      "<li>運賃が不明なら<b>最安を買えばOK</b>（後で精算）</li>",
+    gJrTitle: "有人改札で見せる",
     gJr:
-      "<li>新しいJR Passは自動改札に<b>きっぷと同じように投入</b>できます（出てきたら受け取る）</li>" +
-      "<li>投入できないタイプの周遊パスは<b>有人改札で提示</b>して通ります</li>" +
-      "<li><b>JR PassはJR線のみ有効</b>。地下鉄・私鉄では使えません（別料金）</li>",
-    gFareTitle: "💰 改札が閉まったら（精算）",
+      "<li><b>有人改札で見せる</b></li>" +
+      "<li>新しいPassは自動改札に<b>投入もできる</b></li>" +
+      "<li><b>JR線のみ有効</b>。地下鉄・私鉄は別料金</li>",
+    gFareTitle: "閉まったら精算機へ",
     gFare:
-      "<li>出場時に扉が閉まっても慌てなくて大丈夫。改札近くの<b>「のりこし精算機 (Fare Adjustment)」</b>へ</li>" +
-      "<li>きっぷ/ICを入れて不足分を払うと出場券が出ます。それで改札を通れます</li>" +
-      "<li>精算機が見つからなければ有人改札で係員に伝えればOKです</li>",
-    ticketHintQr: "📱 出場も同じQRをかざしてください",
-    ticketHintIc: "💳 入場と同じICカードで出場できます",
-    ticketHintPaper: "🎫 きっぷは改札で回収されます",
-    ticketHintJrpass: "🚅 有人改札を通ってください",
-    gTransferTitle: "🔁 会社をまたぐ乗り換え",
+      "<li>改札近くの<b>のりこし精算機</b>へ</li>" +
+      "<li>きっぷ/ICを入れて<b>不足分を払う</b></li>" +
+      "<li>出てきた券で改札を通れる</li>",
+    ticketHintQr: "出場も同じQRをかざす",
+    ticketHintIc: "入場と同じICカードで出る",
+    ticketHintPaper: "きっぷは改札で回収される",
+    ticketHintJrpass: "有人改札を通る",
+    gTransferTitle: "会社が変わる乗り換え",
     gTransfer:
-      "<li>JR・東京メトロ・都営・私鉄は<b>別会社で運賃も別</b>。乗り換えでは一度改札を出て、入り直すのが基本です</li>" +
-      "<li><b>オレンジ色の乗換改札</b>は「連絡乗換用」。きっぷ/ICをそのまま使って乗り換えられます</li>" +
-      "<li>迷ったら案内サイン（Transfer / のりかえ）の色と会社ロゴを目印に</li>",
+      "<li>JR・メトロ・私鉄は<b>別会社＝運賃も別</b></li>" +
+      "<li>基本は<b>一度改札を出て入り直す</b></li>" +
+      "<li><b>オレンジの乗換改札</b>ならそのまま通れる</li>",
     stationsCount: (n) => `${n}駅`,
-    pwTitle: "⭐ プレミアムプラン",
-    pw1: "🔔 <b>降車アラート</b> — 降りる駅に近づくと振動・通知でお知らせ。寝過ごし防止に",
-    pw2: "🧭 <b>次の駅予測</b> — 進行方向から次に到着する駅を表示",
-    pw3: "🚃 <b>路線絞り込み</b> — 乗っている路線の駅だけを表示",
-    pw4: "📋 <b>乗車履歴</b> — 通過・停車した駅の記録を自動保存",
-    pw5: "🚫 <b>広告非表示</b>",
+    pwTitle: "プレミアム",
+    pw1: "<b>降車アラート</b> — 降りる駅が近づくと通知。寝過ごし防止に",
+    pw2: "<b>次の駅予測</b> — 進行方向から次の駅を表示",
+    pw3: "<b>路線絞り込み</b> — 乗っている路線だけ表示",
+    pw4: "<b>乗車履歴</b> — 通った駅を自動で記録",
+    pw5: "<b>広告非表示</b>",
     price: '月額 240円 <span class="price-sub">/ 年額 1,800円（38%おトク）</span>',
     buyMonthly: "月額プランに登録する",
     buyYearly: "年額プランに登録する",
     buyDemo: "アップグレードする（デモ）",
     manageSub: "サブスクリプションを管理・解約する",
     cancelDemo: "プレミアムを解約する（デモ）",
-    premiumBtn: "⭐ プレミアム",
-    premiumMember: "⭐ 会員",
-    toastPremiumOn: "プレミアムが有効になりました 🎉",
+    premiumBtn: "プレミアム",
+    premiumMember: "会員",
+    toastPremiumOn: "プレミアムが有効になりました",
     toastActivateFail: "購入の確認に失敗しました。時間をおいて再度開いてください。",
     toastCheckoutFail: "決済ページを開けませんでした。通信状態を確認してください。",
     toastPortalFail: "管理ページを開けませんでした。通信状態を確認してください。",
@@ -208,7 +228,7 @@ const STRINGS = {
     privacyLink: "Privacy Policy",
     gpsWait: "Getting GPS…",
     gpsAcc: (n) => `GPS ±${n}m`,
-    gpsAccLow: (n) => `GPS ±${n}m (low accuracy, take with care)`,
+    gpsAccLow: (n) => `GPS ±${n}m low`,
     fetching: "Loading stations…",
     fetchFail: "Failed to load station data. Please check your connection.",
     geo1: "Location access is denied. Please allow it in your browser settings.",
@@ -217,23 +237,23 @@ const STRINGS = {
     geoFail: "Failed to get your location.",
     geoUnsupported: "Location is not available on this device.",
     nearest: "Nearest station",
-    here: "🚉 You are here!",
+    here: "You are here",
     noStations: "No stations found nearby",
     about: (d) => `approx. ${d}`,
     nextIs: (n, d) => `Next: ${n} (${d})`,
     nextIsShort: (n) => `Next: ${n}`,
-    ridingBtn: "🚆 Onboard mode (large display, keeps screen on)",
-    destBtn: "🎯 Set destination (get-off alert)",
-    destSet: (n) => `🎯 Destination: ${n} (tap to change)`,
-    alertSet: (n) => `🔔 Get-off alert set for ${n}`,
+    ridingBtn: "On-board",
+    destBtn: "Destination",
+    destSet: (n) => `To ${n}`,
+    alertSet: (n) => `Alert at ${n}`,
     stopsLeft: (n) => `${n} ${n === 1 ? "stop" : "stops"} to go`,
     cancel: "Clear",
-    soonTitle: "🔔 Arriving soon",
-    notifTitle: "🔔 Arriving soon",
+    soonTitle: "Arriving soon",
+    notifTitle: "Arriving soon",
     notifBody: (n) => `Approaching ${n}`,
-    alertDismiss: "OK, stop the alert",
+    alertDismiss: "Stop the alert",
     nearbyTitle: "Nearby stations",
-    nearbyHint: "Tap 🔔 to set a get-off alert",
+    nearbyHint: "",
     historyTitle: "Ride history",
     adPlaceholder: "Ad space",
     updated: (t) => `Updated: ${t}`,
@@ -244,75 +264,77 @@ const STRINGS = {
     credit: "Station data © OpenStreetMap contributors",
     lineFilterLabel: "Filter by line",
     allLines: "All lines",
-    rideChip: (l) => `🚆 Riding ${l}?`,
+    rideChip: (l) => `Riding ${l}?`,
     tapBack: "Tap to go back",
     destTitle: "Choose destination",
     close: "Close",
-    searchTab: "🔍 Search",
-    linesTab: "🚇 Lines",
+    searchTab: "Search",
+    linesTab: "Route map",
     backToLines: "← Back to lines",
     clearDest: "Clear destination",
     searchPh: "Search by station name...",
     lineSearchPh: "Search lines or stations...",
-    apiCredit: "🌐 = nationwide stations (outside Tokyo/Kansai)",
-    guideBtn: "🎫 Station Guide (how to ride)",
-    guideTitle: "🎫 Station Guide",
-    guideAsk: "What are you traveling with? (pick one to personalize)",
-    ticketQr: "📱 QR ticket",
-    ticketIc: "💳 IC card",
-    ticketPaper: "🎫 Paper ticket",
-    ticketJrpass: "🚅 JR Pass",
-    gQrTitle: "📱 Passing the gate with a QR ticket",
+    apiCredit: "Includes nationwide stations",
+    guideBtn: "Station guide",
+    guideTitle: "Through the gate",
+    guideAsk: "What are you traveling with?",
+    ticketQr: "QR",
+    ticketIc: "IC card",
+    ticketPaper: "Ticket",
+    ticketJrpass: "JR Pass",
+    gQrTitle: "Scan your QR",
     gQr:
-      "<li><b>Find a gate with a QR reader</b> — not every gate accepts QR. Look for a small glass scanner on top of the gate; these are often near the staffed window</li>" +
-      "<li>Turn your screen brightness up, <b>hold the QR code still over the scanner</b>, and walk through once the doors open</li>" +
-      "<li>Printed QR works the same way. <b>Keep it — you need the same QR to exit</b></li>" +
-      "<li>If it won't scan or you can't find a QR gate, go to the <b>staffed gate</b> and show your ticket</li>",
-    gIcTitle: "💳 Passing the gate with an IC card",
+      "<li>Find a gate with a <b>glass reader on top</b></li>" +
+      "<li>Screen bright, <b>hold it still</b></li>" +
+      "<li><b>Same QR to exit</b> — keep it</li>" +
+      "<li>Won't scan? Use the <b>staffed gate</b></li>",
+    gIcTitle: "Touch your IC card",
     gIc:
-      "<li>Buy/charge Suica or PASMO at station machines (Welcome Suica at airports; on iPhone you can add Suica in Apple Wallet)</li>" +
-      "<li><b>Touch the card flat on the glowing blue IC reader for about 1 second</b> — beep, doors open</li>" +
-      "<li><b>Enter and exit with the same card.</b> If your balance is too low the exit gate closes → use Fare Adjustment (below)</li>",
-    gPaperTitle: "🎫 Passing the gate with a paper ticket",
+      "<li><b>Touch the blue pad for 1 second</b></li>" +
+      "<li><b>Same card in and out</b></li>" +
+      "<li>Low balance? Fare Adjustment (below)</li>" +
+      "<li>Buy/charge Suica at ticket machines</li>",
+    gPaperTitle: "Insert, then take it back",
     gPaper:
-      "<li>Buy at the ticket machine. Can't read the fare map? <b>Buy the cheapest ticket</b> — you can pay the difference at your destination</li>" +
-      "<li><b>Insert the ticket into the slot</b> at the gate, walk through, and <b>take the ticket as it pops out</b></li>" +
-      "<li>At your final station the gate keeps the ticket — just walk through</li>",
-    gJrTitle: "🚅 Passing the gate with a JR Pass",
+      "<li><b>Insert into the slot</b></li>" +
+      "<li><b>Take it</b> on the other side</li>" +
+      "<li>Your last gate keeps it</li>" +
+      "<li>Unsure of the fare? <b>Buy the cheapest</b></li>",
+    gJrTitle: "Use the staffed gate",
     gJr:
-      "<li>Newer JR Passes go <b>into the automatic gate like a paper ticket</b> (take it as it pops out)</li>" +
-      "<li>Passes that can't be inserted: <b>show them at the staffed gate</b></li>" +
-      "<li><b>JR Pass is valid on JR lines only</b> — subways and private railways charge separately</li>",
-    gFareTitle: "💰 Gate closed on you? (Fare Adjustment)",
+      "<li><b>Show it at the staffed gate</b></li>" +
+      "<li>Newer passes also <b>go into the gate</b></li>" +
+      "<li><b>JR lines only</b> — subways cost extra</li>",
+    gFareTitle: "Gate closed? Fare Adjustment",
     gFare:
-      "<li>Don't panic. Find the <b>\"Fare Adjustment\" machine</b> near the exit gates</li>" +
-      "<li>Insert your ticket/IC, pay the difference, and you'll get an exit ticket</li>" +
-      "<li>No machine in sight? The staff at the staffed gate will sort it out</li>",
-    ticketHintQr: "📱 Use the same QR code to exit",
-    ticketHintIc: "💳 Exit with the same IC card you entered with",
-    ticketHintPaper: "🎫 The gate will collect your ticket",
-    ticketHintJrpass: "🚅 Go through the staffed gate",
-    gTransferTitle: "🔁 Transferring between companies",
+      "<li>Find the <b>Fare Adjustment machine</b></li>" +
+      "<li>Insert ticket/IC, <b>pay the difference</b></li>" +
+      "<li>Use the ticket it gives you</li>",
+    ticketHintQr: "Same QR to exit",
+    ticketHintIc: "Same IC card to exit",
+    ticketHintPaper: "The gate keeps your ticket",
+    ticketHintJrpass: "Use the staffed gate",
+    gTransferTitle: "Changing companies",
     gTransfer:
-      "<li>JR, Tokyo Metro, Toei and private railways are <b>separate companies with separate fares</b> — transferring usually means exiting the gates and entering again</li>" +
-      "<li><b>Orange transfer gates</b> are for connected transfers — use your ticket/IC there without fully exiting</li>" +
-      "<li>When lost, follow the Transfer signs and match the line color and company logo</li>",
+      "<li>JR, Metro and private lines are <b>separate fares</b></li>" +
+      "<li>Usually <b>exit and enter again</b></li>" +
+      "<li><b>Orange transfer gates</b> let you pass straight through</li>",
     stationsCount: (n) => `${n} stations`,
-    pwTitle: "⭐ Premium Plan",
-    pw1: "🔔 <b>Get-off alert</b> — vibration & notification as you approach your stop. Never sleep past it",
-    pw2: "🧭 <b>Next station</b> — predicts the next stop from your direction of travel",
-    pw3: "🚃 <b>Line filter</b> — show only stations on your line",
-    pw4: "📋 <b>Ride history</b> — automatically logs the stations you pass",
-    pw5: "🚫 <b>No ads</b>",
+    pwTitle: "Premium",
+    pw1: "<b>Get-off alert</b> — a nudge as your stop approaches",
+    pw2: "<b>Next station</b> — predicted from your direction",
+    pw3: "<b>Line filter</b> — only stations on your line",
+    pw4: "<b>Ride history</b> — logs the stations you pass",
+    pw5: "<b>No ads</b>",
     price: '¥240/month <span class="price-sub">or ¥1,800/year (save 38%)</span>',
     buyMonthly: "Subscribe monthly",
     buyYearly: "Subscribe yearly",
     buyDemo: "Upgrade (demo)",
     manageSub: "Manage / cancel subscription",
     cancelDemo: "Cancel premium (demo)",
-    premiumBtn: "⭐ Premium",
-    premiumMember: "⭐ Member",
-    toastPremiumOn: "Premium is now active 🎉",
+    premiumBtn: "Premium",
+    premiumMember: "Member",
+    toastPremiumOn: "Premium is now active",
     toastActivateFail: "Couldn't verify your purchase. Please reopen the app later.",
     toastCheckoutFail: "Couldn't open the checkout page. Please check your connection.",
     toastPortalFail: "Couldn't open the management page. Please check your connection.",
@@ -343,9 +365,7 @@ function applyLang() {
     el.placeholder = t(el.dataset.i18nPh);
   });
   // 動的に組み立てている文言を現在の状態で再描画
-  $("dest-btn").textContent = alertStation
-    ? t("destSet", dispName(alertStation))
-    : t("destBtn");
+  setBtnLabel("dest-btn", alertStation ? t("destSet", dispName(alertStation)) : t("destBtn"));
   if (alertStation) {
     $("alert-status-text").textContent = t("alertSet", dispName(alertStation));
     $("r-alert").textContent = t("alertSet", dispName(alertStation));
@@ -472,7 +492,7 @@ async function openPortal() {
 function applyPlanUI() {
   const premium = isPremium();
   const billing = billingEnabled();
-  $("premium-btn").textContent = premium ? t("premiumMember") : t("premiumBtn");
+  $("premium-btn-label").textContent = premium ? t("premiumMember") : t("premiumBtn");
   $("ad-slot").classList.toggle("hidden", premium);
   $("buy-monthly-btn").classList.toggle("hidden", !billing || premium);
   $("buy-yearly-btn").classList.toggle("hidden", !billing || premium);
@@ -959,7 +979,9 @@ function nearbyItem(s) {
   dist.textContent = formatDistance(s.dist);
   const bell = document.createElement("button");
   bell.className = "bell-btn";
-  bell.textContent = alertStation?.name === s.name ? "🔔" : "🔕";
+  const on = alertStation?.name === s.name;
+  bell.appendChild(icon(on ? "bell" : "bell-off"));
+  bell.classList.toggle("on", on);
   bell.title = "この駅で降車アラートを設定";
   bell.addEventListener("click", () => setAlert(s));
   right.append(dist, bell);
@@ -1061,7 +1083,7 @@ async function setAlert(station) {
   $("alert-status-text").textContent = t("alertSet", dispName(alertStation));
   $("alert-status").classList.remove("hidden");
   $("r-alert").textContent = t("alertSet", dispName(alertStation));
-  $("dest-btn").textContent = t("destSet", dispName(alertStation));
+  setBtnLabel("dest-btn", t("destSet", dispName(alertStation)));
   rememberDest(alertStation);
   if ("Notification" in window && Notification.permission === "default") {
     try {
@@ -1077,7 +1099,7 @@ function cancelAlert() {
   alertStation = null;
   $("alert-status").classList.add("hidden");
   $("r-alert").textContent = "";
-  $("dest-btn").textContent = t("destBtn");
+  setBtnLabel("dest-btn", t("destBtn"));
 }
 
 // =====================================================================
@@ -1242,8 +1264,9 @@ function renderDestList(query) {
     const li = document.createElement("li");
     li.className = "dest-item";
     const name = document.createElement("span");
-    const prefix = s.recent ? "🕐 " : s.source === "jp" ? "🌐 " : "";
-    name.textContent = prefix + dispName(s);
+    if (s.recent) name.appendChild(icon("clock", "ic-sm"));
+    else if (s.source === "jp") name.appendChild(icon("globe", "ic-sm"));
+    name.appendChild(document.createTextNode(dispName(s)));
     const line = document.createElement("span");
     line.className = "dist";
     line.textContent = s.lines?.[0] || "";
@@ -1438,7 +1461,7 @@ const MODE_BG = { light: "#f6f2ea", dark: "#0a0b10" };
 function applyMode(mode) {
   document.body.dataset.mode = mode;
   localStorage.setItem("mode", mode);
-  $("daynight-btn").textContent = mode === "light" ? "☀️" : "🌙";
+  $("daynight-btn").replaceChildren(icon(mode === "light" ? "sun" : "moon"));
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute("content", MODE_BG[mode]);
 }

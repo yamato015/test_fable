@@ -16,6 +16,137 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- アイコン定義 (絵文字を使わず、線幅を揃えた自前のSVGで統一する)。
+       使う側は <svg class="ic"><use href="#i-xxx"/></svg>、動的生成は app.js の icon() -->
+  <svg id="icon-sprite" aria-hidden="true">
+    <defs>
+      <g id="s-globe" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.4 2.5 14.1 0 17M12 3.5c-2.5 2.4-2.5 14.1 0 17"/>
+      </g>
+      <g id="s-moon" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/>
+      </g>
+      <g id="s-sun" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4L17 7M7 17l-1.6 1.6"/>
+      </g>
+      <g id="s-contrast" fill="none" stroke="currentColor" stroke-width="1.7">
+        <circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor" stroke="none"/>
+      </g>
+      <g id="s-star" stroke="none">
+        <path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.2-4.1 5.8-.8z" fill="currentColor"/>
+      </g>
+      <g id="s-bulb" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <path d="M9.2 17h5.6M10 20h4M12 3.5a5.6 5.6 0 0 0-3.4 10v1.2h6.8V13.5A5.6 5.6 0 0 0 12 3.5z"/>
+      </g>
+      <g id="s-train" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="5" y="3.4" width="14" height="13.2" rx="3.4"/>
+        <path d="M8.4 7.2h7.2v3.6H8.4zM9.6 20.6l1.6-2.4M14.4 20.6l-1.6-2.4"/>
+        <circle cx="9.2" cy="14" r=".9" fill="currentColor" stroke="none"/>
+        <circle cx="14.8" cy="14" r=".9" fill="currentColor" stroke="none"/>
+      </g>
+      <g id="s-pin" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <path d="M12 21c4.2-4.7 6.3-8 6.3-10.6A6.3 6.3 0 0 0 5.7 10.4C5.7 13 7.8 16.3 12 21z"/>
+        <circle cx="12" cy="10.3" r="2.4"/>
+      </g>
+      <g id="s-ticket" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+        <path d="M3.4 8.2A2 2 0 0 0 5.4 6h13.2a2 2 0 0 0 2 2.2 2 2 0 0 0 0 7.6 2 2 0 0 0-2 2.2H5.4a2 2 0 0 0-2-2.2 2 2 0 0 0 0-7.6z"/>
+        <path d="M9.4 9.6v4.8" stroke-dasharray="1.6 1.8" stroke-linecap="round"/>
+      </g>
+      <g id="s-bell" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <path d="M6.4 17.2h11.2l-1.4-2.5v-3.9a4.2 4.2 0 0 0-8.4 0v3.9zM10.3 19.8a1.9 1.9 0 0 0 3.4 0"/>
+      </g>
+      <g id="s-bell-off" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <path d="M6.4 17.2h11.2l-1.4-2.5v-3.9a4.2 4.2 0 0 0-8.4 0v3.9zM10.3 19.8a1.9 1.9 0 0 0 3.4 0M4.4 4.4l15.2 15.2"/>
+      </g>
+      <g id="s-here" fill="none" stroke="currentColor" stroke-width="1.7">
+        <circle cx="12" cy="12" r="8.4" opacity=".38"/><circle cx="12" cy="12" r="4.6" opacity=".7"/>
+        <circle cx="12" cy="12" r="1.9" fill="currentColor" stroke="none"/>
+      </g>
+      <g id="s-search" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <circle cx="10.8" cy="10.8" r="6.4"/><path d="M15.6 15.6l4.2 4.2"/>
+      </g>
+      <g id="s-routemap" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <path d="M12 5.4v13.2"/>
+        <circle cx="12" cy="5.4" r="2" fill="var(--plate, #15161d)"/>
+        <circle cx="12" cy="12" r="2" fill="var(--plate, #15161d)"/>
+        <circle cx="12" cy="18.6" r="2" fill="var(--plate, #15161d)"/>
+      </g>
+      <g id="s-clock" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <circle cx="12" cy="12" r="8.4"/><path d="M12 7.4V12l3.2 2"/>
+      </g>
+      <g id="s-qr" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+        <path d="M4.4 9V5.6a1.2 1.2 0 0 1 1.2-1.2H9M15 4.4h3.4a1.2 1.2 0 0 1 1.2 1.2V9M19.6 15v3.4a1.2 1.2 0 0 1-1.2 1.2H15M9 19.6H5.6a1.2 1.2 0 0 1-1.2-1.2V15"/>
+        <path d="M8.2 8.2h2.4v2.4H8.2zM13.4 8.2h2.4v2.4h-2.4zM8.2 13.4h2.4v2.4H8.2zM13.4 13.4h2.4v2.4h-2.4z" fill="currentColor" stroke="none"/>
+      </g>
+      <g id="s-card" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+        <rect x="3" y="6" width="18" height="12" rx="2.2"/><path d="M3 10.2h18" stroke-width="2.4"/>
+        <path d="M6.4 14.4h3.6" stroke-linecap="round"/>
+      </g>
+      <g id="s-paper" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+        <rect x="5.4" y="3.6" width="13.2" height="16.8" rx="1.8"/>
+        <path d="M8.4 8h7.2M8.4 12h7.2M8.4 16h4.2" stroke-linecap="round"/>
+      </g>
+      <g id="s-shinkansen" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3.4 17.6h13.4c2.2 0 3.8-1.6 3.8-3.6 0-3.4-3.6-7.6-8.6-7.6-4 0-6.6 2.2-8 4.6z"/>
+        <path d="M7.6 11.4h4.2M3.4 20.6h17.2"/>
+      </g>
+      <g id="s-yen" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <circle cx="12" cy="12" r="8.4"/><path d="M8.6 7.8L12 12.6l3.4-4.8M8.8 13h6.4M8.8 15.8h6.4M12 12.6v4.4"/>
+      </g>
+      <g id="s-transfer" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4.4 8.6h13l-3-3M19.6 15.4h-13l3 3"/>
+      </g>
+      <g id="s-compass" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="8.4"/><path d="M15.2 8.8l-2 4.4-4.4 2 2-4.4z" fill="currentColor" stroke="none"/>
+      </g>
+      <g id="s-filter" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <path d="M4.4 6.6h15.2M7 12h10M10 17.4h4"/>
+      </g>
+      <g id="s-list" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <path d="M8.6 7.4h11M8.6 12h11M8.6 16.6h11"/>
+        <circle cx="4.9" cy="7.4" r="1.2" fill="currentColor" stroke="none"/>
+        <circle cx="4.9" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+        <circle cx="4.9" cy="16.6" r="1.2" fill="currentColor" stroke="none"/>
+      </g>
+      <g id="s-noads" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="8.4"/><path d="M6.2 17.8L17.8 6.2" stroke-linecap="round"/>
+      </g>
+      <g id="s-close" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <path d="M6.4 6.4l11.2 11.2M17.6 6.4L6.4 17.6"/>
+      </g>
+      <g id="s-staff" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <circle cx="12" cy="8" r="3.4"/><path d="M5.6 20.4a6.4 6.4 0 0 1 12.8 0"/>
+      </g>
+    </defs>
+    <symbol id="i-globe" viewBox="0 0 24 24"><use href="#s-globe"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><use href="#s-moon"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><use href="#s-sun"/></symbol>
+    <symbol id="i-contrast" viewBox="0 0 24 24"><use href="#s-contrast"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><use href="#s-star"/></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24"><use href="#s-bulb"/></symbol>
+    <symbol id="i-train" viewBox="0 0 24 24"><use href="#s-train"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><use href="#s-pin"/></symbol>
+    <symbol id="i-ticket" viewBox="0 0 24 24"><use href="#s-ticket"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><use href="#s-bell"/></symbol>
+    <symbol id="i-bell-off" viewBox="0 0 24 24"><use href="#s-bell-off"/></symbol>
+    <symbol id="i-here" viewBox="0 0 24 24"><use href="#s-here"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><use href="#s-search"/></symbol>
+    <symbol id="i-routemap" viewBox="0 0 24 24"><use href="#s-routemap"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><use href="#s-clock"/></symbol>
+    <symbol id="i-qr" viewBox="0 0 24 24"><use href="#s-qr"/></symbol>
+    <symbol id="i-card" viewBox="0 0 24 24"><use href="#s-card"/></symbol>
+    <symbol id="i-paper" viewBox="0 0 24 24"><use href="#s-paper"/></symbol>
+    <symbol id="i-shinkansen" viewBox="0 0 24 24"><use href="#s-shinkansen"/></symbol>
+    <symbol id="i-yen" viewBox="0 0 24 24"><use href="#s-yen"/></symbol>
+    <symbol id="i-transfer" viewBox="0 0 24 24"><use href="#s-transfer"/></symbol>
+    <symbol id="i-compass" viewBox="0 0 24 24"><use href="#s-compass"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24"><use href="#s-filter"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><use href="#s-list"/></symbol>
+    <symbol id="i-noads" viewBox="0 0 24 24"><use href="#s-noads"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><use href="#s-close"/></symbol>
+    <symbol id="i-staff" viewBox="0 0 24 24"><use href="#s-staff"/></symbol>
+  </svg>
+
   <main id="app">
     <!-- 開始画面 -->
     <section id="start-screen" class="screen">
@@ -28,9 +159,9 @@
       </div>
       <h1 class="logo"><span data-i18n="appName">エキココ</span><span class="beta">β</span></h1>
       <p class="wordmark-en">EKIKOKO</p>
-      <p class="tagline" data-i18n-html="tagline">混雑した電車内でも、<br>いまどの駅にいるかすぐわかる。</p>
+      <p class="tagline" data-i18n-html="tagline">混雑した車内でも、<br>いまどの駅かひと目でわかる。</p>
       <button id="start-btn" class="big-btn" data-i18n="startBtn">現在地を確認する</button>
-      <p class="note"><span data-i18n-html="startNote">位置情報の利用を許可してください。<br>位置情報は端末内でのみ使用され、保存されません。</span><br>
+      <p class="note"><span data-i18n-html="startNote">位置情報は端末内だけで使い、保存しません。</span><br>
         <a class="policy-link" href="privacy.html" data-i18n="privacyLink">プライバシーポリシー</a></p>
     </section>
 
@@ -39,17 +170,18 @@
       <header class="status-bar">
         <span id="gps-status" class="badge" data-i18n="gpsWait">GPS取得中…</span>
         <div class="status-actions">
-          <button id="lang-btn" class="icon-btn" title="Language">🌐</button>
-          <button id="daynight-btn" class="icon-btn" title="ライト/ダーク切り替え">🌙</button>
-          <button id="theme-btn" class="icon-btn" title="テーマ切り替え">🎨</button>
-          <button id="premium-btn" class="pill-btn">⭐ プレミアム</button>
-          <button id="wakelock-btn" class="icon-btn" title="画面を常時点灯">💡</button>
+          <button id="lang-btn" class="icon-btn" title="Language"><svg class="ic"><use href="#i-globe"/></svg></button>
+          <button id="daynight-btn" class="icon-btn" title="ライト/ダーク切り替え"><svg class="ic"><use href="#i-moon"/></svg></button>
+          <button id="theme-btn" class="icon-btn" title="テーマ切り替え"><svg class="ic"><use href="#i-contrast"/></svg></button>
+          <button id="wakelock-btn" class="icon-btn" title="画面を常時点灯"><svg class="ic"><use href="#i-bulb"/></svg></button>
+          <button id="premium-btn" class="pill-btn"><svg class="ic"><use href="#i-star"/></svg><span id="premium-btn-label" data-i18n="premiumBtn">プレミアム</span></button>
         </div>
       </header>
 
       <!-- 路線絞り込み (プレミアム / 路線データが取得できた場合のみ表示) -->
       <div id="line-filter-wrap" class="line-filter hidden">
-        <label for="line-filter" data-i18n="lineFilterLabel">路線で絞り込み</label>
+        <label for="line-filter" class="sr-only" data-i18n="lineFilterLabel">路線で絞り込み</label>
+        <svg class="ic" aria-hidden="true"><use href="#i-filter"/></svg>
         <select id="line-filter">
           <option value="" data-i18n="allLines">すべての路線</option>
         </select>
@@ -58,7 +190,7 @@
       <!-- 乗車路線の自動推定チップ (誤推定なら✕で解除) -->
       <div id="ride-chip" class="ride-chip hidden">
         <span id="ride-chip-text"></span>
-        <button id="ride-chip-clear" class="text-btn">✕</button>
+        <button id="ride-chip-clear" class="icon-only-btn" title="解除"><svg class="ic"><use href="#i-close"/></svg></button>
       </div>
 
       <div class="station-display">
@@ -71,9 +203,11 @@
         <p id="next-station" class="next-station hidden"></p>
       </div>
 
-      <button id="riding-btn" class="mode-btn" data-i18n="ridingBtn">🚆 車内モード（特大表示・画面オフ防止）</button>
-      <button id="dest-btn" class="mode-btn secondary" data-i18n="destBtn">🎯 目的地を設定（降車アラート）</button>
-      <button id="guide-btn" class="mode-btn secondary" data-i18n="guideBtn">🎫 駅の乗り方ガイド</button>
+      <button id="riding-btn" class="mode-btn"><svg class="ic"><use href="#i-train"/></svg><span data-i18n="ridingBtn">車内モード</span></button>
+      <div class="mode-row">
+        <button id="dest-btn" class="mode-btn secondary"><svg class="ic"><use href="#i-pin"/></svg><span data-i18n="destBtn">目的地</span></button>
+        <button id="guide-btn" class="mode-btn secondary"><svg class="ic"><use href="#i-ticket"/></svg><span data-i18n="guideBtn">乗り方ガイド</span></button>
+      </div>
 
       <!-- 降車アラート設定状態 -->
       <div id="alert-status" class="alert-status hidden">
@@ -82,7 +216,7 @@
       </div>
 
       <div class="nearby">
-        <h3><span data-i18n="nearbyTitle">周辺の駅</span> <span class="hint" data-i18n="nearbyHint">🔔で降車アラートを設定</span></h3>
+        <h3><span data-i18n="nearbyTitle">周辺の駅</span></h3>
         <ol id="nearby-list" class="nearby-list"></ol>
       </div>
 
@@ -123,11 +257,11 @@
       <div class="modal">
         <div class="modal-header-row">
           <h2 data-i18n="destTitle">目的地を選択</h2>
-          <button id="dest-close" class="text-btn" data-i18n="close">閉じる</button>
+          <button id="dest-close" class="icon-only-btn" title="閉じる"><svg class="ic"><use href="#i-close"/></svg></button>
         </div>
         <div class="dest-tabs">
-          <button id="dest-tab-search" class="tab-btn active" data-i18n="searchTab">🔍 検索</button>
-          <button id="dest-tab-lines" class="tab-btn" data-i18n="linesTab">🚇 路線図</button>
+          <button id="dest-tab-search" class="tab-btn active"><svg class="ic"><use href="#i-search"/></svg><span data-i18n="searchTab">検索</span></button>
+          <button id="dest-tab-lines" class="tab-btn"><svg class="ic"><use href="#i-routemap"/></svg><span data-i18n="linesTab">路線図</span></button>
         </div>
         <div id="dest-search-view">
           <input id="dest-search" class="search-input" type="search"
@@ -149,44 +283,165 @@
       </div>
     </div>
 
-    <!-- 駅の乗り方ガイド (訪日客向け・きっぷ種別で出し分け) -->
+    <!-- 駅の乗り方ガイド: 文章を減らし、動く図で見せる。きっぷ種別で出し分け -->
     <div id="guide-modal" class="modal-overlay hidden">
       <div class="modal">
         <div class="modal-header-row">
-          <h2 data-i18n="guideTitle">🎫 駅の乗り方ガイド</h2>
-          <button id="guide-close" class="text-btn" data-i18n="close">閉じる</button>
+          <h2 data-i18n="guideTitle">改札の通り方</h2>
+          <button id="guide-close" class="icon-only-btn" title="閉じる"><svg class="ic"><use href="#i-close"/></svg></button>
         </div>
-        <p class="guide-ask" data-i18n="guideAsk">何で乗りますか？（選ぶと案内が絞られます）</p>
+        <p class="guide-ask" data-i18n="guideAsk">何で乗りますか？</p>
         <div class="guide-chips">
-          <button class="chip-btn" data-ticket="qr" data-i18n="ticketQr">📱 QRチケット</button>
-          <button class="chip-btn" data-ticket="ic" data-i18n="ticketIc">💳 ICカード</button>
-          <button class="chip-btn" data-ticket="paper" data-i18n="ticketPaper">🎫 紙のきっぷ</button>
-          <button class="chip-btn" data-ticket="jrpass" data-i18n="ticketJrpass">🚅 JR Pass</button>
+          <button class="chip-btn" data-ticket="qr"><svg class="ic"><use href="#i-qr"/></svg><span data-i18n="ticketQr">QR</span></button>
+          <button class="chip-btn" data-ticket="ic"><svg class="ic"><use href="#i-card"/></svg><span data-i18n="ticketIc">ICカード</span></button>
+          <button class="chip-btn" data-ticket="paper"><svg class="ic"><use href="#i-ticket"/></svg><span data-i18n="ticketPaper">きっぷ</span></button>
+          <button class="chip-btn" data-ticket="jrpass"><svg class="ic"><use href="#i-shinkansen"/></svg><span data-i18n="ticketJrpass">JR Pass</span></button>
         </div>
         <div id="guide-body">
+          <!-- QR: リーダーにかざす -->
           <section class="guide-sec" data-sec="qr">
-            <h3 data-i18n="gQrTitle">📱 QRチケットでの通り方</h3>
-            <ul class="feature-list" data-i18n-html="gQr"></ul>
+            <h3><svg class="ic"><use href="#i-qr"/></svg><span data-i18n="gQrTitle">QRをかざす</span></h3>
+            <div class="scene" data-anim="qr">
+              <svg viewBox="0 0 240 116" role="img" aria-labelledby="qr-scene-t">
+                <title id="qr-scene-t" data-i18n="gQrTitle">QRをかざす</title>
+                <!-- 改札機の躯体 (通路をはさんで左右) -->
+                <rect class="sc-body" x="20" y="52" width="60" height="56" rx="5"/>
+                <rect class="sc-body" x="160" y="52" width="60" height="56" rx="5"/>
+                <!-- 上面のQR読み取り面 -->
+                <rect class="sc-reader" x="30" y="46" width="40" height="8" rx="4"/>
+                <!-- 通路をふさぐ扉 (中央で突き合わせ、開くと躯体に引っ込む) -->
+                <g class="sc-flap-l"><rect class="sc-flap" x="80" y="70" width="40" height="26"/></g>
+                <g class="sc-flap-r"><rect class="sc-flap" x="120" y="70" width="40" height="26"/></g>
+                <!-- かざすスマホ -->
+                <g class="sc-phone">
+                  <rect class="sc-dev" x="33" y="4" width="34" height="38" rx="5"/>
+                  <g class="sc-qr" transform="translate(40 12)">
+                    <rect width="20" height="20" rx="2"/>
+                    <g class="sc-qr-dots"><rect x="3" y="3" width="5" height="5"/><rect x="12" y="3" width="5" height="5"/><rect x="3" y="12" width="5" height="5"/><rect x="12" y="12" width="5" height="5"/></g>
+                  </g>
+                </g>
+                <!-- 読み取り成功の光 -->
+                <circle class="sc-ping" cx="50" cy="50" r="11"/>
+              </svg>
+            </div>
+            <ul class="guide-steps" data-i18n-html="gQr"></ul>
           </section>
+
+          <!-- IC: 青い面にタッチ -->
           <section class="guide-sec" data-sec="ic">
-            <h3 data-i18n="gIcTitle">💳 ICカードでの通り方</h3>
-            <ul class="feature-list" data-i18n-html="gIc"></ul>
+            <h3><svg class="ic"><use href="#i-card"/></svg><span data-i18n="gIcTitle">ICカードをタッチ</span></h3>
+            <div class="scene" data-anim="ic">
+              <svg viewBox="0 0 240 116" role="img" aria-labelledby="ic-scene-t">
+                <title id="ic-scene-t" data-i18n="gIcTitle">ICカードをタッチ</title>
+                <rect class="sc-body" x="20" y="52" width="60" height="56" rx="5"/>
+                <rect class="sc-body" x="160" y="52" width="60" height="56" rx="5"/>
+                <!-- 青く光る読み取り部 (上面) -->
+                <ellipse class="sc-pad" cx="50" cy="50" rx="20" ry="7"/>
+                <g class="sc-flap-l"><rect class="sc-flap" x="80" y="70" width="40" height="26"/></g>
+                <g class="sc-flap-r"><rect class="sc-flap" x="120" y="70" width="40" height="26"/></g>
+                <g class="sc-card">
+                  <rect class="sc-dev" x="26" y="8" width="48" height="32" rx="4"/>
+                  <rect class="sc-chip" x="32" y="16" width="11" height="9" rx="2"/>
+                </g>
+                <circle class="sc-ping" cx="50" cy="50" r="13"/>
+                <circle class="sc-ping sc-ping2" cx="50" cy="50" r="13"/>
+              </svg>
+            </div>
+            <ul class="guide-steps" data-i18n-html="gIc"></ul>
           </section>
+
+          <!-- 紙のきっぷ: 入れて、取る -->
           <section class="guide-sec" data-sec="paper">
-            <h3 data-i18n="gPaperTitle">🎫 紙のきっぷでの通り方</h3>
-            <ul class="feature-list" data-i18n-html="gPaper"></ul>
+            <h3><svg class="ic"><use href="#i-ticket"/></svg><span data-i18n="gPaperTitle">きっぷを入れて取る</span></h3>
+            <div class="scene" data-anim="paper">
+              <svg viewBox="0 0 240 116" role="img" aria-labelledby="paper-scene-t">
+                <title id="paper-scene-t" data-i18n="gPaperTitle">きっぷを入れて取る</title>
+                <rect class="sc-body" x="20" y="52" width="60" height="56" rx="5"/>
+                <rect class="sc-body" x="160" y="52" width="60" height="56" rx="5"/>
+                <!-- 手前の投入口 / 奥の取り出し口 -->
+                <rect class="sc-slot" x="34" y="48" width="32" height="6" rx="3"/>
+                <rect class="sc-slot" x="174" y="48" width="32" height="6" rx="3"/>
+                <g class="sc-flap-l"><rect class="sc-flap" x="80" y="70" width="40" height="26"/></g>
+                <g class="sc-flap-r"><rect class="sc-flap" x="120" y="70" width="40" height="26"/></g>
+                <!-- 投入されるきっぷ -->
+                <g class="sc-tk-in"><rect class="sc-dev" x="40" y="8" width="20" height="34" rx="2"/></g>
+                <!-- 反対側から出てくるきっぷ -->
+                <g class="sc-tk-out"><rect class="sc-dev" x="180" y="8" width="20" height="34" rx="2"/></g>
+              </svg>
+            </div>
+            <ul class="guide-steps" data-i18n-html="gPaper"></ul>
           </section>
+
+          <!-- JR Pass: 有人改札で見せる -->
           <section class="guide-sec" data-sec="jrpass">
-            <h3 data-i18n="gJrTitle">🚅 JR Pass・周遊パスでの通り方</h3>
-            <ul class="feature-list" data-i18n-html="gJr"></ul>
+            <h3><svg class="ic"><use href="#i-shinkansen"/></svg><span data-i18n="gJrTitle">有人改札で見せる</span></h3>
+            <div class="scene" data-anim="jrpass">
+              <svg viewBox="0 0 240 132" role="img" aria-labelledby="jr-scene-t">
+                <title id="jr-scene-t" data-i18n="gJrTitle">有人改札で見せる</title>
+                <!-- 有人窓口のカウンター -->
+                <rect class="sc-body" x="128" y="30" width="98" height="88" rx="5"/>
+                <rect class="sc-window" x="140" y="42" width="74" height="42" rx="3"/>
+                <!-- 係員 -->
+                <g class="sc-staff" transform="translate(158 46)">
+                  <circle class="sc-fill" cx="19" cy="12" r="8"/>
+                  <path class="sc-fill" d="M3 34a16 16 0 0 1 32 0z"/>
+                </g>
+                <!-- 通路 -->
+                <rect class="sc-body" x="14" y="86" width="100" height="32" rx="4"/>
+                <!-- 見せるパス -->
+                <g class="sc-pass">
+                  <rect class="sc-dev" x="74" y="52" width="46" height="28" rx="3"/>
+                  <path class="sc-passline" d="M82 62h30M82 70h18"/>
+                </g>
+              </svg>
+            </div>
+            <ul class="guide-steps" data-i18n-html="gJr"></ul>
           </section>
+
+          <!-- 共通: 精算 -->
           <section class="guide-sec" data-sec="common">
-            <h3 data-i18n="gFareTitle">💰 改札が閉まったら（精算）</h3>
-            <ul class="feature-list" data-i18n-html="gFare"></ul>
+            <h3><svg class="ic"><use href="#i-yen"/></svg><span data-i18n="gFareTitle">閉まったら精算機へ</span></h3>
+            <div class="scene" data-anim="fare">
+              <svg viewBox="0 0 240 132" role="img" aria-labelledby="fare-scene-t">
+                <title id="fare-scene-t" data-i18n="gFareTitle">閉まったら精算機へ</title>
+                <!-- 精算機 -->
+                <rect class="sc-body" x="66" y="18" width="108" height="100" rx="6"/>
+                <rect class="sc-window" x="80" y="30" width="80" height="34" rx="3"/>
+                <!-- 投入口 -->
+                <rect class="sc-slot" x="86" y="76" width="30" height="5" rx="2.5"/>
+                <!-- 出口 -->
+                <rect class="sc-slot" x="128" y="76" width="30" height="5" rx="2.5"/>
+                <!-- 不足額の表示 -->
+                <g class="sc-amount" transform="translate(92 38)">
+                  <path class="sc-passline" d="M4 4l8 10 8-10M6 16h20M6 22h20M14 14v10"/>
+                </g>
+                <!-- 入れるきっぷ → 出てくる精算券 -->
+                <g class="sc-fare-in"><rect class="sc-dev" x="92" y="88" width="18" height="30" rx="2"/></g>
+                <g class="sc-fare-out"><rect class="sc-dev" x="134" y="88" width="18" height="30" rx="2"/></g>
+              </svg>
+            </div>
+            <ul class="guide-steps" data-i18n-html="gFare"></ul>
           </section>
+
+          <!-- 共通: 会社をまたぐ乗り換え -->
           <section class="guide-sec" data-sec="common2">
-            <h3 data-i18n="gTransferTitle">🔁 会社をまたぐ乗り換え</h3>
-            <ul class="feature-list" data-i18n-html="gTransfer"></ul>
+            <h3><svg class="ic"><use href="#i-transfer"/></svg><span data-i18n="gTransferTitle">会社が変わる乗り換え</span></h3>
+            <div class="scene" data-anim="transfer">
+              <svg viewBox="0 0 240 132" role="img" aria-labelledby="tr-scene-t">
+                <title id="tr-scene-t" data-i18n="gTransferTitle">会社が変わる乗り換え</title>
+                <!-- 2つの会社の路線 -->
+                <path class="sc-lineA" d="M10 40h86"/>
+                <path class="sc-lineB" d="M144 92h86"/>
+                <circle class="sc-dotA" cx="96" cy="40" r="7"/>
+                <circle class="sc-dotB" cx="144" cy="92" r="7"/>
+                <!-- 間の改札 -->
+                <rect class="sc-body" x="104" y="52" width="32" height="28" rx="4"/>
+                <rect class="sc-slot" x="110" y="60" width="20" height="4" rx="2"/>
+                <!-- 一度出て入り直す動き -->
+                <circle class="sc-mover" cx="96" cy="40" r="5"/>
+              </svg>
+            </div>
+            <ul class="guide-steps" data-i18n-html="gTransfer"></ul>
           </section>
         </div>
       </div>
@@ -195,13 +450,16 @@
     <!-- プレミアム案内モーダル -->
     <div id="paywall" class="modal-overlay hidden">
       <div class="modal">
-        <h2 data-i18n="pwTitle">⭐ プレミアムプラン</h2>
+        <div class="modal-header-row">
+          <h2 data-i18n="pwTitle">プレミアム</h2>
+          <button id="paywall-close" class="icon-only-btn" title="閉じる"><svg class="ic"><use href="#i-close"/></svg></button>
+        </div>
         <ul class="feature-list">
-          <li data-i18n-html="pw1">🔔 <b>降車アラート</b> — 降りる駅に近づくと振動・通知でお知らせ。寝過ごし防止に</li>
-          <li data-i18n-html="pw2">🧭 <b>次の駅予測</b> — 進行方向から次に到着する駅を表示</li>
-          <li data-i18n-html="pw3">🚃 <b>路線絞り込み</b> — 乗っている路線の駅だけを表示</li>
-          <li data-i18n-html="pw4">📋 <b>乗車履歴</b> — 通過・停車した駅の記録を自動保存</li>
-          <li data-i18n-html="pw5">🚫 <b>広告非表示</b></li>
+          <li><svg class="ic"><use href="#i-bell"/></svg><span data-i18n-html="pw1"><b>降車アラート</b> — 降りる駅が近づくと通知。寝過ごし防止に</span></li>
+          <li><svg class="ic"><use href="#i-compass"/></svg><span data-i18n-html="pw2"><b>次の駅予測</b> — 進行方向から次の駅を表示</span></li>
+          <li><svg class="ic"><use href="#i-filter"/></svg><span data-i18n-html="pw3"><b>路線絞り込み</b> — 乗っている路線だけ表示</span></li>
+          <li><svg class="ic"><use href="#i-list"/></svg><span data-i18n-html="pw4"><b>乗車履歴</b> — 通った駅を自動で記録</span></li>
+          <li><svg class="ic"><use href="#i-noads"/></svg><span data-i18n-html="pw5"><b>広告非表示</b></span></li>
         </ul>
         <p class="price" data-i18n-html="price">月額 240円 <span class="price-sub">/ 年額 1,800円（38%おトク）</span></p>
         <!-- config.jsのbackendUrl設定時はStripe Checkoutへ遷移し、
@@ -211,16 +469,15 @@
         <button id="purchase-btn" class="big-btn hidden" data-i18n="buyDemo">アップグレードする（デモ）</button>
         <button id="manage-btn" class="text-btn hidden" data-i18n="manageSub">サブスクリプションを管理・解約する</button>
         <button id="restore-btn" class="text-btn hidden" data-i18n="cancelDemo">プレミアムを解約する（デモ）</button>
-        <button id="paywall-close" class="text-btn" data-i18n="close">閉じる</button>
       </div>
     </div>
 
     <!-- 降車アラート発火時の全画面表示 -->
     <div id="alert-overlay" class="alert-overlay hidden">
-      <p class="alert-title" data-i18n="soonTitle">🔔 まもなく</p>
+      <p class="alert-title"><svg class="ic"><use href="#i-bell"/></svg><span data-i18n="soonTitle">まもなく</span></p>
       <p id="alert-overlay-station" class="alert-station-name"></p>
       <p id="alert-ticket-hint" class="alert-ticket-hint hidden"></p>
-      <button id="alert-dismiss-btn" class="big-btn" data-i18n="alertDismiss">OK・アラートを停止</button>
+      <button id="alert-dismiss-btn" class="big-btn" data-i18n="alertDismiss">アラートを停止</button>
     </div>
 
     <!-- エラー表示 -->
