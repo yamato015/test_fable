@@ -193,7 +193,7 @@ const STRINGS = {
     manageSub: "サブスクリプションを管理・解約する",
     cancelDemo: "プレミアムを解約する（デモ）",
     premiumBtn: "⭐ プレミアム",
-    premiumMember: "⭐ プレミアム会員",
+    premiumMember: "⭐ 会員",
     toastPremiumOn: "プレミアムが有効になりました 🎉",
     toastActivateFail: "購入の確認に失敗しました。時間をおいて再度開いてください。",
     toastCheckoutFail: "決済ページを開けませんでした。通信状態を確認してください。",
@@ -311,7 +311,7 @@ const STRINGS = {
     manageSub: "Manage / cancel subscription",
     cancelDemo: "Cancel premium (demo)",
     premiumBtn: "⭐ Premium",
-    premiumMember: "⭐ Premium member",
+    premiumMember: "⭐ Member",
     toastPremiumOn: "Premium is now active 🎉",
     toastActivateFail: "Couldn't verify your purchase. Please reopen the app later.",
     toastCheckoutFail: "Couldn't open the checkout page. Please check your connection.",
@@ -971,11 +971,24 @@ function nearbyItem(s) {
 function renderLineChips(nearest) {
   const wrap = $("station-lines");
   wrap.innerHTML = "";
-  for (const line of (nearest.lines || []).slice(0, 4)) {
+  const lines = (nearest.lines || []).slice(0, 4);
+  for (const line of lines) {
     const chip = document.createElement("span");
     chip.className = "line-chip";
     chip.textContent = line;
+    // 実際の路線カラーを使う (駅名標・路線図と同じ色で揃える)
+    chip.style.setProperty("--chip-color", lineColor(line));
     wrap.appendChild(chip);
+  }
+  // 駅名標の上端の帯を、その駅の代表路線の色に合わせる
+  const plate = document.querySelector(".station-display");
+  if (plate) {
+    plate.style.setProperty("--route-color", lines[0] ? lineColor(lines[0]) : "");
+  }
+  // 車内モードの上下の帯も同じ色で揃える
+  const riding = $("riding-screen");
+  if (riding) {
+    riding.style.setProperty("--route-color", lines[0] ? lineColor(lines[0]) : "");
   }
 }
 

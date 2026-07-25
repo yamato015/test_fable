@@ -9,6 +9,13 @@
   --line: rgba(255, 255, 255, 0.08);
   --danger: #f85149;
   --on-accent: #151007;
+  /* 駅名標 (実物の駅サイン) の質感。塗装金属の板をイメージした地色と、
+     壁から浮いて見せるための硬い影。ぼかしは最小限にして実体感を出す */
+  --plate: #1b1d24;
+  --plate-edge: rgba(255, 255, 255, 0.1);
+  --plate-shadow: #05060a;
+  /* 物理ボタンの底面 (押すと沈む) */
+  --btn-edge: #05060a;
 }
 
 /* ライトモード (🌙/☀️ボタンで切替) */
@@ -19,6 +26,10 @@ body[data-mode="light"] {
   --card: #ffffff;
   --card-border: rgba(20, 20, 30, 0.08);
   --line: rgba(20, 20, 30, 0.08);
+  --plate: #ffffff;
+  --plate-edge: rgba(20, 20, 30, 0.16);
+  --plate-shadow: #d3ccbe;
+  --btn-edge: #cfc7b7;
 }
 
 /* アクセントカラー切り替え (🎨ボタン) */
@@ -86,27 +97,29 @@ body {
   gap: 20px;
 }
 
-/* 背景の路線: 横線 + 往復する現在地ドット (エキココのモチーフ) */
+/* 背景: 枕木の並んだ線路と、その上を往復する現在地ドット (発光させず実物寄りに) */
 #start-screen::before {
   content: "";
   position: absolute;
-  left: 10%;
-  right: 10%;
-  top: 38%;
-  height: 2px;
-  background: var(--line);
+  left: 0;
+  right: 0;
+  top: 17%;
+  height: 12px;
+  background:
+    repeating-linear-gradient(90deg, var(--line) 0 2px, transparent 2px 16px),
+    linear-gradient(var(--line) 0 0) top / 100% 2px no-repeat,
+    linear-gradient(var(--line) 0 0) bottom / 100% 2px no-repeat;
 }
 
 #start-screen::after {
   content: "";
   position: absolute;
-  top: 38%;
-  width: 10px;
-  height: 10px;
-  margin-top: -4px;
+  top: 17%;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 16px 4px var(--accent);
+  border: 2px solid var(--bg);
   animation: dotTravel 7s ease-in-out infinite;
 }
 
@@ -147,25 +160,23 @@ body {
   line-height: 1.8;
 }
 
+/* 押し込める実体のあるボタン: 底面の色で厚みを出し、押すとその分だけ沈む */
 .big-btn {
   font-size: 1.2rem;
   font-weight: 800;
-  padding: 18px 36px;
+  padding: 17px 36px;
   border: none;
-  border-radius: 999px;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 12px;
+  background: var(--accent);
   color: var(--on-accent);
-  box-shadow: 0 10px 30px -8px var(--accent);
+  box-shadow: 0 5px 0 color-mix(in srgb, var(--accent) 55%, #000);
   cursor: pointer;
-  transition: transform 0.15s ease;
-}
-
-.big-btn:hover {
-  transform: translateY(-2px);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
 
 .big-btn:active {
-  transform: scale(0.97);
+  transform: translateY(5px);
+  box-shadow: 0 0 0 color-mix(in srgb, var(--accent) 55%, #000);
 }
 
 .note {
@@ -179,15 +190,21 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   margin-bottom: 16px;
 }
 
 .badge {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
+  line-height: 1.35;
   color: var(--sub);
   background: var(--card);
-  padding: 6px 12px;
-  border-radius: 999px;
+  border: 1px solid var(--card-border);
+  padding: 5px 10px;
+  border-radius: 6px;
+  /* アイコン群を押し出さないよう、余った幅の範囲で折り返す */
+  min-width: 0;
+  flex: 1;
 }
 
 .badge.ok {
@@ -201,7 +218,8 @@ body {
 .status-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .pill-btn {
@@ -209,10 +227,11 @@ body {
   font-weight: 700;
   padding: 8px 14px;
   border: 1px solid var(--accent2);
-  border-radius: 999px;
+  border-radius: 8px;
   background: color-mix(in srgb, var(--accent2) 12%, transparent);
   color: var(--accent2);
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .text-btn {
@@ -226,14 +245,15 @@ body {
 }
 
 .icon-btn {
-  font-size: 1.2rem;
+  font-size: 1.05rem;
   background: var(--card);
   border: 1px solid var(--card-border);
-  border-radius: 50%;
-  width: 42px;
-  height: 42px;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
   cursor: pointer;
-  opacity: 0.5;
+  opacity: 0.55;
 }
 
 .icon-btn.active {
@@ -241,30 +261,39 @@ body {
   box-shadow: 0 0 0 2px var(--accent2);
 }
 
+/* 駅名標: 実物の駅サインに寄せた物理的なプレート。
+   上端に乗っている路線の公式カラー帯、下に硬い影で厚みを出す */
 .station-display {
   position: relative;
+  display: flex;
+  flex-direction: column;
   text-align: center;
-  padding: 32px 8px;
-  background: var(--card);
-  border: 1px solid var(--card-border);
-  border-radius: 28px;
-  box-shadow: 0 20px 40px -24px rgba(0, 0, 0, 0.5);
+  padding: 28px 14px 20px;
+  background: var(--plate);
+  border: 1px solid var(--plate-edge);
+  border-radius: 6px;
+  box-shadow: 0 6px 0 var(--plate-shadow), 0 16px 20px -14px rgba(0, 0, 0, 0.6);
   overflow: hidden;
 }
 
 .station-display::before {
   content: "";
   position: absolute;
-  right: -30px;
-  top: -30px;
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  background: var(--accent);
-  filter: blur(50px);
-  opacity: 0.18;
-  pointer-events: none;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: var(--route-color, var(--accent));
 }
+
+/* 実物の駅名標と同じ順序: ラベル → 駅名 → よみ → 隣の駅 → 路線 → 距離 */
+.station-display .status-label { order: 1; }
+.station-display .station-name { order: 2; }
+.station-display .station-sub { order: 3; }
+.station-display .prev-next { order: 4; }
+.station-display .lines { order: 5; }
+.station-display .distance { order: 6; }
+.station-display .next-station { order: 7; }
 
 .status-label {
   font-size: 0.95rem;
@@ -319,7 +348,7 @@ body {
   padding: 12px 16px;
   background: var(--card);
   border: 1px solid var(--card-border);
-  border-radius: 16px;
+  border-radius: 8px;
   margin-bottom: 8px;
   font-size: 1rem;
 }
@@ -416,11 +445,18 @@ body {
 }
 
 /* ---- 前の駅・次の駅 / 路線タグ ---- */
+/* 隣の駅 (駅名標の下段。区切り線で板の中の一段として見せる) */
 .prev-next {
   font-size: 0.85rem;
   color: var(--sub);
   min-height: 1.2em;
-  margin-bottom: 6px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--plate-edge);
+}
+
+.prev-next:empty {
+  display: none;
 }
 
 .lines {
@@ -432,12 +468,14 @@ body {
   min-height: 1em;
 }
 
+/* 路線タグ: 実際の路線カラーの帯を左に付けた、案内サイン風の角板 */
 .line-chip {
   font-size: 0.72rem;
-  padding: 3px 10px;
-  border: 1px solid var(--accent2);
-  border-radius: 999px;
-  color: var(--accent2);
+  padding: 3px 9px;
+  border: 1px solid var(--plate-edge);
+  border-left: 4px solid var(--chip-color, var(--accent2));
+  border-radius: 3px;
+  color: var(--fg);
 }
 
 /* ---- 目的地ピッカー ---- */
@@ -621,24 +659,21 @@ body {
 .mode-btn {
   margin-top: 16px;
   width: 100%;
-  padding: 16px;
+  padding: 15px;
   font-size: 1.05rem;
   font-weight: 700;
   border: 1px solid var(--accent);
-  border-radius: 18px;
+  border-radius: 12px;
   background: var(--card);
   color: var(--accent);
-  box-shadow: 0 20px 40px -28px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 0 var(--btn-edge);
   cursor: pointer;
-  transition: transform 0.15s ease;
-}
-
-.mode-btn:hover {
-  transform: translateY(-1px);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
 
 .mode-btn:active {
-  transform: scale(0.98);
+  transform: translateY(4px);
+  box-shadow: 0 0 0 var(--btn-edge);
 }
 
 /* ---- 車内モード (全画面・特大表示) ---- */
@@ -660,24 +695,24 @@ body {
   overflow: hidden;
 }
 
-.riding::before {
+/* 車内のLED表示器のように、上下を路線カラーの帯で挟む (ぼかしは使わない) */
+.riding::before,
+.riding::after {
   content: "";
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 260px;
-  height: 260px;
-  border-radius: 50%;
-  background: var(--accent);
-  filter: blur(70px);
-  transform: translate(-50%, -50%);
-  animation: glowPulse 3.4s ease-in-out infinite;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: var(--route-color, var(--accent));
   pointer-events: none;
 }
 
-@keyframes glowPulse {
-  0%, 100% { opacity: 0.22; transform: translate(-50%, -50%) scale(1); }
-  50% { opacity: 0.4; transform: translate(-50%, -50%) scale(1.18); }
+.riding::before {
+  top: calc(env(safe-area-inset-top) + 52px);
+}
+
+.riding::after {
+  bottom: calc(env(safe-area-inset-bottom) + 52px);
 }
 
 .riding > * {
@@ -744,10 +779,12 @@ body {
 
 .line-filter select {
   flex: 1;
+  /* flexアイテムの既定 min-width:auto だと中身の幅で押し広げられ画面外に出るため */
+  min-width: 0;
   background: var(--card);
   color: var(--fg);
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 10px;
   font-size: 0.95rem;
 }
@@ -808,27 +845,31 @@ body {
   z-index: 100;
 }
 
+/* 踏切の警告灯のように、上下の帯が交互に切り替わる (フェードではなく機械的に) */
 .alert-overlay::before,
 .alert-overlay::after {
   content: "";
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  border: 2px solid var(--accent);
-  animation: ringPing 1.8s ease-out infinite;
+  left: 0;
+  right: 0;
+  height: 14px;
+  background: var(--accent);
+  animation: barBlink 1s steps(1, end) infinite;
   pointer-events: none;
 }
 
-.alert-overlay::after {
-  animation-delay: 0.9s;
+.alert-overlay::before {
+  top: 0;
 }
 
-@keyframes ringPing {
-  0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.55; }
-  100% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; }
+.alert-overlay::after {
+  bottom: 0;
+  animation-delay: 0.5s;
+}
+
+@keyframes barBlink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.15; }
 }
 
 .alert-overlay > * {
@@ -898,7 +939,7 @@ body {
 .modal {
   background: var(--card);
   border: 1px solid var(--card-border);
-  border-radius: 26px 26px 0 0;
+  border-radius: 14px 14px 0 0;
   padding: 20px 20px calc(26px + env(safe-area-inset-bottom));
   max-width: 480px;
   width: 100%;
