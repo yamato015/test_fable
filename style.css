@@ -87,71 +87,146 @@ body {
   display: none !important;
 }
 
-/* ---- 開始画面 ---- */
+/* ---- 開始画面 (立体の駅名標が線路脇に立っている場面) ---- */
 #start-screen {
   position: relative;
   overflow: hidden;
   justify-content: center;
   align-items: center;
   text-align: center;
-  gap: 20px;
+  gap: 22px;
 }
 
-/* 背景: 枕木の並んだ線路と、その上を往復する現在地ドット (発光させず実物寄りに) */
-#start-screen::before {
-  content: "";
+/* 遠近を作るための視点。perspectiveが小さいほど強い立体感になる */
+.hero {
+  width: 100%;
+  perspective: 760px;
+  perspective-origin: 50% 42%;
+}
+
+.hero-stage {
+  position: relative;
+  height: 224px;
+  transform-style: preserve-3d;
+  /* わずかに見下ろす角度。呼吸するような揺れで立体だと伝える */
+  transform: rotateX(7deg);
+  animation: heroSway 11s ease-in-out infinite;
+}
+
+@keyframes heroSway {
+  0%, 100% { transform: rotateX(7deg) rotateY(-3deg); }
+  50%      { transform: rotateX(7deg) rotateY(3deg); }
+}
+
+/* 地面を倒して奥へ伸びる線路にする。縦のレールが遠近で収束して見える */
+.hero-ground {
   position: absolute;
+  left: -70%;
+  right: -70%;
+  bottom: -6px;
+  height: 320px;
+  transform: rotateX(75deg);
+  transform-origin: bottom center;
+  /* レールは枕木より少し強く出して、奥へ収束する線として見えるようにする */
+  background:
+    linear-gradient(90deg,
+      transparent 0 46%, color-mix(in srgb, var(--fg) 26%, transparent) 46% 47.1%,
+      transparent 47.1% 52.9%, color-mix(in srgb, var(--fg) 26%, transparent) 52.9% 54%,
+      transparent 54% 100%),
+    repeating-linear-gradient(0deg,
+      color-mix(in srgb, var(--fg) 13%, transparent) 0 4px, transparent 4px 30px);
+  background-position: center bottom;
+  /* 奥に行くほど霞ませて地平線を作り、左右は線路幅に収めて枕木が
+     画面端まで伸びないようにする (2枚のマスクの重なりだけを残す) */
+  mask-image:
+    linear-gradient(to top, #000 0%, rgba(0, 0, 0, 0.6) 38%, transparent 84%),
+    linear-gradient(90deg, transparent 32%, #000 43%, #000 57%, transparent 68%);
+  mask-composite: intersect;
+  -webkit-mask-image:
+    linear-gradient(to top, #000 0%, rgba(0, 0, 0, 0.6) 38%, transparent 84%),
+    linear-gradient(90deg, transparent 32%, #000 43%, #000 57%, transparent 68%);
+  -webkit-mask-composite: source-in;
+}
+
+/* 駅名標の板。厚みは影を段階的に重ねて出す (ぼかしは使わない) */
+.hero-sign {
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  width: min(300px, 82%);
+  transform: translateX(-50%) rotateY(-13deg) translateZ(26px);
+  transform-style: preserve-3d;
+}
+
+.hero-sign-face {
+  position: relative;
+  padding: 20px 18px 16px;
+  background: var(--plate);
+  border: 1px solid var(--plate-edge);
+  border-radius: 5px;
+  overflow: hidden;
+  /* 板の厚み → 側面 → 接地影、の順に重ねて実体に見せる */
+  box-shadow:
+    2px 2px 0 var(--plate-shadow),
+    4px 4px 0 var(--plate-shadow),
+    6px 6px 0 var(--plate-shadow),
+    8px 8px 0 var(--plate-shadow),
+    10px 10px 0 var(--plate-shadow),
+    12px 12px 0 var(--plate-shadow),
+    20px 26px 28px -12px rgba(0, 0, 0, 0.6);
+}
+
+/* 上端の路線カラー帯 (メイン画面の駅名標と揃える) */
+.hero-stripe {
+  position: absolute;
+  top: 0;
   left: 0;
   right: 0;
-  top: 17%;
-  height: 12px;
-  background:
-    repeating-linear-gradient(90deg, var(--line) 0 2px, transparent 2px 16px),
-    linear-gradient(var(--line) 0 0) top / 100% 2px no-repeat,
-    linear-gradient(var(--line) 0 0) bottom / 100% 2px no-repeat;
-}
-
-#start-screen::after {
-  content: "";
-  position: absolute;
-  top: 17%;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+  height: 7px;
   background: var(--accent);
-  border: 2px solid var(--bg);
-  animation: dotTravel 7s ease-in-out infinite;
 }
 
-@keyframes dotTravel {
-  0%, 100% { left: 6%; }
-  50% { left: 88%; }
+.hero-mark {
+  width: 26px;
+  height: 26px;
+  color: var(--fg);
+  margin-bottom: 2px;
 }
 
-/* 背景装飾より前面に出す (position:absoluteの装飾は通常フローより上に描画されるため) */
-#start-screen > * {
-  position: relative;
-}
-
-.logo-mark {
-  position: relative;
+/* 支柱。板と同じ手法で厚みを付け、地面に立っているように見せる */
+.hero-pole {
+  position: absolute;
+  left: 50%;
+  top: 126px;
+  width: 13px;
+  height: 88px;
+  transform: translateX(-50%) translateZ(14px);
+  background: var(--plate);
+  border: 1px solid var(--plate-edge);
+  border-radius: 2px;
+  box-shadow:
+    2px 2px 0 var(--plate-shadow),
+    4px 4px 0 var(--plate-shadow),
+    6px 6px 0 var(--plate-shadow),
+    14px 18px 20px -10px rgba(0, 0, 0, 0.55);
 }
 
 .logo {
   position: relative;
-  font-size: 2.6rem;
+  font-size: 2.1rem;
   font-weight: 900;
   letter-spacing: 0.02em;
+  line-height: 1.15;
   color: var(--fg);
 }
 
 .wordmark-en {
   position: relative;
-  font-size: 0.78rem;
-  letter-spacing: 0.28em;
+  font-size: 0.66rem;
+  letter-spacing: 0.3em;
   color: var(--sub);
   text-transform: uppercase;
-  margin-top: -12px;
+  margin-top: 3px;
 }
 
 .tagline {
@@ -177,6 +252,13 @@ body {
 .big-btn:active {
   transform: translateY(5px);
   box-shadow: 0 0 0 color-mix(in srgb, var(--accent) 55%, #000);
+}
+
+/* 動きを減らす設定では揺れを止める (立体の見え方自体は残す) */
+@media (prefers-reduced-motion: reduce) {
+  .hero-stage {
+    animation: none;
+  }
 }
 
 .note {

@@ -150,15 +150,26 @@
   <main id="app">
     <!-- 開始画面 -->
     <section id="start-screen" class="screen">
-      <div class="logo-mark">
-        <svg viewBox="0 0 72 72" width="72" height="72">
-          <circle cx="36" cy="36" r="33" stroke="var(--accent2)" stroke-width="2" opacity=".4" fill="none"/>
-          <line x1="10" y1="47" x2="62" y2="47" stroke="var(--fg)" stroke-width="3" stroke-linecap="round" opacity=".55"/>
-          <circle cx="36" cy="47" r="13" fill="var(--accent)"/>
-        </svg>
+      <!-- 立体の駅名標が線路脇に立っている場面。アプリ名そのものを駅名標に載せる -->
+      <div class="hero">
+        <div class="hero-stage">
+          <!-- 奥へ伸びる線路 (地面をrotateXで倒して遠近を作る) -->
+          <div class="hero-ground"></div>
+          <div class="hero-sign">
+            <div class="hero-sign-face">
+              <span class="hero-stripe"></span>
+              <svg class="hero-mark" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".45"/>
+                <line x1="4" y1="15" x2="20" y2="15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".5"/>
+                <circle cx="12" cy="15" r="4.2" fill="var(--accent)"/>
+              </svg>
+              <h1 class="logo"><span data-i18n="appName">エキココ</span><span class="beta">β</span></h1>
+              <p class="wordmark-en">EKIKOKO</p>
+            </div>
+          </div>
+          <div class="hero-pole"></div>
+        </div>
       </div>
-      <h1 class="logo"><span data-i18n="appName">エキココ</span><span class="beta">β</span></h1>
-      <p class="wordmark-en">EKIKOKO</p>
       <p class="tagline" data-i18n-html="tagline">混雑した車内でも、<br>いまどの駅かひと目でわかる。</p>
       <button id="start-btn" class="big-btn" data-i18n="startBtn">現在地を確認する</button>
       <p class="note"><span data-i18n-html="startNote">位置情報は端末内だけで使い、保存しません。</span><br>
