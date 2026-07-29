@@ -40,7 +40,7 @@
 body[data-mode="light"] {
   --bg: #f6f2ea;
   --fg: #181920;
-  --sub: #6d7080;
+  --sub: #626574;
   --card: #ffffff;
   --card-border: rgba(20, 20, 30, 0.08);
   --line: rgba(20, 20, 30, 0.08);
@@ -953,18 +953,19 @@ body.sheet-open {
 
 /* ---- 目的地ピッカー ---- */
 .search-input {
-  background: var(--bg);
+  background: color-mix(in srgb, var(--card) 90%, var(--bg));
   color: var(--fg);
   border: 1px solid var(--card-border);
-  border-radius: var(--radius-control);
-  padding: 12px 14px;
+  border-radius: 18px;
+  padding: 13px 16px;
   font-size: 1rem;
   min-height: 48px;
   box-shadow:
-    inset 0 2px 0 color-mix(in srgb, var(--contact-shadow) 42%, transparent),
-    inset 0 -1px 0 var(--edge-highlight);
+    inset 0 1px 0 var(--edge-highlight),
+    0 12px 28px -26px var(--contact-shadow);
   transition:
     border-color var(--motion-fast) var(--ease-mech),
+    background-color var(--motion-fast) var(--ease-mech),
     box-shadow var(--motion-fast) var(--ease-mech);
 }
 
@@ -972,8 +973,9 @@ body.sheet-open {
   outline: none;
   border-color: var(--accent);
   box-shadow:
-    inset 0 2px 0 color-mix(in srgb, var(--contact-shadow) 34%, transparent),
-    0 0 0 1px var(--accent);
+    inset 0 1px 0 var(--edge-highlight),
+    0 0 0 2px color-mix(in srgb, var(--accent) 28%, transparent),
+    0 14px 30px -26px var(--contact-shadow);
 }
 
 .search-input::placeholder {
@@ -984,16 +986,18 @@ body.sheet-open {
   overflow: visible;
   max-height: none;
   border: 1px solid var(--card-border);
-  border-radius: var(--radius-control);
-  background: color-mix(in srgb, var(--plate) 74%, var(--card));
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--card) 96%, var(--plate));
   box-shadow:
     inset 0 1px 0 var(--edge-highlight),
-    0 2px 0 var(--plate-shadow);
+    0 18px 38px -34px var(--contact-shadow);
+  overflow: hidden;
 }
 
 .dest-list > li {
-  min-height: 50px;
+  min-height: 56px;
   margin: 0;
+  padding: 12px 16px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -1013,13 +1017,11 @@ body.sheet-open {
 
 .dest-item {
   cursor: pointer;
-  transition:
-    transform var(--motion-press) var(--ease-press),
-    background-color var(--motion-fast) var(--ease-mech);
+  transition: background-color var(--motion-fast) var(--ease-mech);
 }
 
 .dest-item:active {
-  transform: translate3d(0, 1px, 0);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 
 .api-credit {
@@ -1074,41 +1076,92 @@ body.sheet-open {
 }
 
 /* ---- 路線図ピッカー ---- */
+#dest-intro {
+  margin: -2px 2px 0;
+  color: var(--sub);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
 .dest-tabs {
-  display: flex;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  padding: 3px;
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--bg) 42%, var(--card));
+  box-shadow: inset 0 1px 0 var(--edge-highlight);
 }
 
 .tab-btn {
-  flex: 1;
-  padding: 10px;
+  position: relative;
+  min-width: 0;
+  padding: 10px 4px 12px;
   min-height: 44px;
-  border-radius: var(--radius-control);
-  border: 1px solid var(--line);
+  border-radius: 15px;
+  border: 0;
   background: transparent;
   color: var(--sub);
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: clamp(0.72rem, 3.2vw, 0.88rem);
+  line-height: 1.2;
   transition:
     transform var(--motion-press) var(--ease-press),
-    border-color var(--motion-fast) var(--ease-mech),
     background-color var(--motion-fast) var(--ease-mech),
     color var(--motion-fast) var(--ease-mech);
 }
 
+.tab-btn::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 5px;
+  width: 22px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--accent);
+  transform: translateX(-50%) scaleX(0);
+  transform-origin: center;
+  transition: transform var(--motion-fast) var(--ease-mech);
+}
+
+.tab-btn .ic {
+  width: 1.1em;
+  height: 1.1em;
+}
+
+.tab-btn > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .tab-btn.active {
-  border-color: var(--accent);
   color: var(--accent);
   font-weight: 700;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.tab-btn.active::after {
+  transform: translateX(-50%) scaleX(1);
 }
 
 #dest-search-view,
 #dest-lines-view,
-#dest-stations-view {
+#dest-stations-view,
+#dest-map-view {
   display: flex;
   flex-direction: column;
   gap: 12px;
   min-height: 0;
+  padding-bottom: 18px;
+}
+
+#dest-map-view {
+  flex: 0 0 auto;
+  min-height: auto;
 }
 
 .line-dot {
@@ -1121,6 +1174,9 @@ body.sheet-open {
 }
 
 .line-title {
+  padding-left: 10px;
+  border-left: 4px solid var(--accent);
+  color: var(--fg);
   font-weight: 800;
   font-size: 1.05rem;
 }
@@ -1130,22 +1186,21 @@ body.sheet-open {
   overflow: visible;
   max-height: none;
   border: 1px solid var(--card-border);
-  border-radius: var(--radius-control);
-  background: color-mix(in srgb, var(--plate) 74%, var(--card));
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--card) 96%, var(--plate));
   box-shadow:
     inset 0 1px 0 var(--edge-highlight),
-    0 2px 0 var(--plate-shadow);
+    0 18px 38px -34px var(--contact-shadow);
+  overflow: hidden;
 }
 
 .route-list li {
   position: relative;
-  padding: 12px 8px 12px 38px;
+  padding: 13px 12px 13px 42px;
   cursor: pointer;
   font-size: 1rem;
-  min-height: 50px;
-  transition:
-    transform var(--motion-press) var(--ease-press),
-    background-color var(--motion-fast) var(--ease-mech);
+  min-height: 56px;
+  transition: background-color var(--motion-fast) var(--ease-mech);
 }
 
 .route-list li + li {
@@ -1156,10 +1211,11 @@ body.sheet-open {
 .route-list li::before {
   content: "";
   position: absolute;
-  left: 13px;
+  left: 17px;
   top: 0;
   bottom: 0;
-  width: 4px;
+  width: 3px;
+  border-radius: 999px;
   background: var(--route-color, var(--accent2));
 }
 
@@ -1175,20 +1231,346 @@ body.sheet-open {
 .route-list li::after {
   content: "";
   position: absolute;
-  left: 7px;
+  left: 11px;
   top: 50%;
   transform: translateY(-50%);
-  width: 12px;
-  height: 12px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   background: var(--card);
-  border: 3px solid var(--route-color, var(--accent2));
+  border: 2.5px solid var(--route-color, var(--accent2));
+  transition:
+    transform var(--motion-press) var(--ease-press),
+    background-color var(--motion-fast) var(--ease-mech);
 }
 
 .route-list .kana {
   color: var(--sub);
   font-size: 0.75rem;
   margin-left: 10px;
+}
+
+/* ---- 路線図マップ: 外部画像を使わず、路線色と控えめな方眼で構成する ---- */
+.dest-map-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dest-map-status,
+#dest-map-status {
+  min-width: 0;
+  flex: 1;
+  color: var(--sub);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.dest-map-locate,
+#dest-map-locate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 9px 12px;
+  border: 1px solid var(--card-border);
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--card) 92%, var(--accent) 8%);
+  color: var(--fg);
+  text-decoration: none;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 650;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 var(--edge-highlight),
+    0 12px 24px -24px var(--contact-shadow);
+  transition:
+    transform var(--motion-press) var(--ease-press),
+    border-color var(--motion-fast) var(--ease-mech),
+    background-color var(--motion-fast) var(--ease-mech);
+}
+
+.dest-map-locate:hover,
+.dest-map-locate:focus-visible,
+#dest-map-locate:hover,
+#dest-map-locate:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--card-border));
+  background: color-mix(in srgb, var(--card) 86%, var(--accent) 14%);
+}
+
+.dest-map-locate:active,
+#dest-map-locate:active {
+  transform: translate3d(0, 1px, 0) scale(0.98);
+}
+
+.dest-map-stage,
+#dest-map-stage {
+  position: relative;
+  isolation: isolate;
+  flex: 0 0 auto;
+  width: min(100%, 390px);
+  height: auto;
+  aspect-ratio: 1;
+  align-self: center;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  background-color: color-mix(in srgb, var(--card) 82%, var(--bg));
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--line) 58%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--line) 58%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 30px 30px;
+  box-shadow:
+    inset 0 1px 0 var(--edge-highlight),
+    inset 0 -18px 34px -34px var(--contact-shadow),
+    0 20px 42px -36px var(--contact-shadow);
+}
+
+#dest-map-stage::after {
+  content: "N";
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  display: grid;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  border: 1px solid var(--card-border);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  color: var(--sub);
+  font-size: 0.62rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+.dest-map-svg,
+#dest-map-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.dest-map-content,
+#dest-map-content {
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.dest-map-ground {
+  fill: transparent;
+}
+
+.dest-map-route,
+.dest-map-line {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.56;
+}
+
+.dest-map-route {
+  stroke: var(--route-color, var(--accent));
+}
+
+.dest-map-node {
+  color: var(--fg);
+  cursor: pointer;
+  pointer-events: all;
+  outline: none;
+}
+
+.dest-map-hit {
+  fill: transparent;
+  stroke: transparent;
+  pointer-events: all;
+}
+
+.dest-map-dot,
+circle.dest-map-node,
+g.dest-map-node > circle:last-of-type:not(.dest-map-hit) {
+  fill: var(--card);
+  stroke: color-mix(in srgb, var(--route-color, var(--accent)) 72%, var(--fg));
+  stroke-width: 2.5;
+  vector-effect: non-scaling-stroke;
+  transition:
+    r var(--motion-fast) var(--ease-mech),
+    fill var(--motion-fast) var(--ease-mech),
+    stroke var(--motion-fast) var(--ease-mech),
+    stroke-width var(--motion-fast) var(--ease-mech);
+}
+
+.dest-map-node.selected .dest-map-dot,
+.dest-map-node.is-selected .dest-map-dot,
+.dest-map-node[aria-selected="true"] .dest-map-dot,
+.dest-map-node.selected > circle:last-of-type:not(.dest-map-hit),
+.dest-map-node.is-selected > circle:last-of-type:not(.dest-map-hit),
+.dest-map-node[aria-selected="true"] > circle:last-of-type:not(.dest-map-hit),
+circle.dest-map-node.selected,
+circle.dest-map-node.is-selected,
+circle.dest-map-node[aria-selected="true"] {
+  fill: var(--accent);
+  stroke: var(--card);
+  stroke-width: 4;
+}
+
+.dest-map-node:focus-visible .dest-map-dot,
+.dest-map-node:focus-visible > circle:last-of-type:not(.dest-map-hit),
+circle.dest-map-node:focus-visible {
+  stroke: var(--accent2);
+  stroke-width: 5;
+}
+
+button.dest-map-node {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  transform: translate(-50%, -50%);
+}
+
+button.dest-map-node::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border: 3px solid var(--route-color, var(--accent));
+  border-radius: 50%;
+  background: var(--card);
+  transform: translate(-50%, -50%);
+  transition:
+    width var(--motion-fast) var(--ease-mech),
+    height var(--motion-fast) var(--ease-mech),
+    border-color var(--motion-fast) var(--ease-mech),
+    background-color var(--motion-fast) var(--ease-mech);
+}
+
+button.dest-map-node.selected::after,
+button.dest-map-node[aria-selected="true"]::after {
+  width: 14px;
+  height: 14px;
+  border-color: var(--card);
+  background: var(--accent);
+}
+
+button.dest-map-node:focus-visible {
+  outline: 2px solid var(--accent2);
+  outline-offset: -4px;
+}
+
+.dest-map-node-label,
+.dest-map-label {
+  fill: var(--fg);
+  color: var(--fg);
+  font-size: 38px;
+  font-weight: 650;
+  paint-order: stroke;
+  stroke: color-mix(in srgb, var(--card) 92%, transparent);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+  user-select: none;
+}
+
+.dest-map-current {
+  color: var(--accent2);
+  pointer-events: none;
+}
+
+.dest-map-current-ring {
+  fill: color-mix(in srgb, var(--accent2) 12%, transparent);
+  stroke: color-mix(in srgb, var(--accent2) 68%, var(--card));
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.dest-map-current-dot,
+circle.dest-map-current {
+  fill: var(--accent2);
+  stroke: var(--card);
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.dest-map-zoom {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--card-border);
+  border-radius: 15px;
+  background: var(--card);
+  box-shadow:
+    inset 0 1px 0 var(--edge-highlight),
+    0 14px 28px -22px var(--contact-shadow);
+}
+
+.dest-map-zoom button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast) var(--ease-mech),
+    color var(--motion-fast) var(--ease-mech);
+}
+
+.dest-map-zoom button + button {
+  border-top: 1px solid var(--line);
+}
+
+.dest-map-zoom button:hover,
+.dest-map-zoom button:focus-visible {
+  background: color-mix(in srgb, var(--accent) 10%, var(--card));
+  color: var(--accent);
+}
+
+.dest-map-zoom button:active {
+  background: color-mix(in srgb, var(--accent) 16%, var(--card));
+}
+
+.dest-map-hint,
+#dest-map-hint {
+  color: var(--sub);
+  font-size: 0.74rem;
+  line-height: 1.5;
+  text-align: center;
 }
 
 .mode-btn.secondary {
@@ -1244,6 +1626,81 @@ body.sheet-open {
   box-shadow:
     inset 0 1px 0 var(--edge-highlight),
     0 8px 18px -18px var(--contact-shadow);
+}
+
+/* 目的地は一枚の主操作面、車内・ガイドはその下の二次操作として整理する */
+#dest-btn.destination-action {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 94px;
+  margin-top: 22px;
+  padding: 18px 20px;
+  gap: 15px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--card-border));
+  border-radius: 22px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--card) 84%, var(--accent) 16%),
+      color-mix(in srgb, var(--card) 96%, var(--accent) 4%)
+    );
+  color: var(--fg);
+  font: inherit;
+  font-feature-settings: "palt" 1;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 var(--edge-highlight),
+    0 2px 4px color-mix(in srgb, var(--contact-shadow) 16%, transparent),
+    0 24px 48px -38px var(--contact-shadow);
+  transition:
+    transform var(--motion-press) var(--ease-press),
+    box-shadow var(--motion-press) var(--ease-press),
+    background-color var(--motion-fast) var(--ease-mech);
+}
+
+#dest-btn.destination-action .ic {
+  width: 44px;
+  height: 44px;
+  padding: 11px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.destination-action .action-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  text-align: left;
+  white-space: normal;
+}
+
+.destination-action .action-title,
+#dest-btn-label {
+  display: block;
+  color: var(--fg);
+  font-size: 1.06rem;
+  font-weight: 720;
+  line-height: 1.3;
+}
+
+.destination-action .action-hint,
+#dest-btn-hint {
+  display: block;
+  color: var(--sub);
+  font-size: 0.76rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+#dest-btn.destination-action:active {
+  transform: translate3d(0, 1px, 0) scale(0.99);
+  box-shadow:
+    inset 0 1px 0 var(--edge-highlight),
+    0 10px 22px -22px var(--contact-shadow);
 }
 
 /* ---- 車内モード (全画面・特大表示) ---- */
@@ -1426,12 +1883,14 @@ body[data-theme="pink"] .alert-overlay {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 12px;
-  padding: 10px 16px;
-  background: var(--card);
-  border: 1px solid var(--accent2);
-  border-radius: 12px;
-  font-size: 0.9rem;
+  margin: 6px 4px 0;
+  padding: 8px 2px 0;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  color: var(--sub);
+  font-size: 0.78rem;
 }
 
 .hint {
@@ -1596,6 +2055,128 @@ body[data-theme="pink"] .alert-overlay {
     0 -2px 0 color-mix(in srgb, var(--plate-shadow) 78%, transparent),
     0 -16px 32px -24px var(--contact-shadow);
   animation: sheetDock var(--motion-enter) var(--ease-mech) both;
+}
+
+#dest-modal .modal,
+.dest-modal-panel {
+  max-height: 94vh;
+  max-height: 94dvh;
+  padding-bottom: 0;
+  border-radius: 26px 26px 0 0;
+  background: color-mix(in srgb, var(--card) 97%, var(--plate));
+  box-shadow:
+    inset 0 1px 0 var(--edge-highlight),
+    0 -1px 0 color-mix(in srgb, var(--card-border) 72%, transparent),
+    0 -24px 56px -42px var(--contact-shadow);
+}
+
+#dest-modal .modal-header-row,
+.dest-modal-panel .modal-header-row {
+  padding-top: 24px;
+  background: color-mix(in srgb, var(--card) 97%, var(--plate));
+}
+
+#dest-selection,
+.dest-selection {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 2px;
+  margin: auto -20px 0;
+  padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--card-border);
+  background: color-mix(in srgb, var(--card) 95%, var(--plate));
+  box-shadow:
+    inset 0 1px 0 var(--edge-highlight),
+    0 -16px 32px -30px var(--contact-shadow);
+}
+
+#dest-selection > *,
+.dest-selection > * {
+  min-width: 0;
+}
+
+#dest-selection strong,
+.dest-selection strong {
+  display: block;
+  overflow: hidden;
+  color: var(--fg);
+  font-size: 0.94rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#dest-selection p,
+.dest-selection p {
+  overflow: hidden;
+  color: var(--sub);
+  font-size: 0.74rem;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#dest-selection-name {
+  grid-column: 1;
+  grid-row: 1;
+  color: var(--fg);
+  font-size: 0.94rem;
+  font-weight: 700;
+}
+
+#dest-selection-sub {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+#dest-selection-meta {
+  grid-column: 1;
+  grid-row: 3;
+}
+
+#dest-confirm {
+  grid-column: 2;
+  grid-row: 1 / 4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 112px;
+  min-height: 48px;
+  padding: 11px 17px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 750;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 28%, transparent),
+    0 14px 28px -22px color-mix(in srgb, var(--accent) 48%, var(--contact-shadow));
+  transition:
+    transform var(--motion-press) var(--ease-press),
+    box-shadow var(--motion-press) var(--ease-press),
+    opacity var(--motion-fast) var(--ease-mech);
+}
+
+#dest-confirm:active {
+  transform: translate3d(0, 1px, 0) scale(0.98);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 20%, transparent),
+    0 8px 18px -18px color-mix(in srgb, var(--accent) 44%, var(--contact-shadow));
+}
+
+#dest-confirm:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+  box-shadow: none;
 }
 
 .modal-overlay.is-closing {
@@ -1776,8 +2357,9 @@ body[data-theme="pink"] .alert-overlay {
 
 /* 主要動作は縦積み、副次動作は横2列に並べて縦の圧迫を減らす */
 .mode-row {
-  display: flex;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .mode-row .mode-btn {
@@ -1785,12 +2367,12 @@ body[data-theme="pink"] .alert-overlay {
 }
 
 .mode-row .mode-btn {
-  flex: 1;
   min-width: 0;
-  min-height: 66px;
-  padding: 14px 15px;
-  gap: 9px;
-  font-size: 0.94rem;
+  min-height: 68px;
+  padding: 13px 12px;
+  gap: 8px;
+  border-radius: 18px;
+  font-size: 0.86rem;
 }
 
 .mode-row .mode-btn .ic {
@@ -1799,7 +2381,10 @@ body[data-theme="pink"] .alert-overlay {
 }
 
 .mode-row .mode-btn > span {
-  white-space: nowrap;
+  min-width: 0;
+  line-height: 1.25;
+  text-align: left;
+  white-space: normal;
 }
 
 /* アイコンだけのボタン (閉じる・解除) */
@@ -2133,8 +2718,12 @@ body[data-theme="pink"] .alert-overlay {
   }
   .sc-tk-out, .sc-fare-out { opacity: 1; }
   .big-btn, .mode-btn, .pass-btn, .console-key, .icon-only-btn,
-  .tab-btn, .chip-btn, .dest-item, .route-list li {
-    transition: none;
+  .tab-btn, .tab-btn::after, .chip-btn, .dest-item, .route-list li,
+  .route-list li::after, .search-input, .destination-action,
+  .dest-map-locate, #dest-map-locate, .dest-map-dot, .dest-map-node,
+  .dest-map-zoom button,
+  button.dest-map-node::after, #dest-confirm {
+    transition: none !important;
   }
 }
 
@@ -2198,11 +2787,7 @@ body[data-theme="pink"] .alert-overlay {
 /* 一覧の行はタップできることが分かるように押した感触を返す */
 .dest-item:active,
 .route-list li:active {
-  background: color-mix(in srgb, var(--fg) 8%, transparent);
-}
-
-.route-list li:active {
-  transform: translate3d(0, 1px, 0);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 
 .route-list li:active::after {
@@ -2298,7 +2883,7 @@ body[data-theme="pink"] .alert-overlay {
 
   .system-code,
   .console-caption {
-    font-size: 0.44rem;
+    font-size: 0.5rem;
   }
 
   .pass-btn {
@@ -2307,7 +2892,7 @@ body[data-theme="pink"] .alert-overlay {
   }
 
   .pass-kicker {
-    font-size: 0.42rem;
+    font-size: 0.5rem;
     letter-spacing: 0.1em;
   }
 
@@ -2324,11 +2909,11 @@ body[data-theme="pink"] .alert-overlay {
   }
 
   .control-value {
-    font-size: 0.62rem;
+    font-size: 0.66rem;
   }
 
   .control-label {
-    font-size: 0.5rem;
+    font-size: 0.58rem;
     letter-spacing: 0.08em;
   }
 
@@ -2338,13 +2923,33 @@ body[data-theme="pink"] .alert-overlay {
 
   .mode-row {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .mode-row .mode-btn {
     margin-top: 8px;
-    font-size: 1rem;
+    min-height: 66px;
+    padding: 11px 9px;
+    gap: 6px;
+    font-size: 0.78rem;
+  }
+
+  .mode-row .mode-btn .ic {
+    width: 30px;
+    height: 30px;
+    padding: 7px;
+  }
+
+  #dest-btn.destination-action {
+    min-height: 90px;
+    padding: 16px;
+  }
+
+  #dest-btn.destination-action .ic {
+    width: 40px;
+    height: 40px;
+    padding: 10px;
   }
 
   .modal {
@@ -2357,5 +2962,57 @@ body[data-theme="pink"] .alert-overlay {
     margin-right: -16px;
     padding-left: 16px;
     padding-right: 16px;
+  }
+
+  #dest-selection,
+  .dest-selection {
+    grid-template-columns: minmax(0, 1fr);
+    column-gap: 10px;
+    row-gap: 2px;
+    margin-right: -16px;
+    margin-left: -16px;
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  #dest-confirm {
+    grid-column: 1;
+    grid-row: 4;
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  #dest-selection-name {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  #dest-selection-sub {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  #dest-selection-meta {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .dest-tabs {
+    border-radius: 16px;
+  }
+
+  .tab-btn {
+    gap: 4px;
+    padding-right: 2px;
+    padding-left: 2px;
+  }
+
+  .dest-map-toolbar {
+    gap: 8px;
+  }
+
+  .dest-map-locate {
+    padding-right: 10px;
+    padding-left: 10px;
   }
 }

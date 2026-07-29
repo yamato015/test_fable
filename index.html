@@ -249,9 +249,15 @@
         <p id="next-station" class="next-station hidden"></p>
       </div>
 
-      <button id="riding-btn" class="mode-btn" aria-controls="riding-screen" aria-expanded="false"><svg class="ic"><use href="#i-train"/></svg><span data-i18n="ridingBtn">車内モード</span></button>
+      <button id="dest-btn" class="destination-action" aria-haspopup="dialog" aria-controls="dest-modal" aria-expanded="false">
+        <svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg>
+        <span class="action-copy">
+          <span id="dest-btn-label" data-dynamic-label data-i18n="destPrompt">どこで降りますか？</span>
+          <span id="dest-btn-hint" data-i18n="destPromptHint">駅名・地図・路線から選ぶ</span>
+        </span>
+      </button>
       <div class="mode-row">
-        <button id="dest-btn" class="mode-btn secondary" aria-haspopup="dialog" aria-controls="dest-modal" aria-expanded="false"><svg class="ic"><use href="#i-pin"/></svg><span data-i18n="destBtn">目的地</span></button>
+        <button id="riding-btn" class="mode-btn secondary" aria-controls="riding-screen" aria-expanded="false"><svg class="ic"><use href="#i-train"/></svg><span data-i18n="ridingBtn">車内モード</span></button>
         <button id="guide-btn" class="mode-btn secondary" aria-haspopup="dialog" aria-controls="guide-modal" aria-expanded="false"><svg class="ic"><use href="#i-ticket"/></svg><span data-i18n="guideBtn">乗り方ガイド</span></button>
       </div>
 
@@ -298,18 +304,45 @@
       <button id="riding-exit-btn" class="r-hint" type="button" data-i18n="tapBack">タップで戻る</button>
     </section>
 
-    <!-- 目的地ピッカー (検索 / 路線図 / プレミアム) -->
+    <!-- 目的地ピッカー (地図 / 検索 / 路線図 / プレミアム) -->
     <div id="dest-modal" class="modal-overlay hidden">
       <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dest-modal-title">
         <div class="modal-header-row">
-          <h2 id="dest-modal-title" data-i18n="destTitle">目的地を選択</h2>
-          <button id="dest-close" class="icon-only-btn" title="閉じる"><svg class="ic"><use href="#i-close"/></svg></button>
+          <h2 id="dest-modal-title" data-i18n="destTitle">どこで降りますか？</h2>
+          <button id="dest-close" class="icon-only-btn" type="button" title="閉じる" aria-label="閉じる"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
         </div>
-        <div class="dest-tabs" role="tablist">
-          <button id="dest-tab-search" class="tab-btn active" role="tab" aria-selected="true" aria-controls="dest-search-view"><svg class="ic"><use href="#i-search"/></svg><span data-i18n="searchTab">検索</span></button>
-          <button id="dest-tab-lines" class="tab-btn" role="tab" aria-selected="false" aria-controls="dest-lines-view"><svg class="ic"><use href="#i-routemap"/></svg><span data-i18n="linesTab">路線図</span></button>
+        <p id="dest-intro" data-i18n="destIntro">駅を選ぶと、到着前にお知らせします</p>
+        <div class="dest-tabs" role="tablist" aria-labelledby="dest-modal-title">
+          <button id="dest-tab-map" class="tab-btn active" type="button" role="tab" aria-selected="true" aria-controls="dest-map-view" tabindex="0"><svg class="ic" aria-hidden="true"><use href="#i-compass"/></svg><span data-i18n="mapTab">地図</span></button>
+          <button id="dest-tab-search" class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="dest-search-view" tabindex="-1"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><span data-i18n="searchTab">検索</span></button>
+          <button id="dest-tab-lines" class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="dest-lines-view" tabindex="-1"><svg class="ic" aria-hidden="true"><use href="#i-routemap"/></svg><span data-i18n="linesTab">路線図</span></button>
         </div>
-        <div id="dest-search-view" role="tabpanel" aria-labelledby="dest-tab-search">
+        <div id="dest-map-view" role="tabpanel" aria-labelledby="dest-tab-map">
+          <div class="dest-map-toolbar">
+            <p id="dest-map-status" data-i18n="destMapStatus">現在地周辺の駅</p>
+            <button id="dest-map-locate" class="text-btn" type="button">
+              <svg class="ic" aria-hidden="true"><use href="#i-here"/></svg>
+              <span data-i18n="destMapLocate">現在地</span>
+            </button>
+          </div>
+          <div id="dest-map-stage">
+            <svg id="dest-map-svg" viewBox="0 0 1000 1000" role="region" aria-label="目的地の駅を選ぶ地図" aria-describedby="dest-map-hint">
+              <g id="dest-map-content"></g>
+            </svg>
+            <div class="dest-map-zoom">
+              <button id="dest-map-zoom-in" class="icon-only-btn" type="button">
+                <span aria-hidden="true">+</span>
+                <span class="sr-only" data-i18n="destMapZoomIn">拡大</span>
+              </button>
+              <button id="dest-map-zoom-out" class="icon-only-btn" type="button">
+                <span aria-hidden="true">−</span>
+                <span class="sr-only" data-i18n="destMapZoomOut">縮小</span>
+              </button>
+            </div>
+          </div>
+          <p id="dest-map-hint" data-i18n="destMapHint">地図を動かして駅をタップしてください</p>
+        </div>
+        <div id="dest-search-view" class="hidden" role="tabpanel" aria-labelledby="dest-tab-search">
           <input id="dest-search" class="search-input" type="search"
                  placeholder="駅名・ひらがなで検索..." data-i18n-ph="searchPh" autocomplete="off">
           <button id="dest-clear" class="text-btn hidden" data-i18n="clearDest">目的地をクリア</button>
@@ -325,6 +358,12 @@
           <button id="dest-back" class="text-btn" data-i18n="backToLines">← 路線一覧に戻る</button>
           <p id="dest-line-title" class="line-title"></p>
           <ul id="route-list" class="route-list"></ul>
+        </div>
+        <div id="dest-selection" class="dest-selection hidden" aria-live="polite">
+          <p id="dest-selection-name"></p>
+          <p id="dest-selection-sub"></p>
+          <p id="dest-selection-meta"></p>
+          <button id="dest-confirm" type="button" data-i18n="destConfirm">この駅を目的地にする</button>
         </div>
       </div>
     </div>

@@ -78,6 +78,7 @@ let departureAnchor = null; // 直近に停車した駅 (出発後の実移動�
 let rideLines = null;     // 乗車中と推定した路線名のSet (null = 未推定)
 let lastRideStation = null; // 乗車路線推定に使う直近の停車駅
 let alertStation = null;  // 降車アラート対象 { name, lat, lon }
+let pendingDestination = null; // モーダル内で選択中、未確定の目的地
 let lastHistoryName = null;
 
 // ---- DOM ----
@@ -262,10 +263,34 @@ const STRINGS = {
     allLines: "すべての路線",
     rideChip: (l) => `${l} に乗車中？`,
     tapBack: "タップで戻る",
-    destTitle: "目的地を選択",
+    destTitle: "どこで降りますか？",
+    destPrompt: "降りる駅を選ぶ",
+    destPromptHint: "地図・駅名・路線から",
+    destChangeHint: "タップして目的地を変更",
+    destIntro: "地図、駅名検索、路線から降りる駅を選べます。",
     close: "閉じる",
+    mapTab: "地図",
     searchTab: "検索",
-    linesTab: "路線図",
+    linesTab: "路線",
+    mapCurrent: "現在地へ",
+    mapHint: "地図を動かして駅を選択",
+    mapLoading: "全国の駅を読み込み中…",
+    mapNoLocation: "現在地を取得できていません",
+    mapVisible: (n) => `${n}駅を表示`,
+    mapLimited: (n) => `中心に近い${n}駅を表示しています`,
+    mapZoomIn: "地図を拡大",
+    mapZoomOut: "地図を縮小",
+    mapRegionLabel: "目的地の駅を選ぶ地図",
+    mapNoStations: "この範囲に駅が見つかりません",
+    mapZoomMore: "拡大すると駅を選べます",
+    destMapStatus: "現在地周辺の駅",
+    destMapLocate: "現在地へ",
+    destMapZoomIn: "地図を拡大",
+    destMapZoomOut: "地図を縮小",
+    destMapHint: "地図を動かして駅を選択してください",
+    destSelected: (n) => `${n}を選択中`,
+    destConfirm: "この駅を目的地にする",
+    destDistance: (d) => `現在地から${d}`,
     backToLines: "← 路線一覧に戻る",
     clearDest: "目的地をクリア",
     searchPh: "駅名・ひらがなで検索...",
@@ -398,10 +423,34 @@ const STRINGS = {
     allLines: "All lines",
     rideChip: (l) => `Riding ${l}?`,
     tapBack: "Tap to go back",
-    destTitle: "Choose destination",
+    destTitle: "Where are you getting off?",
+    destPrompt: "Choose where to get off",
+    destPromptHint: "From the map, station name, or line",
+    destChangeHint: "Tap to change destination",
+    destIntro: "Choose your stop from the map, station search, or line.",
     close: "Close",
+    mapTab: "Map",
     searchTab: "Search",
-    linesTab: "Route map",
+    linesTab: "Lines",
+    mapCurrent: "My location",
+    mapHint: "Move the map and choose a station",
+    mapLoading: "Loading stations across Japan…",
+    mapNoLocation: "Your location is not available yet",
+    mapVisible: (n) => `Showing ${n} stations`,
+    mapLimited: (n) => `Showing the ${n} stations nearest the center`,
+    mapZoomIn: "Zoom in",
+    mapZoomOut: "Zoom out",
+    mapRegionLabel: "Map for choosing a destination station",
+    mapNoStations: "No stations found in this area",
+    mapZoomMore: "Zoom in to choose a station",
+    destMapStatus: "Stations around this area",
+    destMapLocate: "My location",
+    destMapZoomIn: "Zoom in",
+    destMapZoomOut: "Zoom out",
+    destMapHint: "Move the map and choose a station",
+    destSelected: (n) => `${n} selected`,
+    destConfirm: "Set this station as destination",
+    destDistance: (d) => `${d} from your location`,
     backToLines: "← Back to lines",
     clearDest: "Clear destination",
     searchPh: "Search by station name...",
@@ -541,6 +590,20 @@ function updateHeaderUI() {
   );
 }
 
+function updateDestinationAction() {
+  const label = $("dest-btn-label");
+  const hint = $("dest-btn-hint");
+  const primary = alertStation
+    ? t("destSet", dispName(alertStation))
+    : t("destPrompt");
+
+  if (label) label.textContent = primary;
+  else if ($("dest-btn")) setBtnLabel("dest-btn", primary);
+  if (hint) {
+    hint.textContent = t(alertStation ? "destChangeHint" : "destPromptHint");
+  }
+}
+
 function applyLang() {
   document.documentElement.lang = lang;
   localStorage.setItem("lang", lang);
@@ -554,11 +617,14 @@ function applyLang() {
     el.placeholder = t(el.dataset.i18nPh);
   });
   // 動的に組み立てている文言を現在の状態で再描画
-  setBtnLabel("dest-btn", alertStation ? t("destSet", dispName(alertStation)) : t("destBtn"));
+  updateDestinationAction();
   if (alertStation) {
     $("alert-status-text").textContent = t("alertSet", dispName(alertStation));
     $("r-alert").textContent = t("alertSet", dispName(alertStation));
   }
+  updateDestinationI18n();
+  renderPendingDestination();
+  if (isDestMapVisible()) renderDestMap();
   applyPlanUI();
   renderRideChip();
   renderLineFilter();
@@ -833,6 +899,7 @@ $("line-filter").addEventListener("change", (e) => {
 async function onPosition(pos) {
   const { latitude: lat, longitude: lon, accuracy } = pos.coords;
   curPos = { lat, lon };
+  syncDestMapPosition();
   // 誤差半径が大きい測位 (Wi-Fi/基地局による概算など) は駅を取り違えることがあるため、
   // 「参考程度」と明示する。位置自体はそのまま使う (無視すると更新が止まって見えるため)
   const lowAcc = accuracy > ACCURACY_WARN_M;
@@ -1259,18 +1326,13 @@ function formatDistance(m) {
 // =====================================================================
 async function setAlert(station, opener = null) {
   if (!requirePremium(opener)) return;
-  alertStation = {
-    name: station.name,
-    kana: station.kana || "",
-    romaji: station.romaji || "",
-    lat: station.lat,
-    lon: station.lon,
-    lines: station.lines || [],
-  };
+  alertStation = normalizeDestination(station);
+  pendingDestination = { ...alertStation };
   $("alert-status-text").textContent = t("alertSet", dispName(alertStation));
   $("alert-status").classList.remove("hidden");
   $("r-alert").textContent = t("alertSet", dispName(alertStation));
-  setBtnLabel("dest-btn", t("destSet", dispName(alertStation)));
+  updateDestinationAction();
+  renderPendingDestination();
   rememberDest(alertStation);
   if ("Notification" in window && Notification.permission === "default") {
     try {
@@ -1284,9 +1346,12 @@ async function setAlert(station, opener = null) {
 
 function cancelAlert() {
   alertStation = null;
+  pendingDestination = null;
   $("alert-status").classList.add("hidden");
   $("r-alert").textContent = "";
-  setBtnLabel("dest-btn", t("destBtn"));
+  updateDestinationAction();
+  renderPendingDestination();
+  if (isDestMapVisible()) renderDestMap();
 }
 
 // =====================================================================
@@ -1296,11 +1361,20 @@ const DEST_RESULT_MAX = 50;
 
 $("dest-btn").addEventListener("click", (event) => {
   if (!requirePremium(event.currentTarget)) return;
-  showDestView("search");
   $("dest-search").value = "";
   $("dest-clear").classList.toggle("hidden", !alertStation);
+  pendingDestination = alertStation ? { ...alertStation } : null;
+  renderPendingDestination();
   renderDestList("");
-  openSheet("dest-modal", $("dest-search"), event.currentTarget);
+  const mapTarget = curPos || alertStation || loadRecentDests()[0] || null;
+  const initialView = mapTarget ? "map" : "search";
+  if (initialView === "map") initializeDestMapCenter(mapTarget);
+  showDestView(initialView);
+  openSheet(
+    "dest-modal",
+    initialView === "search" ? $("dest-search") : $("dest-tab-map"),
+    event.currentTarget
+  );
 });
 $("dest-close").addEventListener("click", closeDestModal);
 $("dest-clear").addEventListener("click", () => {
@@ -1310,6 +1384,11 @@ $("dest-clear").addEventListener("click", () => {
 $("dest-search").addEventListener("input", (e) =>
   onDestSearchInput(e.target.value.trim())
 );
+$("dest-confirm").addEventListener("click", async (event) => {
+  if (!pendingDestination) return;
+  await setAlert(pendingDestination, event.currentTarget);
+  closeDestModal();
+});
 
 function closeDestModal() {
   closeSheet("dest-modal");
@@ -1353,16 +1432,16 @@ function loadJpIndex() {
 }
 
 function onDestSearchInput(query) {
+  const seq = ++jpSearchSeq;
+  jpResults = [];
   renderDestList(query); // まず内蔵データで即時表示
   if (query.length < 2) {
-    jpResults = [];
     return;
   }
-  loadJpIndex().then((idx) => searchJp(query, idx));
+  loadJpIndex().then((idx) => searchJp(query, idx, seq));
 }
 
-function searchJp(query, idx) {
-  const seq = ++jpSearchSeq;
+function searchJp(query, idx, seq) {
   const q = query.toLowerCase();
   const hits = [];
   for (const s of idx) {
@@ -1392,9 +1471,10 @@ function searchJp(query, idx) {
 function destCandidates() {
   const seen = new Map();
   for (const s of [...EMBEDDED_STATIONS, ...stations]) {
-    const exist = seen.get(s.name);
+    const key = mapStationKey(s);
+    const exist = seen.get(key);
     if (!exist) {
-      seen.set(s.name, s);
+      seen.set(key, s);
     } else if (s.lines?.length) {
       exist.lines = [...new Set([...(exist.lines || []), ...s.lines])];
     }
@@ -1426,12 +1506,15 @@ function renderDestList(query) {
   if (!query) {
     // 検索語が空のときは「最近の目的地」を先頭に (毎日同じ駅を使う通勤者向け)
     const recents = loadRecentDests().map((s) => ({ ...s, recent: true }));
-    const names = new Set(recents.map((s) => s.name));
-    items = [...recents, ...hits.filter((s) => !names.has(s.name))].slice(0, DEST_RESULT_MAX);
+    const recentKeys = new Set(recents.map(mapStationKey));
+    items = [
+      ...recents,
+      ...hits.filter((s) => !recentKeys.has(mapStationKey(s))),
+    ].slice(0, DEST_RESULT_MAX);
   } else {
     // 内蔵に無い駅は全国データで補完し、完全一致→前方一致→部分一致の順に並べる
-    const localNames = new Set(hits.map((s) => s.name));
-    const jpExtra = jpResults.filter((s) => !localNames.has(s.name));
+    const localKeys = new Set(hits.map(mapStationKey));
+    const jpExtra = jpResults.filter((s) => !localKeys.has(mapStationKey(s)));
     const q = query.toLowerCase();
     items = [...hits, ...jpExtra]
       .sort((a, b) => {
@@ -1455,11 +1538,17 @@ function renderDestList(query) {
     name.appendChild(document.createTextNode(dispName(s)));
     const line = document.createElement("span");
     line.className = "dist";
-    line.textContent = s.lines?.[0] || "";
+    const meta = [];
+    if (s.lines?.[0]) meta.push(s.lines[0]);
+    if (curPos) {
+      meta.push(
+        formatDistance(haversine(curPos.lat, curPos.lon, s.lat, s.lon))
+      );
+    }
+    line.textContent = meta.join(" · ");
     li.append(name, line);
     makeKeyboardAction(li, () => {
-      setAlert(s);
-      closeDestModal();
+      selectPendingDestination(s, { source: "search", focus: true });
     });
     listEl.appendChild(li);
   }
@@ -1538,26 +1627,84 @@ function orderedStations(lineName) {
   return orderAlongRoute(members);
 }
 
-function showDestView(view) {
-  $("dest-search-view").classList.toggle("hidden", view !== "search");
-  $("dest-lines-view").classList.toggle("hidden", view !== "lines");
-  $("dest-stations-view").classList.toggle("hidden", view !== "stations");
-  $("dest-tab-search").classList.toggle("active", view === "search");
-  $("dest-tab-lines").classList.toggle("active", view !== "search");
-  $("dest-tab-search").setAttribute("aria-selected", String(view === "search"));
-  $("dest-tab-lines").setAttribute("aria-selected", String(view !== "search"));
+let currentDestView = "map";
+let destLineReturnFocus = null;
+const DEST_TABS = [
+  { name: "map", tabId: "dest-tab-map", panelId: "dest-map-view" },
+  { name: "search", tabId: "dest-tab-search", panelId: "dest-search-view" },
+  { name: "lines", tabId: "dest-tab-lines", panelId: "dest-lines-view" },
+];
+
+function showDestView(view, focusTab = false) {
+  currentDestView = view;
+  const activeTab = view === "stations" ? "lines" : view;
+  const panelIds = [
+    "dest-map-view",
+    "dest-search-view",
+    "dest-lines-view",
+    "dest-stations-view",
+  ];
+  for (const id of panelIds) {
+    $(id).classList.toggle("hidden", id !== `dest-${view}-view`);
+  }
+  for (const item of DEST_TABS) {
+    const selected = item.name === activeTab;
+    const tab = $(item.tabId);
+    tab.classList.toggle("active", selected);
+    tab.setAttribute("aria-selected", String(selected));
+    if (item.name === "lines") {
+      tab.setAttribute(
+        "aria-controls",
+        view === "stations" ? "dest-stations-view" : "dest-lines-view"
+      );
+    }
+    tab.tabIndex = selected ? 0 : -1;
+  }
   $("dest-modal").querySelector(".modal").scrollTop = 0;
+  if (view === "map") {
+    initializeDestMapCenter();
+    requestAnimationFrame(renderDestMap);
+    loadDestMapStations();
+  }
+  if (focusTab) {
+    const target = DEST_TABS.find((item) => item.name === activeTab);
+    if (target) $(target.tabId).focus();
+  }
 }
 
+$("dest-tab-map").addEventListener("click", () => showDestView("map"));
 $("dest-tab-search").addEventListener("click", () => showDestView("search"));
 $("dest-tab-lines").addEventListener("click", () => {
   renderLineList($("line-search").value.trim());
   showDestView("lines");
 });
+for (const item of DEST_TABS) {
+  $(item.tabId).addEventListener("keydown", (event) => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    const current = DEST_TABS.findIndex(({ tabId }) => tabId === event.currentTarget.id);
+    let next = current;
+    if (event.key === "ArrowLeft") next = (current - 1 + DEST_TABS.length) % DEST_TABS.length;
+    if (event.key === "ArrowRight") next = (current + 1) % DEST_TABS.length;
+    if (event.key === "Home") next = 0;
+    if (event.key === "End") next = DEST_TABS.length - 1;
+    const target = DEST_TABS[next];
+    if (target.name === "lines") renderLineList($("line-search").value.trim());
+    showDestView(target.name, true);
+  });
+}
 $("line-search").addEventListener("input", (e) =>
   renderLineList(e.target.value.trim())
 );
-$("dest-back").addEventListener("click", () => showDestView("lines"));
+$("dest-back").addEventListener("click", () => {
+  showDestView("lines");
+  requestAnimationFrame(() => {
+    const target = destLineReturnFocus?.isConnected
+      ? destLineReturnFocus
+      : $("dest-tab-lines");
+    target?.focus({ preventScroll: true });
+  });
+});
 
 // 路線名・路線かな・経由駅名のいずれかにマッチする路線を表示
 function lineMatches(name, members, query) {
@@ -1591,7 +1738,10 @@ function renderLineList(query = "") {
     count.className = "dist";
     count.textContent = t("stationsCount", index.get(name).length);
     li.append(label, count);
-    makeKeyboardAction(li, () => renderRouteList(name));
+    makeKeyboardAction(li, () => {
+      destLineReturnFocus = li;
+      renderRouteList(name);
+    });
     listEl.appendChild(li);
   }
 }
@@ -1599,7 +1749,7 @@ function renderLineList(query = "") {
 function renderRouteList(lineName) {
   const color = lineColor(lineName);
   $("dest-line-title").textContent = lineName;
-  $("dest-line-title").style.color = color;
+  $("dest-line-title").style.borderLeftColor = color;
   const listEl = $("route-list");
   listEl.style.setProperty("--route-color", color);
   listEl.innerHTML = "";
@@ -1612,13 +1762,749 @@ function renderRouteList(lineName) {
     kana.textContent = lang === "en" ? "" : s.kana;
     li.append(name, kana);
     makeKeyboardAction(li, () => {
-      setAlert(s);
-      closeDestModal();
+      selectPendingDestination(s, { source: "lines", focus: true });
     });
     listEl.appendChild(li);
   }
   showDestView("stations");
+  requestAnimationFrame(() => $("dest-back").focus({ preventScroll: true }));
 }
+
+// =====================================================================
+// 目的地の仮選択と、端末内データだけで描く駅地図
+// =====================================================================
+const SVG_NS = "http://www.w3.org/2000/svg";
+const DEST_MAP_SIZE = 1000;
+const DEST_MAP_WORLD_VIEW_PX = 440;
+const DEST_MAP_MIN_ZOOM = 9;
+const DEST_MAP_MAX_ZOOM = 15;
+const DEST_MAP_STATION_ZOOM = 9.8;
+const DEST_MAP_MARKER_MAX = 60;
+const DEST_MAP_LINE_MAX = 12;
+const DEST_MAP_FALLBACK = { lat: 35.68139, lon: 139.7661 };
+
+let destMapNationwide = [];
+let destMapLoadStarted = false;
+let destMapLineGeometry = null;
+let destMapPointer = null;
+const destMapState = {
+  centerLat: DEST_MAP_FALLBACK.lat,
+  centerLon: DEST_MAP_FALLBACK.lon,
+  zoom: 12,
+  initialized: false,
+  userMoved: false,
+  loading: false,
+};
+
+function isDestMapVisible() {
+  const modal = $("dest-modal");
+  const panel = $("dest-map-view");
+  return Boolean(
+    modal &&
+      panel &&
+      !modal.classList.contains("hidden") &&
+      !modal.classList.contains("is-closing") &&
+      !panel.classList.contains("hidden")
+  );
+}
+
+function normalizeDestination(station) {
+  return {
+    name: station?.name || "",
+    kana: station?.kana || station?.k || station?.nameKana || "",
+    romaji: station?.romaji || station?.r || "",
+    lat: Number(station?.lat),
+    lon: Number(station?.lon ?? station?.lng),
+    lines: [...(station?.lines || [])],
+    ...(station?.source ? { source: station.source } : {}),
+  };
+}
+
+function sameDestination(a, b) {
+  return Boolean(
+    a &&
+      b &&
+      a.name === b.name &&
+      Math.abs(a.lat - b.lat) < 0.00001 &&
+      Math.abs(a.lon - b.lon) < 0.00001
+  );
+}
+
+function selectPendingDestination(station, { source = "", focus = false } = {}) {
+  const normalized = normalizeDestination(station);
+  if (
+    !normalized.name ||
+    !Number.isFinite(normalized.lat) ||
+    !Number.isFinite(normalized.lon)
+  ) {
+    return;
+  }
+  pendingDestination = normalized;
+  if (source) destMapState.userMoved = true;
+  if (source && source !== "map") {
+    destMapState.centerLat = normalized.lat;
+    destMapState.centerLon = normalized.lon;
+    destMapState.zoom = Math.max(destMapState.zoom, 12);
+    destMapState.initialized = true;
+  }
+  renderPendingDestination(source);
+  if (isDestMapVisible()) renderDestMap();
+  if (focus) {
+    const target = focus?.focus ? focus : $("dest-confirm");
+    requestAnimationFrame(() => target?.focus({ preventScroll: false }));
+  }
+}
+
+function renderPendingDestination(source = "") {
+  const tray = $("dest-selection");
+  if (!tray) return;
+  const hasSelection = Boolean(pendingDestination);
+  tray.classList.toggle("hidden", !hasSelection);
+  $("dest-confirm").disabled = !hasSelection;
+  if (!hasSelection) {
+    $("dest-selection-name").textContent = "";
+    $("dest-selection-sub").textContent = "";
+    $("dest-selection-meta").textContent = "";
+    tray.removeAttribute("aria-label");
+    delete tray.dataset.source;
+    return;
+  }
+
+  const name = dispName(pendingDestination);
+  const sub = dispSub(pendingDestination);
+  const meta = [];
+  if (pendingDestination.lines?.length) {
+    meta.push(pendingDestination.lines.slice(0, 2).join(" / "));
+  }
+  if (curPos) {
+    const distance = haversine(
+      curPos.lat,
+      curPos.lon,
+      pendingDestination.lat,
+      pendingDestination.lon
+    );
+    meta.push(t("destDistance", formatDistance(distance)));
+  }
+  $("dest-selection-name").textContent = name;
+  $("dest-selection-sub").textContent = sub;
+  $("dest-selection-sub").classList.toggle("hidden", !sub);
+  $("dest-selection-meta").textContent = meta.join(" · ");
+  tray.setAttribute("aria-label", t("destSelected", name));
+  if (source) tray.dataset.source = source;
+}
+
+function updateDestinationI18n() {
+  const close = $("dest-close");
+  if (close) {
+    close.title = t("close");
+    close.setAttribute("aria-label", t("close"));
+  }
+  const locateLabel = $("dest-map-locate")?.querySelector("span");
+  if (locateLabel) locateLabel.textContent = t("mapCurrent");
+  const zoomIn = $("dest-map-zoom-in");
+  const zoomOut = $("dest-map-zoom-out");
+  zoomIn?.setAttribute("aria-label", t("mapZoomIn"));
+  zoomOut?.setAttribute("aria-label", t("mapZoomOut"));
+  const zoomInText = zoomIn?.querySelector(".sr-only");
+  const zoomOutText = zoomOut?.querySelector(".sr-only");
+  if (zoomInText) zoomInText.textContent = t("mapZoomIn");
+  if (zoomOutText) zoomOutText.textContent = t("mapZoomOut");
+  const hint = $("dest-map-hint");
+  if (hint) hint.textContent = t("mapHint");
+  const status = $("dest-map-status");
+  if (status) {
+    // パンやズームごとの件数更新をスクリーンリーダーへ連続通知しない。
+    status.removeAttribute("role");
+    status.removeAttribute("aria-live");
+  }
+  const svg = $("dest-map-svg");
+  if (svg) {
+    svg.setAttribute("role", "region");
+    svg.setAttribute("aria-label", t("mapRegionLabel"));
+    svg.removeAttribute("aria-labelledby");
+  }
+  if ($("dest-confirm")) $("dest-confirm").textContent = t("destConfirm");
+}
+
+function setDestMapStatus(text) {
+  const status = $("dest-map-status");
+  if (status) status.textContent = text;
+}
+
+function initializeDestMapCenter(target = null, force = false) {
+  if (destMapState.initialized && !target && !force) return;
+  const recent = loadRecentDests()[0];
+  const center = target || curPos || alertStation || recent || DEST_MAP_FALLBACK;
+  const lat = Number(center.lat);
+  const lon = Number(center.lon ?? center.lng);
+  destMapState.centerLat = Number.isFinite(lat) ? lat : DEST_MAP_FALLBACK.lat;
+  destMapState.centerLon = Number.isFinite(lon) ? lon : DEST_MAP_FALLBACK.lon;
+  destMapState.zoom = curPos && center === curPos ? 13 : 12;
+  destMapState.initialized = true;
+  destMapState.userMoved = false;
+}
+
+function syncDestMapPosition() {
+  if (!curPos || !isDestMapVisible()) return;
+  if (!destMapState.initialized) initializeDestMapCenter(curPos);
+  if (currentDestView === "map" && !destMapState.userMoved) {
+    destMapState.centerLat = curPos.lat;
+    destMapState.centerLon = curPos.lon;
+    destMapState.zoom = Math.max(destMapState.zoom, 13);
+    renderDestMap();
+  }
+}
+
+async function loadDestMapStations() {
+  if (destMapLoadStarted) return;
+  destMapLoadStarted = true;
+  destMapState.loading = true;
+  setDestMapStatus(t("mapLoading"));
+  const index = await loadJpIndex();
+  destMapNationwide = index
+    .map((station) => normalizeDestination({ ...station, source: "jp" }))
+    .filter(
+      (station) =>
+        station.name &&
+        Number.isFinite(station.lat) &&
+        Number.isFinite(station.lon)
+    );
+  destMapState.loading = false;
+  if (isDestMapVisible()) renderDestMap();
+}
+
+function mercatorPoint(lat, lon, zoom) {
+  const clippedLat = Math.max(-85.05112878, Math.min(85.05112878, lat));
+  const scale = 256 * 2 ** zoom;
+  const sin = Math.sin((clippedLat * Math.PI) / 180);
+  return {
+    x: ((lon + 180) / 360) * scale,
+    y:
+      (0.5 -
+        Math.log((1 + sin) / (1 - sin)) / (4 * Math.PI)) *
+      scale,
+  };
+}
+
+function mercatorLatLon(x, y, zoom) {
+  const scale = 256 * 2 ** zoom;
+  const lon = (x / scale) * 360 - 180;
+  const n = Math.PI - (2 * Math.PI * y) / scale;
+  const lat = (180 / Math.PI) * Math.atan(Math.sinh(n));
+  return {
+    lat: Math.max(-85.05112878, Math.min(85.05112878, lat)),
+    lon: ((lon + 540) % 360) - 180,
+  };
+}
+
+function projectDestMap(lat, lon) {
+  const center = mercatorPoint(
+    destMapState.centerLat,
+    destMapState.centerLon,
+    destMapState.zoom
+  );
+  const point = mercatorPoint(lat, lon, destMapState.zoom);
+  const scale = DEST_MAP_SIZE / DEST_MAP_WORLD_VIEW_PX;
+  return {
+    x: DEST_MAP_SIZE / 2 + (point.x - center.x) * scale,
+    y: DEST_MAP_SIZE / 2 + (point.y - center.y) * scale,
+  };
+}
+
+function getDestMapBounds(padding = 0.08) {
+  const center = mercatorPoint(
+    destMapState.centerLat,
+    destMapState.centerLon,
+    destMapState.zoom
+  );
+  const half = DEST_MAP_WORLD_VIEW_PX * (0.5 + padding);
+  const northWest = mercatorLatLon(
+    center.x - half,
+    center.y - half,
+    destMapState.zoom
+  );
+  const southEast = mercatorLatLon(
+    center.x + half,
+    center.y + half,
+    destMapState.zoom
+  );
+  return {
+    minLat: Math.min(northWest.lat, southEast.lat),
+    maxLat: Math.max(northWest.lat, southEast.lat),
+    minLon: northWest.lon,
+    maxLon: southEast.lon,
+  };
+}
+
+function stationWithinMapBounds(station, bounds) {
+  if (station.lat < bounds.minLat || station.lat > bounds.maxLat) return false;
+  return bounds.minLon <= bounds.maxLon
+    ? station.lon >= bounds.minLon && station.lon <= bounds.maxLon
+    : station.lon >= bounds.minLon || station.lon <= bounds.maxLon;
+}
+
+function createMapSvgElement(name, attributes = {}) {
+  const element = document.createElementNS(SVG_NS, name);
+  for (const [key, value] of Object.entries(attributes)) {
+    element.setAttribute(key, String(value));
+  }
+  return element;
+}
+
+function mapStationKey(station) {
+  const lat = Number(station?.lat);
+  const lon = Number(station?.lon ?? station?.lng);
+  return `${station?.name || ""}|${
+    Number.isFinite(lat) ? lat.toFixed(5) : ""
+  }|${Number.isFinite(lon) ? lon.toFixed(5) : ""}`;
+}
+
+let destMapCandidateCache = {
+  stationsRef: null,
+  nationwideRef: null,
+  value: [],
+};
+
+function destinationMapCandidates() {
+  if (
+    destMapCandidateCache.stationsRef === stations &&
+    destMapCandidateCache.nationwideRef === destMapNationwide
+  ) {
+    return destMapCandidateCache.value;
+  }
+  const unique = new Map();
+  const candidates = [
+    ...destCandidates().map(normalizeDestination),
+    ...destMapNationwide,
+  ];
+  for (const station of candidates) {
+    if (
+      !station.name ||
+      !Number.isFinite(station.lat) ||
+      !Number.isFinite(station.lon)
+    ) {
+      continue;
+    }
+    // 同名駅は全国に複数あるため、位置まで含めて別の駅として残す。
+    const key = mapStationKey(station);
+    const existing = unique.get(key);
+    if (!existing || (!existing.lines.length && station.lines.length)) {
+      unique.set(key, station);
+    }
+  }
+  const value = [...unique.values()];
+  destMapCandidateCache = {
+    stationsRef: stations,
+    nationwideRef: destMapNationwide,
+    value,
+  };
+  return value;
+}
+
+function getDestMapLineGeometry() {
+  if (destMapLineGeometry) return destMapLineGeometry;
+  destMapLineGeometry = [];
+  for (const lineName of Object.keys(window.LINE_ORDER || {})) {
+    const members = orderedStations(lineName);
+    if (members.length < 2) continue;
+    destMapLineGeometry.push({ name: lineName, stations: members });
+  }
+  return destMapLineGeometry;
+}
+
+function renderDestMapLines(content) {
+  const bounds = getDestMapBounds();
+  const visibleLines = [];
+  for (const line of getDestMapLineGeometry()) {
+    const visibleStations = line.stations.filter((station) =>
+      stationWithinMapBounds(station, bounds)
+    );
+    if (visibleStations.length < 2) continue;
+    const nearest = visibleStations.reduce(
+      (min, station) =>
+        Math.min(
+          min,
+          haversine(
+            destMapState.centerLat,
+            destMapState.centerLon,
+            station.lat,
+            station.lon
+          )
+        ),
+      Infinity
+    );
+    visibleLines.push({
+      ...line,
+      score: visibleStations.length * 1000000 - nearest,
+    });
+  }
+  visibleLines
+    .sort((a, b) => b.score - a.score)
+    .slice(0, DEST_MAP_LINE_MAX)
+    .forEach((line) => {
+      const points = line.stations.map((station) =>
+        projectDestMap(station.lat, station.lon)
+      );
+      const path = createMapSvgElement("polyline", {
+        class: "dest-map-line",
+        points: points
+          .map(({ x, y }) => `${x.toFixed(1)},${y.toFixed(1)}`)
+          .join(" "),
+        fill: "none",
+        stroke: lineColor(line.name),
+        "vector-effect": "non-scaling-stroke",
+        "aria-hidden": "true",
+      });
+      content.appendChild(path);
+    });
+}
+
+function mapMarkerAriaLabel(station) {
+  const parts = [dispName(station)];
+  if (station.lines?.length) parts.push(station.lines.slice(0, 2).join(", "));
+  if (curPos) {
+    parts.push(
+      t(
+        "destDistance",
+        formatDistance(haversine(curPos.lat, curPos.lon, station.lat, station.lon))
+      )
+    );
+  }
+  return parts.join(". ");
+}
+
+function renderDestMapStation(content, item, showLabel, isTabStop) {
+  const { station, point } = item;
+  const selected = sameDestination(station, pendingDestination);
+  const group = createMapSvgElement("g", {
+    class: `dest-map-node${selected ? " is-selected" : ""}`,
+    transform: `translate(${point.x.toFixed(1)} ${point.y.toFixed(1)})`,
+    role: "button",
+    tabindex: isTabStop ? "0" : "-1",
+    "aria-pressed": String(selected),
+    "aria-label": mapMarkerAriaLabel(station),
+  });
+  group.dataset.stationKey = mapStationKey(station);
+  group.appendChild(
+    createMapSvgElement("circle", {
+      class: "dest-map-hit",
+      r: 82,
+      fill: "transparent",
+    })
+  );
+  group.appendChild(
+    createMapSvgElement("circle", {
+      class: "dest-map-dot",
+      r: selected ? 15 : 8,
+    })
+  );
+  if (showLabel) {
+    const label = createMapSvgElement("text", {
+      class: "dest-map-label",
+      x: 0,
+      y: -25,
+      "text-anchor": "middle",
+      "aria-hidden": "true",
+    });
+    label.textContent = dispName(station);
+    group.appendChild(label);
+  }
+  group.addEventListener("click", (event) => {
+    event.stopPropagation();
+    selectPendingDestination(station, { source: "map", focus: true });
+  });
+  group.addEventListener("focus", () => {
+    // フォーカス中の駅をGPS更新で作り直さないよう、自動追従を止める。
+    destMapState.userMoved = true;
+  });
+  group.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      event.stopPropagation();
+      selectPendingDestination(station, { source: "map", focus: true });
+      return;
+    }
+    if (
+      ![
+        "ArrowLeft",
+        "ArrowRight",
+        "ArrowUp",
+        "ArrowDown",
+        "Home",
+        "End",
+      ].includes(event.key)
+    ) {
+      return;
+    }
+    event.preventDefault();
+    const nodes = [...content.querySelectorAll(".dest-map-node")];
+    const index = nodes.indexOf(group);
+    let next = index;
+    if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      next = (index - 1 + nodes.length) % nodes.length;
+    }
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      next = (index + 1) % nodes.length;
+    }
+    if (event.key === "Home") next = 0;
+    if (event.key === "End") next = nodes.length - 1;
+    nodes.forEach((node, nodeIndex) => {
+      node.tabIndex = nodeIndex === next ? 0 : -1;
+    });
+    nodes[next]?.focus({ preventScroll: true });
+  });
+  content.appendChild(group);
+}
+
+function renderDestMapCurrentPosition(content) {
+  if (!curPos) return;
+  const point = projectDestMap(curPos.lat, curPos.lon);
+  if (point.x < -80 || point.x > 1080 || point.y < -80 || point.y > 1080) return;
+  const marker = createMapSvgElement("g", {
+    class: "dest-map-current",
+    transform: `translate(${point.x.toFixed(1)} ${point.y.toFixed(1)})`,
+    "aria-hidden": "true",
+  });
+  marker.append(
+    createMapSvgElement("circle", { class: "dest-map-current-ring", r: 25 }),
+    createMapSvgElement("circle", { class: "dest-map-current-dot", r: 9 })
+  );
+  content.appendChild(marker);
+}
+
+function renderDestMap() {
+  const content = $("dest-map-content");
+  if (!content || !destMapState.initialized) return;
+  const focusedStationKey = document.activeElement?.classList?.contains(
+    "dest-map-node"
+  )
+    ? document.activeElement.dataset.stationKey
+    : "";
+  content.removeAttribute("transform");
+  content.replaceChildren();
+
+  const ground = createMapSvgElement("rect", {
+    class: "dest-map-ground",
+    x: 0,
+    y: 0,
+    width: DEST_MAP_SIZE,
+    height: DEST_MAP_SIZE,
+    "aria-hidden": "true",
+  });
+  content.appendChild(ground);
+  renderDestMapLines(content);
+
+  if (destMapState.zoom < DEST_MAP_STATION_ZOOM) {
+    setDestMapStatus(t("mapZoomMore"));
+    if ($("dest-map-hint")) $("dest-map-hint").textContent = t("mapZoomMore");
+    renderDestMapCurrentPosition(content);
+    return;
+  }
+
+  const bounds = getDestMapBounds();
+  const projected = destinationMapCandidates()
+    .filter((station) => stationWithinMapBounds(station, bounds))
+    .map((station) => ({
+      station,
+      point: projectDestMap(station.lat, station.lon),
+      distance: haversine(
+        destMapState.centerLat,
+        destMapState.centerLon,
+        station.lat,
+        station.lon
+      ),
+    }))
+    .filter(
+      ({ point }) =>
+        point.x >= -70 && point.x <= 1070 && point.y >= -70 && point.y <= 1070
+    )
+    .sort((a, b) => a.distance - b.distance);
+
+  const markerLimit =
+    window.innerWidth <= 370 ? 42 : DEST_MAP_MARKER_MAX;
+  let visible = projected.slice(0, markerLimit);
+  const selectedItem = projected.find(({ station }) =>
+    sameDestination(station, pendingDestination)
+  );
+  if (
+    selectedItem &&
+    !visible.some(({ station }) => sameDestination(station, selectedItem.station))
+  ) {
+    visible = [...visible.slice(0, markerLimit - 1), selectedItem];
+  }
+  // 小さい画面でも駅名が重ならないよう、低ズームでは中心付近だけを表示する。
+  const labelCount =
+    destMapState.zoom >= 15
+      ? 8
+      : destMapState.zoom >= 14
+        ? 6
+        : destMapState.zoom >= 13
+          ? 4
+          : 2;
+  const labelled = new Set(
+    visible.slice(0, labelCount).map(({ station }) => mapStationKey(station))
+  );
+  if (selectedItem) labelled.add(mapStationKey(selectedItem.station));
+  const visibleKeys = new Set(
+    visible.map(({ station }) => mapStationKey(station))
+  );
+  const tabStopKey =
+    (focusedStationKey && visibleKeys.has(focusedStationKey)
+      ? focusedStationKey
+      : selectedItem
+        ? mapStationKey(selectedItem.station)
+        : mapStationKey(visible[0]?.station || DEST_MAP_FALLBACK));
+  for (const item of visible) {
+    const key = mapStationKey(item.station);
+    renderDestMapStation(
+      content,
+      item,
+      labelled.has(key),
+      key === tabStopKey
+    );
+  }
+  renderDestMapCurrentPosition(content);
+  if (focusedStationKey) {
+    requestAnimationFrame(() => {
+      const match = [...content.querySelectorAll(".dest-map-node")].find(
+        (node) => node.dataset.stationKey === focusedStationKey
+      );
+      match?.focus({ preventScroll: true });
+    });
+  }
+
+  if (destMapState.loading) {
+    setDestMapStatus(t("mapLoading"));
+  } else if (projected.length === 0) {
+    setDestMapStatus(t("mapNoStations"));
+  } else if (projected.length > markerLimit) {
+    setDestMapStatus(t("mapLimited", markerLimit));
+  } else {
+    setDestMapStatus(t("mapVisible", projected.length));
+  }
+  if ($("dest-map-hint")) $("dest-map-hint").textContent = t("mapHint");
+}
+
+function setDestMapZoom(nextZoom, anchorX = 500, anchorY = 500) {
+  const zoom = Math.max(DEST_MAP_MIN_ZOOM, Math.min(DEST_MAP_MAX_ZOOM, nextZoom));
+  if (zoom === destMapState.zoom) return;
+  const oldCenter = mercatorPoint(
+    destMapState.centerLat,
+    destMapState.centerLon,
+    destMapState.zoom
+  );
+  const viewScale = DEST_MAP_WORLD_VIEW_PX / DEST_MAP_SIZE;
+  const anchorLatLon = mercatorLatLon(
+    oldCenter.x + (anchorX - 500) * viewScale,
+    oldCenter.y + (anchorY - 500) * viewScale,
+    destMapState.zoom
+  );
+  const newAnchor = mercatorPoint(anchorLatLon.lat, anchorLatLon.lon, zoom);
+  const nextCenter = mercatorLatLon(
+    newAnchor.x - (anchorX - 500) * viewScale,
+    newAnchor.y - (anchorY - 500) * viewScale,
+    zoom
+  );
+  destMapState.zoom = zoom;
+  destMapState.centerLat = nextCenter.lat;
+  destMapState.centerLon = nextCenter.lon;
+  destMapState.userMoved = true;
+  renderDestMap();
+}
+
+function mapEventPoint(event) {
+  const rect = $("dest-map-svg").getBoundingClientRect();
+  return {
+    x: ((event.clientX - rect.left) / rect.width) * DEST_MAP_SIZE,
+    y: ((event.clientY - rect.top) / rect.height) * DEST_MAP_SIZE,
+  };
+}
+
+function startDestMapPan(event) {
+  if (
+    event.button !== 0 ||
+    event.target.closest?.(".dest-map-node, button")
+  ) {
+    return;
+  }
+  const center = mercatorPoint(
+    destMapState.centerLat,
+    destMapState.centerLon,
+    destMapState.zoom
+  );
+  destMapPointer = {
+    id: event.pointerId,
+    x: event.clientX,
+    y: event.clientY,
+    center,
+    moved: false,
+  };
+  $("dest-map-stage").setPointerCapture?.(event.pointerId);
+}
+
+function moveDestMap(event) {
+  if (!destMapPointer || event.pointerId !== destMapPointer.id) return;
+  const dx = event.clientX - destMapPointer.x;
+  const dy = event.clientY - destMapPointer.y;
+  if (Math.hypot(dx, dy) > 3) destMapPointer.moved = true;
+  if (!destMapPointer.moved) return;
+  event.preventDefault();
+  const width = Math.max(1, $("dest-map-svg").getBoundingClientRect().width);
+  const worldPerCssPixel = DEST_MAP_WORLD_VIEW_PX / width;
+  const center = mercatorLatLon(
+    destMapPointer.center.x - dx * worldPerCssPixel,
+    destMapPointer.center.y - dy * worldPerCssPixel,
+    destMapState.zoom
+  );
+  destMapState.centerLat = center.lat;
+  destMapState.centerLon = center.lon;
+  destMapState.userMoved = true;
+  const dxView = (dx / width) * DEST_MAP_SIZE;
+  const dyView = (dy / width) * DEST_MAP_SIZE;
+  $("dest-map-content").setAttribute(
+    "transform",
+    `translate(${dxView.toFixed(1)} ${dyView.toFixed(1)})`
+  );
+}
+
+function endDestMapPan(event) {
+  if (!destMapPointer || event.pointerId !== destMapPointer.id) return;
+  $("dest-map-stage").releasePointerCapture?.(event.pointerId);
+  const moved = destMapPointer.moved;
+  destMapPointer = null;
+  $("dest-map-content").removeAttribute("transform");
+  if (moved) renderDestMap();
+}
+
+const destMapStage = $("dest-map-stage");
+destMapStage.addEventListener("pointerdown", startDestMapPan);
+destMapStage.addEventListener("pointermove", moveDestMap);
+destMapStage.addEventListener("pointerup", endDestMapPan);
+destMapStage.addEventListener("pointercancel", endDestMapPan);
+destMapStage.addEventListener(
+  "wheel",
+  (event) => {
+    event.preventDefault();
+    const anchor = mapEventPoint(event);
+    setDestMapZoom(destMapState.zoom + (event.deltaY < 0 ? 1 : -1), anchor.x, anchor.y);
+  },
+  { passive: false }
+);
+$("dest-map-zoom-in").addEventListener("click", () =>
+  setDestMapZoom(destMapState.zoom + 1)
+);
+$("dest-map-zoom-out").addEventListener("click", () =>
+  setDestMapZoom(destMapState.zoom - 1)
+);
+$("dest-map-locate").addEventListener("click", () => {
+  if (!curPos) {
+    setDestMapStatus(t("mapNoLocation"));
+    return;
+  }
+  initializeDestMapCenter(curPos, true);
+  destMapState.zoom = Math.max(destMapState.zoom, 13);
+  renderDestMap();
+});
 
 // =====================================================================
 // テーマ切り替え (アンバー / ブルー / ピンク)
@@ -1696,7 +2582,7 @@ function loadRecentDests() {
 }
 
 function rememberDest(st) {
-  const list = loadRecentDests().filter((s) => s.name !== st.name);
+  const list = loadRecentDests().filter((s) => !sameDestination(s, st));
   list.unshift({
     name: st.name,
     kana: st.kana || "",
