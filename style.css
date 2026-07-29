@@ -105,7 +105,9 @@ html, body {
 body {
   background: var(--bg);
   color: var(--fg);
-  font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+  font-family:
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Yu Gothic UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
@@ -645,36 +647,40 @@ body.sheet-open {
   padding: 8px;
 }
 
-/* 駅名標: 実物の駅サインに寄せた物理的なプレート。
-   上端に乗っている路線の公式カラー帯、下に硬い影で厚みを出す */
+/* 駅名表示: 筐体ではなく、余白と面の差で現在地を静かに強調する */
 .station-display {
   position: relative;
   display: flex;
   flex-direction: column;
   text-align: center;
-  padding: 30px 14px 22px;
-  background: var(--plate);
-  border: 4px solid var(--panel-shell);
-  border-radius: 5px;
+  padding: 36px 20px 26px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--plate) 96%, var(--accent) 4%),
+      var(--plate) 44%
+    );
+  border: 1px solid var(--plate-edge);
+  border-radius: 24px;
   box-shadow:
-    inset 0 0 0 1px var(--plate-edge),
     inset 0 1px 0 var(--edge-highlight),
-    0 3px 0 var(--plate-shadow),
-    0 15px 24px -20px var(--contact-shadow);
+    0 1px 2px color-mix(in srgb, var(--contact-shadow) 20%, transparent),
+    0 22px 46px -34px var(--contact-shadow);
   overflow: hidden;
-  transform: perspective(960px) rotateX(0.75deg);
-  transform-origin: 50% 100%;
-  backface-visibility: hidden;
+  transform: none;
+  font-feature-settings: "palt" 1;
 }
 
 .station-display::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 8px;
+  top: 18px;
+  left: 50%;
+  width: 34px;
+  height: 4px;
+  border-radius: 999px;
   background: var(--route-color, var(--accent));
+  transform: translateX(-50%);
 }
 
 /* 実物の駅名標と同じ順序: ラベル → 駅名 → よみ → 隣の駅 → 路線 → 距離 */
@@ -687,39 +693,41 @@ body.sheet-open {
 .station-display .next-station { order: 7; }
 
 .status-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
   color: var(--sub);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .status-label.at-station {
   color: var(--accent);
 }
 
-/* 座席からでも読めるように駅名は特大表示 */
+/* 可読距離を保ちつつ、黒い塊に見えないウェイトへ抑える */
 .station-name {
   position: relative;
   font-size: clamp(2.4rem, 13vw, 4rem);
-  font-weight: 900;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  font-weight: 650;
+  line-height: 1.14;
+  letter-spacing: -0.015em;
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
 
 .station-sub {
-  font-size: 0.9rem;
-  letter-spacing: 0.08em;
+  font-size: 0.86rem;
+  font-weight: 500;
+  letter-spacing: 0.045em;
   color: var(--sub);
-  margin-top: 6px;
+  margin-top: 8px;
   min-height: 1.2em;
 }
 
 .distance {
-  margin-top: 12px;
-  font-size: 0.95rem;
+  margin-top: 14px;
+  font-size: 0.9rem;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--accent2);
 }
@@ -728,24 +736,24 @@ body.sheet-open {
   margin-top: 26px;
 }
 
+.nearby:has(> .nearby-list:empty) {
+  display: none;
+}
+
 .nearby h3,
 .history h3 {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  font-size: 0.86rem;
+  font-weight: 650;
+  letter-spacing: 0.035em;
   color: var(--sub);
-  margin-bottom: 10px;
+  margin: 0 0 12px 4px;
 }
 
 .nearby h3::after,
 .history h3::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--line);
+  display: none;
 }
 
 .nearby-list {
@@ -770,6 +778,46 @@ body.sheet-open {
   color: var(--sub);
   font-size: 0.88rem;
   font-variant-numeric: tabular-nums;
+}
+
+/* 周辺駅と履歴は、個別カードの反復ではなく一枚のリスト面として見せる */
+.nearby > .nearby-list,
+.history > .nearby-list {
+  overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  box-shadow:
+    inset 0 1px 0 var(--edge-highlight),
+    0 18px 36px -30px var(--contact-shadow);
+}
+
+.nearby > .nearby-list > li,
+.history > .nearby-list > li {
+  min-height: 60px;
+  margin: 0;
+  padding: 8px 8px 8px 16px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.nearby > .nearby-list > li + li,
+.history > .nearby-list > li + li {
+  border-top: 1px solid var(--line);
+}
+
+.nearby > .nearby-list > li > span:first-child,
+.history > .nearby-list > li > span:first-child {
+  font-weight: 600;
+}
+
+.nearby > .nearby-list .dist,
+.history > .nearby-list .dist {
+  font-size: 0.84rem;
+  font-weight: 500;
 }
 
 .footer {
@@ -857,14 +905,14 @@ body.sheet-open {
 }
 
 /* ---- 前の駅・次の駅 / 路線タグ ---- */
-/* 隣の駅 (駅名標の下段。区切り線で板の中の一段として見せる) */
+/* 隣の駅は罫線で区切らず、余白だけで情報の段を作る */
 .prev-next {
   font-size: 0.85rem;
   color: var(--sub);
   min-height: 1.2em;
   margin-top: 14px;
-  padding-top: 10px;
-  border-top: 1px solid var(--plate-edge);
+  padding-top: 0;
+  border-top: 0;
 }
 
 .prev-next:empty {
@@ -875,19 +923,31 @@ body.sheet-open {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 6px;
-  margin-top: 8px;
+  gap: 8px 14px;
+  margin-top: 10px;
   min-height: 1em;
 }
 
-/* 路線タグ: 実際の路線カラーの帯を左に付けた、案内サイン風の角板 */
+/* 路線タグは枠を持たせず、路線色の点と名称だけで示す */
 .line-chip {
-  font-size: 0.72rem;
-  padding: 3px 9px;
-  border: 1px solid var(--plate-edge);
-  border-left: 4px solid var(--chip-color, var(--accent2));
-  border-radius: 3px;
-  color: var(--fg);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  border: 0;
+  border-radius: 0;
+  color: var(--sub);
+  font-size: 0.74rem;
+  font-weight: 500;
+}
+
+.line-chip::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: var(--chip-color, var(--accent2));
 }
 
 /* ---- 目的地ピッカー ---- */
@@ -1131,69 +1191,58 @@ body.sheet-open {
 }
 
 .mode-btn.secondary {
-  border-color: var(--panel-seam);
-  border-left-color: var(--panel-engraved);
+  background: var(--card);
   color: var(--fg);
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
-/* ---- 主要操作: 操作盤と同じ筐体・規格番号を持つ物理キー ---- */
+/* ---- 主要操作: 硬い操作盤ではなく、面と余白で押せる場所を示す ---- */
 .mode-btn {
   position: relative;
-  margin-top: 20px;
+  margin-top: 22px;
   width: 100%;
-  min-height: 68px;
+  min-height: 72px;
   justify-content: flex-start;
-  padding: 24px 16px 13px;
+  padding: 16px 18px;
   font-size: 1.05rem;
-  font-weight: 800;
-  border: 1px solid var(--panel-seam);
-  border-left: 4px solid var(--accent);
-  border-radius: 4px;
-  background: var(--panel-key);
+  font-weight: 650;
+  font-feature-settings: "palt" 1;
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--card) 92%, var(--accent) 8%);
   color: var(--fg);
   box-shadow:
     inset 0 1px 0 var(--edge-highlight),
-    0 3px 0 var(--btn-edge),
-    0 9px 13px -13px var(--contact-shadow);
+    0 1px 2px color-mix(in srgb, var(--contact-shadow) 18%, transparent),
+    0 14px 30px -26px var(--contact-shadow);
   cursor: pointer;
-  transform-origin: 50% 100%;
   transition:
     transform var(--motion-press) var(--ease-press),
     box-shadow var(--motion-press) var(--ease-press),
-    border-color var(--motion-fast) var(--ease-mech);
-}
-
-.mode-code {
-  position: absolute;
-  top: 7px;
-  left: 16px;
-  color: var(--panel-engraved);
-  font-size: 0.48rem;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-  line-height: 1;
+    background-color var(--motion-fast) var(--ease-mech);
 }
 
 .mode-btn .ic {
-  width: 28px;
-  height: 28px;
-  padding: 5px;
-  border: 1px solid var(--panel-seam);
-  border-radius: 2px;
-  background: var(--panel-shell);
+  width: 36px;
+  height: 36px;
+  padding: 9px;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 13%, transparent);
   color: var(--accent);
-  box-shadow: inset 0 1px 0 var(--edge-highlight);
+  box-shadow: none;
 }
 
 .mode-btn.secondary .ic {
+  background: color-mix(in srgb, var(--accent2) 11%, transparent);
   color: var(--accent2);
 }
 
 .mode-btn:active {
-  transform: translate3d(0, 3px, 0);
-  background: var(--panel-key-pressed);
-  box-shadow: inset 0 1px 0 var(--edge-highlight);
+  transform: translate3d(0, 1px, 0) scale(0.99);
+  box-shadow:
+    inset 0 1px 0 var(--edge-highlight),
+    0 8px 18px -18px var(--contact-shadow);
 }
 
 /* ---- 車内モード (全画面・特大表示) ---- */
@@ -1397,10 +1446,19 @@ body[data-theme="pink"] .alert-overlay {
 }
 
 .bell-btn {
-  background: none;
-  border: none;
-  font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
   cursor: pointer;
+  transition:
+    transform var(--motion-press) var(--ease-press),
+    background-color var(--motion-fast) var(--ease-mech);
 }
 
 .alert-overlay {
@@ -1485,28 +1543,17 @@ body[data-theme="pink"] .alert-overlay {
 
 /* ---- 広告枠 (無料プラン) ---- */
 .ad-slot {
-  position: relative;
   margin-top: 24px;
-  padding: 27px 16px 16px;
+  padding: 18px 16px;
   text-align: center;
-  background: var(--panel-key);
-  border: 1px solid var(--panel-seam);
-  border-left: 3px solid var(--panel-engraved);
-  border-radius: 4px;
-  box-shadow: inset 0 1px 0 var(--edge-highlight);
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  box-shadow:
+    inset 0 1px 0 var(--edge-highlight),
+    0 14px 28px -26px var(--contact-shadow);
   color: var(--sub);
   font-size: 0.8rem;
-}
-
-.ad-slot::before {
-  content: "SPONSOR SLOT / 01";
-  position: absolute;
-  top: 8px;
-  left: 12px;
-  color: var(--panel-engraved);
-  font-size: 0.45rem;
-  font-weight: 800;
-  letter-spacing: 0.16em;
 }
 
 /* ---- モーダル ---- */
@@ -1723,12 +1770,13 @@ body[data-theme="pink"] .alert-overlay {
 
 .mode-btn {
   display: flex;
+  justify-content: flex-start;
 }
 
 /* 主要動作は縦積み、副次動作は横2列に並べて縦の圧迫を減らす */
 .mode-row {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
 .mode-row .mode-btn {
@@ -1738,22 +1786,18 @@ body[data-theme="pink"] .alert-overlay {
 .mode-row .mode-btn {
   flex: 1;
   min-width: 0;
-  padding-right: 10px;
-  padding-left: 12px;
-  gap: 7px;
-  font-size: 0.88rem;
-}
-
-.mode-row .mode-btn .mode-code {
-  left: 12px;
+  min-height: 66px;
+  padding: 14px 15px;
+  gap: 9px;
+  font-size: 0.94rem;
 }
 
 .mode-row .mode-btn .ic {
-  width: 25px;
-  height: 25px;
+  width: 34px;
+  height: 34px;
 }
 
-.mode-row .mode-btn > span:not(.mode-code) {
+.mode-row .mode-btn > span {
   white-space: nowrap;
 }
 
@@ -1789,6 +1833,14 @@ body[data-theme="pink"] .alert-overlay {
 
 .bell-btn.on .ic {
   color: var(--accent);
+}
+
+.bell-btn.on {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.bell-btn:active {
+  transform: scale(0.94);
 }
 
 .feature-list li {

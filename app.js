@@ -1189,7 +1189,7 @@ function renderLineChips(nearest) {
     chip.style.setProperty("--chip-color", lineColor(line));
     wrap.appendChild(chip);
   }
-  // 駅名標の上端の帯を、その駅の代表路線の色に合わせる
+  // 駅名表示の控えめなアクセントを、その駅の代表路線色に合わせる
   const plate = document.querySelector(".station-display");
   if (plate) {
     plate.style.setProperty("--route-color", lines[0] ? lineColor(lines[0]) : "");
