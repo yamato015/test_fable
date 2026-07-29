@@ -330,6 +330,22 @@ const STRINGS = {
     cancelDemo: "プレミアムを解約する（デモ）",
     premiumBtn: "プレミアム",
     premiumMember: "会員",
+    headerControls: "表示と端末の設定",
+    controlLang: "言語",
+    controlMode: "明暗",
+    controlTheme: "配色",
+    controlWake: "点灯",
+    switchLanguage: (target) => `言語を${target}に切り替える`,
+    switchToLight: "ライト表示に切り替える",
+    switchToDark: "ダーク表示に切り替える",
+    changeTheme: (name) => `配色を変更する。現在は${name}`,
+    themeAmber: "アンバー",
+    themeBlue: "ブルー",
+    themePink: "ピンク",
+    enableWakeLock: "画面の常時点灯を有効にする",
+    disableWakeLock: "画面の常時点灯を解除する",
+    openPremiumPlan: "プレミアム案内を開く",
+    openMemberPlan: "会員プランを開く",
     toastPremiumOn: "プレミアムが有効になりました",
     toastActivateFail: "購入の確認に失敗しました。時間をおいて再度開いてください。",
     toastCheckoutFail: "決済ページを開けませんでした。通信状態を確認してください。",
@@ -450,6 +466,22 @@ const STRINGS = {
     cancelDemo: "Cancel premium (demo)",
     premiumBtn: "Premium",
     premiumMember: "Member",
+    headerControls: "Display and device settings",
+    controlLang: "LANG",
+    controlMode: "MODE",
+    controlTheme: "COLOR",
+    controlWake: "AWAKE",
+    switchLanguage: (target) => `Switch language to ${target}`,
+    switchToLight: "Switch to light display",
+    switchToDark: "Switch to dark display",
+    changeTheme: (name) => `Change color theme. Current: ${name}`,
+    themeAmber: "Amber",
+    themeBlue: "Blue",
+    themePink: "Pink",
+    enableWakeLock: "Keep the screen awake",
+    disableWakeLock: "Allow the screen to sleep",
+    openPremiumPlan: "Open Premium details",
+    openMemberPlan: "Open membership details",
     toastPremiumOn: "Premium is now active",
     toastActivateFail: "Couldn't verify your purchase. Please reopen the app later.",
     toastCheckoutFail: "Couldn't open the checkout page. Please check your connection.",
@@ -466,6 +498,47 @@ if (!STRINGS[lang]) {
 function t(key, ...args) {
   const v = STRINGS[lang][key] ?? STRINGS.ja[key] ?? key;
   return typeof v === "function" ? v(...args) : v;
+}
+
+function updateHeaderUI() {
+  const mode = document.body.dataset.mode || "dark";
+  const theme = document.body.dataset.theme || "amber";
+  const premium = isPremium();
+  const wakeOn = Boolean(wakeLock);
+  const themeNames = {
+    amber: t("themeAmber"),
+    blue: t("themeBlue"),
+    pink: t("themePink"),
+  };
+
+  $("lang-btn-value").textContent = lang === "ja" ? "JA" : "EN";
+  $("mode-btn-value").textContent = mode === "light" ? "LIGHT" : "DARK";
+  $("theme-btn-value").textContent = theme.toUpperCase();
+  $("wake-btn-value").textContent = wakeOn ? "ON" : "OFF";
+
+  $("status-actions").setAttribute("aria-label", t("headerControls"));
+  $("lang-btn").setAttribute(
+    "aria-label",
+    t("switchLanguage", lang === "ja" ? "English" : "日本語")
+  );
+  $("daynight-btn").setAttribute(
+    "aria-label",
+    t(mode === "light" ? "switchToDark" : "switchToLight")
+  );
+  $("theme-btn").setAttribute(
+    "aria-label",
+    t("changeTheme", themeNames[theme] || theme)
+  );
+  $("wakelock-btn").setAttribute("aria-pressed", String(wakeOn));
+  $("wakelock-btn").setAttribute(
+    "aria-label",
+    t(wakeOn ? "disableWakeLock" : "enableWakeLock")
+  );
+  $("premium-btn").classList.toggle("is-member", premium);
+  $("premium-btn").setAttribute(
+    "aria-label",
+    t(premium ? "openMemberPlan" : "openPremiumPlan")
+  );
 }
 
 function applyLang() {
@@ -627,6 +700,7 @@ function applyPlanUI() {
     initAds();
   }
   if (premium) renderHistory();
+  updateHeaderUI();
 }
 
 // 「プレミアム機能を使おうとしたら案内を出す」ゲート
@@ -1554,6 +1628,7 @@ const THEMES = ["amber", "blue", "pink"];
 function applyTheme(name) {
   document.body.dataset.theme = name;
   localStorage.setItem("theme", name);
+  updateHeaderUI();
 }
 
 $("theme-btn").addEventListener("click", () => {
@@ -1576,9 +1651,9 @@ const MODE_BG = { light: "#f6f2ea", dark: "#0a0b10" };
 function applyMode(mode) {
   document.body.dataset.mode = mode;
   localStorage.setItem("mode", mode);
-  $("daynight-btn").replaceChildren(icon(mode === "light" ? "sun" : "moon"));
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute("content", MODE_BG[mode]);
+  updateHeaderUI();
 }
 
 $("daynight-btn").addEventListener("click", () => {
@@ -1791,9 +1866,11 @@ async function acquireWakeLock() {
   try {
     wakeLock = await navigator.wakeLock.request("screen");
     $("wakelock-btn").classList.add("active");
+    updateHeaderUI();
     wakeLock.addEventListener("release", () => {
       wakeLock = null;
       $("wakelock-btn").classList.remove("active");
+      updateHeaderUI();
     });
     return true;
   } catch {
@@ -1803,6 +1880,7 @@ async function acquireWakeLock() {
 
 async function releaseWakeLock() {
   if (wakeLock) await wakeLock.release();
+  updateHeaderUI();
 }
 
 async function toggleWakeLock() {

@@ -179,13 +179,48 @@
     <!-- メイン画面 -->
     <section id="main-screen" class="screen hidden">
       <header class="status-bar">
-        <span id="gps-status" class="badge" data-i18n="gpsWait">GPS取得中…</span>
-        <div class="status-actions">
-          <button id="lang-btn" class="icon-btn" title="Language"><svg class="ic"><use href="#i-globe"/></svg></button>
-          <button id="daynight-btn" class="icon-btn" title="ライト/ダーク切り替え"><svg class="ic"><use href="#i-moon"/></svg></button>
-          <button id="theme-btn" class="icon-btn" title="テーマ切り替え"><svg class="ic"><use href="#i-contrast"/></svg></button>
-          <button id="wakelock-btn" class="icon-btn" title="画面を常時点灯"><svg class="ic"><use href="#i-bulb"/></svg></button>
-          <button id="premium-btn" class="pill-btn" aria-haspopup="dialog" aria-controls="paywall" aria-expanded="false"><svg class="ic"><use href="#i-star"/></svg><span id="premium-btn-label" data-i18n="premiumBtn">プレミアム</span></button>
+        <div class="status-meta">
+          <div class="system-readout">
+            <span class="system-code" aria-hidden="true">EK–LOC / 01</span>
+            <span id="gps-status" class="badge" data-i18n="gpsWait">GPS取得中…</span>
+          </div>
+          <button id="premium-btn" class="pass-btn" type="button" aria-haspopup="dialog" aria-controls="paywall" aria-expanded="false">
+            <span class="pass-copy">
+              <span class="pass-kicker" aria-hidden="true">EKIKOKO PASS</span>
+              <span id="premium-btn-label" data-i18n="premiumBtn">プレミアム</span>
+            </span>
+            <span class="pass-number" aria-hidden="true">P–01</span>
+          </button>
+        </div>
+        <div class="status-console">
+          <div class="console-caption" aria-hidden="true">
+            <span>DISPLAY CONTROL</span>
+            <span>EK–04</span>
+          </div>
+          <div id="status-actions" class="status-actions" role="group" aria-label="表示と端末の設定">
+            <button id="lang-btn" class="console-key" type="button">
+              <span class="control-index" aria-hidden="true">01</span>
+              <span id="lang-btn-value" class="control-value">JA</span>
+              <span class="control-label" data-i18n="controlLang">言語</span>
+            </button>
+            <button id="daynight-btn" class="console-key" type="button">
+              <span class="control-index" aria-hidden="true">02</span>
+              <span id="mode-btn-value" class="control-value">DARK</span>
+              <span class="control-label" data-i18n="controlMode">明暗</span>
+            </button>
+            <button id="theme-btn" class="console-key" type="button">
+              <span class="control-index" aria-hidden="true">03</span>
+              <span class="theme-swatch" aria-hidden="true"></span>
+              <span id="theme-btn-value" class="control-value">AMBER</span>
+              <span class="control-label" data-i18n="controlTheme">配色</span>
+            </button>
+            <button id="wakelock-btn" class="console-key" type="button" aria-pressed="false">
+              <span class="control-index" aria-hidden="true">04</span>
+              <span class="pilot-lamp" aria-hidden="true"></span>
+              <span id="wake-btn-value" class="control-value">OFF</span>
+              <span class="control-label" data-i18n="controlWake">点灯</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -214,10 +249,10 @@
         <p id="next-station" class="next-station hidden"></p>
       </div>
 
-      <button id="riding-btn" class="mode-btn" aria-controls="riding-screen" aria-expanded="false"><svg class="ic"><use href="#i-train"/></svg><span data-i18n="ridingBtn">車内モード</span></button>
+      <button id="riding-btn" class="mode-btn" aria-controls="riding-screen" aria-expanded="false"><svg class="ic"><use href="#i-train"/></svg><span data-i18n="ridingBtn">車内モード</span><span class="mode-code" aria-hidden="true">MODE / 01</span></button>
       <div class="mode-row">
-        <button id="dest-btn" class="mode-btn secondary" aria-haspopup="dialog" aria-controls="dest-modal" aria-expanded="false"><svg class="ic"><use href="#i-pin"/></svg><span data-i18n="destBtn">目的地</span></button>
-        <button id="guide-btn" class="mode-btn secondary" aria-haspopup="dialog" aria-controls="guide-modal" aria-expanded="false"><svg class="ic"><use href="#i-ticket"/></svg><span data-i18n="guideBtn">乗り方ガイド</span></button>
+        <button id="dest-btn" class="mode-btn secondary" aria-haspopup="dialog" aria-controls="dest-modal" aria-expanded="false"><svg class="ic"><use href="#i-pin"/></svg><span data-i18n="destBtn">目的地</span><span class="mode-code" aria-hidden="true">SERVICE / 02</span></button>
+        <button id="guide-btn" class="mode-btn secondary" aria-haspopup="dialog" aria-controls="guide-modal" aria-expanded="false"><svg class="ic"><use href="#i-ticket"/></svg><span data-i18n="guideBtn">乗り方ガイド</span><span class="mode-code" aria-hidden="true">GUIDE / 03</span></button>
       </div>
 
       <!-- 降車アラート設定状態 -->

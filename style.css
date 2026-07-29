@@ -16,6 +16,12 @@
   --plate-shadow: #05060a;
   /* 物理ボタンの底面 (押すと沈む) */
   --btn-edge: #05060a;
+  /* 駅設備の操作盤。筐体・キー・継ぎ目を別の面として扱う */
+  --panel-shell: #101116;
+  --panel-key: #181920;
+  --panel-key-pressed: #0d0e12;
+  --panel-seam: #2b2d36;
+  --panel-engraved: #969aa8;
   --edge-highlight: rgba(255, 255, 255, 0.11);
   --contact-shadow: rgba(0, 0, 0, 0.48);
   --radius-plate: 6px;
@@ -42,6 +48,11 @@ body[data-mode="light"] {
   --plate-edge: rgba(20, 20, 30, 0.16);
   --plate-shadow: #d3ccbe;
   --btn-edge: #cfc7b7;
+  --panel-shell: #ddd6c9;
+  --panel-key: #fffdf8;
+  --panel-key-pressed: #e9e2d6;
+  --panel-seam: #c8c0b2;
+  --panel-engraved: #6f6d68;
   --edge-highlight: rgba(255, 255, 255, 0.9);
   --contact-shadow: rgba(35, 29, 18, 0.22);
 }
@@ -146,14 +157,20 @@ body.sheet-open {
   position: relative;
   height: 224px;
   transform-style: preserve-3d;
-  /* わずかに見下ろす角度。呼吸するような揺れで立体だと伝える */
-  transform: rotateX(7deg);
-  animation: heroSway 11s ease-in-out infinite;
+  /* 常時揺らさず、設置された瞬間だけわずかに収まる */
+  transform: rotateX(7deg) rotateY(-3deg);
+  animation: heroSettle 820ms var(--ease-mech) both;
 }
 
-@keyframes heroSway {
-  0%, 100% { transform: rotateX(7deg) rotateY(-3deg); }
-  50%      { transform: rotateX(7deg) rotateY(3deg); }
+@keyframes heroSettle {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, -14px) rotateX(9deg) rotateY(-6deg);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotateX(7deg) rotateY(-3deg);
+  }
 }
 
 /* 地面を倒して奥へ伸びる線路にする。縦のレールが遠近で収束して見える */
@@ -313,31 +330,80 @@ body.sheet-open {
 
 /* ---- メイン画面 ---- */
 .status-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
+  display: grid;
+  gap: 9px;
   margin-bottom: 18px;
 }
 
-/* GPSの状態は補助情報なので、箱で囲まずドット+小さな文字で控えめに置く */
+/* 上段: 現在地フィードと乗車パスを、同じ機器の情報面として扱う */
+.status-meta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(136px, 42%);
+  align-items: stretch;
+  gap: 10px;
+  min-width: 0;
+}
+
+.system-readout {
+  position: relative;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px 8px 7px 12px;
+  border-left: 3px solid var(--accent);
+}
+
+.system-readout::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 12px;
+  height: 1px;
+  background: var(--line);
+}
+
+.system-code,
+.console-caption,
+.control-index,
+.control-label,
+.pass-kicker,
+.pass-number {
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+}
+
+.system-code {
+  color: var(--panel-engraved);
+  font-size: 0.52rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+/* GPS状態は操作ではなく計器。丸いバッジではなく小さな状態灯で示す */
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.72rem;
-  line-height: 1.3;
-  color: var(--sub);
-  font-variant-numeric: tabular-nums;
   min-width: 0;
-  flex: 1;
+  overflow: hidden;
+  color: var(--sub);
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .badge::before {
   content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
+  width: 5px;
+  height: 11px;
+  border: 1px solid color-mix(in srgb, currentColor 58%, transparent);
+  border-radius: 1px;
   flex-shrink: 0;
   background: var(--sub);
 }
@@ -354,33 +420,219 @@ body.sheet-open {
   color: var(--danger);
 }
 
-.status-actions {
-  display: flex;
+/* プレミアムは広告ピルではなく、定期券を思わせる所有物のプレート */
+.pass-btn {
+  position: relative;
+  min-width: 0;
+  min-height: 56px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 2px;
-  flex-shrink: 0;
-}
-
-/* プレミアムだけは他のアイコンから少し離して、性質の違いを見せる */
-.status-actions .pill-btn {
-  margin-left: 6px;
-}
-
-.pill-btn {
-  font-size: 0.8rem;
-  font-weight: 700;
-  padding: 7px 12px;
-  border: 1px solid color-mix(in srgb, var(--accent2) 45%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent2) 10%, transparent);
-  color: var(--accent2);
+  gap: 9px;
+  padding: 8px 9px 8px 12px;
+  border: 1px solid var(--panel-seam);
+  border-left: 4px solid var(--accent);
+  border-radius: 4px;
+  background: var(--panel-key);
+  color: var(--fg);
+  box-shadow:
+    inset 0 1px 0 var(--edge-highlight),
+    0 2px 0 var(--btn-edge),
+    0 4px 9px -7px var(--contact-shadow);
   cursor: pointer;
+  text-align: left;
+  transform-origin: 50% 100%;
+  transition:
+    transform var(--motion-press) var(--ease-press),
+    border-color var(--motion-fast) var(--ease-mech),
+    background-color var(--motion-fast) var(--ease-mech);
+}
+
+.pass-btn:active {
+  transform: translate3d(0, 2px, 0);
+  background: var(--panel-key-pressed);
+  box-shadow: inset 0 1px 0 var(--edge-highlight);
+}
+
+.pass-btn.is-member {
+  border-left-color: var(--fg);
+}
+
+.pass-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.pass-kicker {
+  overflow: hidden;
+  color: var(--panel-engraved);
+  font-size: 0.48rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.pill-btn .ic {
-  width: 1em;
-  height: 1em;
+#premium-btn-label {
+  overflow: hidden;
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pass-number {
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  padding-left: 8px;
+  border-left: 1px solid var(--panel-seam);
+  color: var(--accent);
+  font-size: 0.5rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  writing-mode: vertical-rl;
+}
+
+.pass-btn.is-member .pass-number {
+  color: var(--fg);
+}
+
+/* 下段: 4つの設定を、別々のアイコンではなく一枚の操作盤へ収める */
+.status-console {
+  padding: 7px;
+  border: 1px solid var(--panel-seam);
+  border-radius: 5px;
+  background: var(--panel-shell);
+  box-shadow:
+    inset 0 1px 0 var(--edge-highlight),
+    0 2px 0 var(--btn-edge),
+    0 7px 12px -12px var(--contact-shadow);
+}
+
+.console-caption {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2px 6px;
+  color: var(--panel-engraved);
+  font-size: 0.48rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.status-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--panel-seam);
+  border-radius: 3px;
+  background: var(--panel-seam);
+}
+
+.console-key {
+  position: relative;
+  min-width: 0;
+  min-height: 59px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 3px;
+  padding: 14px 4px 7px;
+  border: 0;
+  border-radius: 0;
+  background: var(--panel-key);
+  color: var(--sub);
+  box-shadow:
+    inset 0 1px 0 var(--edge-highlight),
+    inset 0 -2px 0 color-mix(in srgb, var(--btn-edge) 72%, transparent);
+  cursor: pointer;
+  transition:
+    transform var(--motion-press) var(--ease-press),
+    background-color var(--motion-fast) var(--ease-mech),
+    color var(--motion-fast) var(--ease-mech);
+}
+
+.console-key:active {
+  z-index: 1;
+  transform: translate3d(0, 2px, 0);
+  background: var(--panel-key-pressed);
+  box-shadow: inset 0 1px 0 var(--edge-highlight);
+}
+
+.console-key.active {
+  color: var(--accent);
+}
+
+.control-index {
+  position: absolute;
+  top: 5px;
+  left: 6px;
+  color: var(--panel-engraved);
+  font-size: 0.44rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.control-value {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--fg);
+  font-size: 0.69rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-overflow: ellipsis;
+}
+
+.control-label {
+  color: var(--panel-engraved);
+  font-size: 0.54rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  line-height: 1;
+}
+
+.theme-swatch {
+  width: 26px;
+  height: 3px;
+  border: 1px solid color-mix(in srgb, var(--accent) 58%, #000);
+  border-radius: 1px;
+  background: var(--accent);
+}
+
+.pilot-lamp {
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--panel-engraved);
+  border-radius: 50%;
+  background: transparent;
+}
+
+.console-key[aria-pressed="true"] .pilot-lamp {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.console-key[aria-pressed="true"] .control-value {
+  color: var(--accent);
+}
+
+.pass-btn:focus-visible {
+  z-index: 2;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.console-key:focus-visible {
+  z-index: 2;
+  outline: none;
+  box-shadow:
+    inset 0 0 0 2px var(--accent),
+    inset 0 1px 0 var(--edge-highlight),
+    inset 0 -2px 0 color-mix(in srgb, var(--btn-edge) 72%, transparent);
 }
 
 .text-btn {
@@ -393,36 +645,6 @@ body.sheet-open {
   padding: 8px;
 }
 
-/* 設定系のアイコンは主役ではないので、枠を持たせず色で退かせる。
-   ただし薄すぎて無効に見えないよう、色は --sub を使い透明度に頼らない */
-.icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: 9px;
-  width: 38px;
-  height: 40px;
-  flex-shrink: 0;
-  cursor: pointer;
-  color: var(--sub);
-  transition:
-    transform var(--motion-press) var(--ease-press),
-    background-color var(--motion-fast) var(--ease-mech),
-    color var(--motion-fast) var(--ease-mech);
-}
-
-.icon-btn:active {
-  background: color-mix(in srgb, var(--fg) 10%, transparent);
-  transform: translate3d(0, 1px, 0);
-}
-
-.icon-btn.active {
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-}
-
 /* 駅名標: 実物の駅サインに寄せた物理的なプレート。
    上端に乗っている路線の公式カラー帯、下に硬い影で厚みを出す */
 .station-display {
@@ -430,16 +652,15 @@ body.sheet-open {
   display: flex;
   flex-direction: column;
   text-align: center;
-  padding: 28px 14px 20px;
+  padding: 30px 14px 22px;
   background: var(--plate);
-  border: 1px solid var(--plate-edge);
-  border-radius: var(--radius-plate);
+  border: 4px solid var(--panel-shell);
+  border-radius: 5px;
   box-shadow:
+    inset 0 0 0 1px var(--plate-edge),
     inset 0 1px 0 var(--edge-highlight),
-    0 2px 0 var(--plate-shadow),
-    0 4px 0 var(--plate-shadow),
-    0 6px 0 var(--plate-shadow),
-    0 18px 22px -16px var(--contact-shadow);
+    0 3px 0 var(--plate-shadow),
+    0 15px 24px -20px var(--contact-shadow);
   overflow: hidden;
   transform: perspective(960px) rotateX(0.75deg);
   transform-origin: 50% 100%;
@@ -509,11 +730,22 @@ body.sheet-open {
 
 .nearby h3,
 .history h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   color: var(--sub);
   margin-bottom: 10px;
+}
+
+.nearby h3::after,
+.history h3::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
 }
 
 .nearby-list {
@@ -899,26 +1131,31 @@ body.sheet-open {
 }
 
 .mode-btn.secondary {
-  border-color: var(--card-border);
+  border-color: var(--panel-seam);
+  border-left-color: var(--panel-engraved);
   color: var(--fg);
   margin-top: 10px;
 }
 
-/* ---- 車内モードへの入口ボタン ---- */
+/* ---- 主要操作: 操作盤と同じ筐体・規格番号を持つ物理キー ---- */
 .mode-btn {
+  position: relative;
   margin-top: 20px;
   width: 100%;
-  padding: 15px;
+  min-height: 68px;
+  justify-content: flex-start;
+  padding: 24px 16px 13px;
   font-size: 1.05rem;
-  font-weight: 700;
-  border: 1px solid var(--accent);
-  border-radius: var(--radius-control);
-  background: var(--card);
-  color: var(--accent);
+  font-weight: 800;
+  border: 1px solid var(--panel-seam);
+  border-left: 4px solid var(--accent);
+  border-radius: 4px;
+  background: var(--panel-key);
+  color: var(--fg);
   box-shadow:
     inset 0 1px 0 var(--edge-highlight),
-    0 2px 0 var(--btn-edge),
-    0 4px 0 var(--btn-edge);
+    0 3px 0 var(--btn-edge),
+    0 9px 13px -13px var(--contact-shadow);
   cursor: pointer;
   transform-origin: 50% 100%;
   transition:
@@ -927,8 +1164,35 @@ body.sheet-open {
     border-color var(--motion-fast) var(--ease-mech);
 }
 
+.mode-code {
+  position: absolute;
+  top: 7px;
+  left: 16px;
+  color: var(--panel-engraved);
+  font-size: 0.48rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  line-height: 1;
+}
+
+.mode-btn .ic {
+  width: 28px;
+  height: 28px;
+  padding: 5px;
+  border: 1px solid var(--panel-seam);
+  border-radius: 2px;
+  background: var(--panel-shell);
+  color: var(--accent);
+  box-shadow: inset 0 1px 0 var(--edge-highlight);
+}
+
+.mode-btn.secondary .ic {
+  color: var(--accent2);
+}
+
 .mode-btn:active {
-  transform: perspective(520px) translate3d(0, var(--press-depth), 0) rotateX(2deg);
+  transform: translate3d(0, 3px, 0);
+  background: var(--panel-key-pressed);
   box-shadow: inset 0 1px 0 var(--edge-highlight);
 }
 
@@ -1221,14 +1485,28 @@ body[data-theme="pink"] .alert-overlay {
 
 /* ---- 広告枠 (無料プラン) ---- */
 .ad-slot {
+  position: relative;
   margin-top: 24px;
-  padding: 28px 16px;
+  padding: 27px 16px 16px;
   text-align: center;
-  background: var(--card);
-  border: 1px dashed var(--line);
-  border-radius: 12px;
+  background: var(--panel-key);
+  border: 1px solid var(--panel-seam);
+  border-left: 3px solid var(--panel-engraved);
+  border-radius: 4px;
+  box-shadow: inset 0 1px 0 var(--edge-highlight);
   color: var(--sub);
   font-size: 0.8rem;
+}
+
+.ad-slot::before {
+  content: "SPONSOR SLOT / 01";
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  color: var(--panel-engraved);
+  font-size: 0.45rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
 }
 
 /* ---- モーダル ---- */
@@ -1434,7 +1712,6 @@ body[data-theme="pink"] .alert-overlay {
 
 /* アイコンとラベルを横に並べるボタン */
 .mode-btn,
-.pill-btn,
 .chip-btn,
 .tab-btn,
 .alert-title {
@@ -1461,6 +1738,23 @@ body[data-theme="pink"] .alert-overlay {
 .mode-row .mode-btn {
   flex: 1;
   min-width: 0;
+  padding-right: 10px;
+  padding-left: 12px;
+  gap: 7px;
+  font-size: 0.88rem;
+}
+
+.mode-row .mode-btn .mode-code {
+  left: 12px;
+}
+
+.mode-row .mode-btn .ic {
+  width: 25px;
+  height: 25px;
+}
+
+.mode-row .mode-btn > span:not(.mode-code) {
+  white-space: nowrap;
 }
 
 /* アイコンだけのボタン (閉じる・解除) */
@@ -1785,7 +2079,7 @@ body[data-theme="pink"] .alert-overlay {
     animation: none !important;
   }
   .sc-tk-out, .sc-fare-out { opacity: 1; }
-  .big-btn, .mode-btn, .icon-btn, .icon-only-btn,
+  .big-btn, .mode-btn, .pass-btn, .console-key, .icon-only-btn,
   .tab-btn, .chip-btn, .dest-item, .route-list li {
     transition: none;
   }
@@ -1932,25 +2226,72 @@ body[data-theme="pink"] .alert-overlay {
   }
 
   .status-bar {
-    gap: 4px;
+    gap: 8px;
   }
 
-  .status-actions {
-    gap: 0;
+  .status-meta {
+    grid-template-columns: minmax(0, 1fr) 128px;
+    gap: 6px;
   }
 
-  .icon-btn {
-    width: 34px;
+  .system-readout {
+    padding-right: 3px;
+    padding-left: 9px;
   }
 
-  .status-actions .pill-btn {
-    margin-left: 2px;
-    padding: 7px 9px;
-    font-size: 0.74rem;
+  .system-readout::after {
+    left: 9px;
+  }
+
+  .system-code,
+  .console-caption {
+    font-size: 0.44rem;
+  }
+
+  .pass-btn {
+    padding-right: 7px;
+    padding-left: 9px;
+  }
+
+  .pass-kicker {
+    font-size: 0.42rem;
+    letter-spacing: 0.1em;
+  }
+
+  #premium-btn-label {
+    font-size: 0.72rem;
+  }
+
+  .status-console {
+    padding: 6px;
+  }
+
+  .console-key {
+    min-height: 57px;
+  }
+
+  .control-value {
+    font-size: 0.62rem;
+  }
+
+  .control-label {
+    font-size: 0.5rem;
+    letter-spacing: 0.08em;
   }
 
   .badge {
-    font-size: 0.68rem;
+    font-size: 0.66rem;
+  }
+
+  .mode-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .mode-row .mode-btn {
+    margin-top: 8px;
+    font-size: 1rem;
   }
 
   .modal {
