@@ -736,7 +736,8 @@ body.sheet-open {
   margin-top: 26px;
 }
 
-.nearby:has(> .nearby-list:empty) {
+.nearby:has(> .nearby-list:empty),
+.history:has(> .nearby-list:empty) {
   display: none;
 }
 
