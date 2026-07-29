@@ -16,9 +16,21 @@
   --plate-shadow: #05060a;
   /* 物理ボタンの底面 (押すと沈む) */
   --btn-edge: #05060a;
+  --edge-highlight: rgba(255, 255, 255, 0.11);
+  --contact-shadow: rgba(0, 0, 0, 0.48);
+  --radius-plate: 6px;
+  --radius-control: 8px;
+  --press-depth: 4px;
+  --motion-press: 80ms;
+  --motion-fast: 160ms;
+  --motion-enter: 320ms;
+  --motion-exit: 180ms;
+  --motion-guide: 4.2s;
+  --ease-mech: cubic-bezier(0.22, 0.72, 0.18, 1);
+  --ease-press: cubic-bezier(0.3, 0.7, 0.4, 1);
 }
 
-/* ライトモード (🌙/☀️ボタンで切替) */
+/* ライトモード */
 body[data-mode="light"] {
   --bg: #f6f2ea;
   --fg: #181920;
@@ -30,9 +42,11 @@ body[data-mode="light"] {
   --plate-edge: rgba(20, 20, 30, 0.16);
   --plate-shadow: #d3ccbe;
   --btn-edge: #cfc7b7;
+  --edge-highlight: rgba(255, 255, 255, 0.9);
+  --contact-shadow: rgba(35, 29, 18, 0.22);
 }
 
-/* アクセントカラー切り替え (🎨ボタン) */
+/* アクセントカラー切り替え */
 body[data-theme="amber"] {
   --accent: #ffb020;
   --accent2: #ff6b4a;
@@ -46,6 +60,25 @@ body[data-theme="blue"] {
 body[data-theme="pink"] {
   --accent: #ff6fa5;
   --accent2: #4fc3f7;
+}
+
+/* 明るい背景では、装飾色を同系色の濃い案内色にして文字のコントラストを保つ */
+body[data-mode="light"][data-theme="amber"] {
+  --accent: #8c5200;
+  --accent2: #b63b22;
+  --on-accent: #fffaf2;
+}
+
+body[data-mode="light"][data-theme="blue"] {
+  --accent: #006b8f;
+  --accent2: #8c5200;
+  --on-accent: #fff;
+}
+
+body[data-mode="light"][data-theme="pink"] {
+  --accent: #a5265a;
+  --accent2: #006b8f;
+  --on-accent: #fff;
 }
 
 * {
@@ -63,6 +96,11 @@ body {
   color: var(--fg);
   font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+body.sheet-open {
+  overflow: hidden;
 }
 
 #app {
@@ -241,17 +279,23 @@ body {
   font-weight: 800;
   padding: 17px 36px;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   background: var(--accent);
   color: var(--on-accent);
-  box-shadow: 0 5px 0 color-mix(in srgb, var(--accent) 55%, #000);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 24%, transparent),
+    0 2px 0 color-mix(in srgb, var(--accent) 58%, #000),
+    0 4px 0 color-mix(in srgb, var(--accent) 48%, #000);
   cursor: pointer;
-  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  transform-origin: 50% 100%;
+  transition:
+    transform var(--motion-press) var(--ease-press),
+    box-shadow var(--motion-press) var(--ease-press);
 }
 
 .big-btn:active {
-  transform: translateY(5px);
-  box-shadow: 0 0 0 color-mix(in srgb, var(--accent) 55%, #000);
+  transform: perspective(520px) translate3d(0, var(--press-depth), 0) rotateX(2deg);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent);
 }
 
 /* 動きを減らす設定では揺れを止める (立体の見え方自体は残す) */
@@ -358,16 +402,20 @@ body {
   background: transparent;
   border: none;
   border-radius: 9px;
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 40px;
   flex-shrink: 0;
   cursor: pointer;
   color: var(--sub);
-  transition: background-color 0.12s ease, color 0.12s ease;
+  transition:
+    transform var(--motion-press) var(--ease-press),
+    background-color var(--motion-fast) var(--ease-mech),
+    color var(--motion-fast) var(--ease-mech);
 }
 
 .icon-btn:active {
   background: color-mix(in srgb, var(--fg) 10%, transparent);
+  transform: translate3d(0, 1px, 0);
 }
 
 .icon-btn.active {
@@ -385,9 +433,17 @@ body {
   padding: 28px 14px 20px;
   background: var(--plate);
   border: 1px solid var(--plate-edge);
-  border-radius: 6px;
-  box-shadow: 0 6px 0 var(--plate-shadow), 0 16px 20px -14px rgba(0, 0, 0, 0.6);
+  border-radius: var(--radius-plate);
+  box-shadow:
+    inset 0 1px 0 var(--edge-highlight),
+    0 2px 0 var(--plate-shadow),
+    0 4px 0 var(--plate-shadow),
+    0 6px 0 var(--plate-shadow),
+    0 18px 22px -16px var(--contact-shadow);
   overflow: hidden;
+  transform: perspective(960px) rotateX(0.75deg);
+  transform-origin: 50% 100%;
+  backface-visibility: hidden;
 }
 
 .station-display::before {
@@ -475,7 +531,7 @@ body {
   border-radius: 8px;
   margin-bottom: 6px;
   font-size: 0.98rem;
-  transition: background-color 0.12s ease;
+  transition: background-color var(--motion-fast) var(--ease-mech);
 }
 
 .nearby-list .dist {
@@ -535,20 +591,18 @@ body {
   padding: 0;
 }
 
-/* 駅名が切り替わった瞬間にふわっと出すアニメーション */
+/* 駅名が切り替わった瞬間に、案内板が落ち着くような短い動きを返す */
 .station-name.pulse,
 .r-station.pulse {
-  animation: pop 0.4s ease-out;
+  animation: stationSettle var(--motion-fast) var(--ease-mech);
 }
 
-@keyframes pop {
+@keyframes stationSettle {
   from {
-    transform: scale(0.94);
-    opacity: 0.4;
+    transform: translate3d(0, -2px, 0) scale(0.985);
   }
   to {
-    transform: scale(1);
-    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }
 
@@ -609,15 +663,24 @@ body {
   background: var(--bg);
   color: var(--fg);
   border: 1px solid var(--card-border);
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   padding: 12px 14px;
   font-size: 1rem;
-  transition: border-color 0.15s ease;
+  min-height: 48px;
+  box-shadow:
+    inset 0 2px 0 color-mix(in srgb, var(--contact-shadow) 42%, transparent),
+    inset 0 -1px 0 var(--edge-highlight);
+  transition:
+    border-color var(--motion-fast) var(--ease-mech),
+    box-shadow var(--motion-fast) var(--ease-mech);
 }
 
 .search-input:focus {
   outline: none;
   border-color: var(--accent);
+  box-shadow:
+    inset 0 2px 0 color-mix(in srgb, var(--contact-shadow) 34%, transparent),
+    0 0 0 1px var(--accent);
 }
 
 .search-input::placeholder {
@@ -625,12 +688,45 @@ body {
 }
 
 .dest-list {
-  overflow-y: auto;
-  max-height: 50vh;
+  overflow: visible;
+  max-height: none;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--plate) 74%, var(--card));
+  box-shadow:
+    inset 0 1px 0 var(--edge-highlight),
+    0 2px 0 var(--plate-shadow);
+}
+
+.dest-list > li {
+  min-height: 50px;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.dest-list > li + li {
+  border-top: 1px solid var(--line);
+}
+
+.dest-list .dist {
+  max-width: 52%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
 }
 
 .dest-item {
   cursor: pointer;
+  transition:
+    transform var(--motion-press) var(--ease-press),
+    background-color var(--motion-fast) var(--ease-mech);
+}
+
+.dest-item:active {
+  transform: translate3d(0, 1px, 0);
 }
 
 .api-credit {
@@ -649,8 +745,8 @@ body {
 }
 
 .guide-chips {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   margin-bottom: 14px;
 }
@@ -659,16 +755,19 @@ body {
   border: 1px solid var(--card-border);
   background: var(--card);
   color: inherit;
-  border-radius: 999px;
-  padding: 8px 14px;
+  border-radius: var(--radius-control);
+  padding: 9px 12px;
+  min-height: 44px;
   font-size: 0.9rem;
   cursor: pointer;
+  box-shadow: 0 2px 0 var(--plate-shadow);
 }
 
 .chip-btn.active {
   border-color: var(--accent);
   color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--accent) 55%, var(--plate-shadow));
 }
 
 .guide-sec h3 {
@@ -690,12 +789,18 @@ body {
 .tab-btn {
   flex: 1;
   padding: 10px;
-  border-radius: 12px;
+  min-height: 44px;
+  border-radius: var(--radius-control);
   border: 1px solid var(--line);
   background: transparent;
   color: var(--sub);
   cursor: pointer;
   font-size: 0.95rem;
+  transition:
+    transform var(--motion-press) var(--ease-press),
+    border-color var(--motion-fast) var(--ease-mech),
+    background-color var(--motion-fast) var(--ease-mech),
+    color var(--motion-fast) var(--ease-mech);
 }
 
 .tab-btn.active {
@@ -714,12 +819,12 @@ body {
 }
 
 .line-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+  width: 4px;
+  height: 22px;
+  border-radius: 2px;
   display: inline-block;
   margin-right: 10px;
-  vertical-align: -1px;
+  vertical-align: -6px;
 }
 
 .line-title {
@@ -729,8 +834,14 @@ body {
 
 .route-list {
   list-style: none;
-  overflow-y: auto;
-  max-height: 48vh;
+  overflow: visible;
+  max-height: none;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--plate) 74%, var(--card));
+  box-shadow:
+    inset 0 1px 0 var(--edge-highlight),
+    0 2px 0 var(--plate-shadow);
 }
 
 .route-list li {
@@ -738,6 +849,14 @@ body {
   padding: 12px 8px 12px 38px;
   cursor: pointer;
   font-size: 1rem;
+  min-height: 50px;
+  transition:
+    transform var(--motion-press) var(--ease-press),
+    background-color var(--motion-fast) var(--ease-mech);
+}
+
+.route-list li + li {
+  border-top: 1px solid var(--line);
 }
 
 /* 路線図風の縦ライン */
@@ -793,17 +912,24 @@ body {
   font-size: 1.05rem;
   font-weight: 700;
   border: 1px solid var(--accent);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   background: var(--card);
   color: var(--accent);
-  box-shadow: 0 4px 0 var(--btn-edge);
+  box-shadow:
+    inset 0 1px 0 var(--edge-highlight),
+    0 2px 0 var(--btn-edge),
+    0 4px 0 var(--btn-edge);
   cursor: pointer;
-  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  transform-origin: 50% 100%;
+  transition:
+    transform var(--motion-press) var(--ease-press),
+    box-shadow var(--motion-press) var(--ease-press),
+    border-color var(--motion-fast) var(--ease-mech);
 }
 
 .mode-btn:active {
-  transform: translateY(4px);
-  box-shadow: 0 0 0 var(--btn-edge);
+  transform: perspective(520px) translate3d(0, var(--press-depth), 0) rotateX(2deg);
+  box-shadow: inset 0 1px 0 var(--edge-highlight);
 }
 
 /* ---- 車内モード (全画面・特大表示) ---- */
@@ -813,6 +939,10 @@ body {
   z-index: 40;
   /* OLEDで消費電力を抑えるため純黒 (テーマ・アクセントに関わらず固定) */
   background: #000;
+  color: #f3efe6;
+  --fg: #f3efe6;
+  --sub: #a8a9b2;
+  --on-accent: #151007;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -823,6 +953,28 @@ body {
   padding-top: calc(24px + env(safe-area-inset-top));
   padding-bottom: calc(24px + env(safe-area-inset-bottom));
   overflow: hidden;
+}
+
+/* ライトモードの濃い案内色を純黒画面へ持ち込まず、発光させずに視認性を戻す */
+body[data-theme="amber"] .riding,
+body[data-theme="amber"] .alert-overlay {
+  --accent: #ffb020;
+  --accent2: #ff6b4a;
+  --on-accent: #151007;
+}
+
+body[data-theme="blue"] .riding,
+body[data-theme="blue"] .alert-overlay {
+  --accent: #4fc3f7;
+  --accent2: #ffb020;
+  --on-accent: #151007;
+}
+
+body[data-theme="pink"] .riding,
+body[data-theme="pink"] .alert-overlay {
+  --accent: #ff6fa5;
+  --accent2: #4fc3f7;
+  --on-accent: #151007;
 }
 
 /* 車内のLED表示器のように、上下を路線カラーの帯で挟む (ぼかしは使わない) */
@@ -886,10 +1038,29 @@ body {
 
 .r-hint {
   position: absolute;
+  z-index: 1;
   bottom: calc(20px + env(safe-area-inset-bottom));
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid #4b4d55;
+  border-radius: var(--radius-control);
+  background: #111216;
   font-size: 0.8rem;
-  color: var(--sub);
-  opacity: 0.6;
+  font-weight: 700;
+  color: var(--fg);
+  cursor: pointer;
+  transition:
+    transform var(--motion-press) var(--ease-press),
+    border-color var(--motion-fast) var(--ease-mech);
+}
+
+.r-hint:hover,
+.r-hint:focus-visible {
+  border-color: var(--accent);
+}
+
+.r-hint:active {
+  transform: translate3d(0, 2px, 0);
 }
 
 /* ---- 路線絞り込み ---- */
@@ -974,7 +1145,9 @@ body {
   overflow: hidden;
   /* 車内モードと同じ黒基調。アクセント色のリングパルスで気づかせる */
   background: #000;
-  color: var(--fg);
+  color: #f3efe6;
+  --fg: #f3efe6;
+  --sub: #a8a9b2;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -1067,7 +1240,8 @@ body {
   justify-content: center;
   align-items: flex-end;
   z-index: 50;
-  animation: backdropIn 0.25s ease both;
+  perspective: 1000px;
+  animation: backdropIn var(--motion-fast) linear both;
 }
 
 @keyframes backdropIn {
@@ -1078,7 +1252,7 @@ body {
 .modal {
   background: var(--card);
   border: 1px solid var(--card-border);
-  border-radius: 14px 14px 0 0;
+  border-radius: 10px 10px 0 0;
   /* 上端の余白はヘッダー側で持つ (ヘッダーを画面上端に張り付かせるため) */
   padding: 0 20px calc(26px + env(safe-area-inset-bottom));
   max-width: 480px;
@@ -1086,10 +1260,25 @@ body {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  max-height: 85vh;
+  max-height: min(88vh, calc(100dvh - 36px));
   overflow-y: auto;
+  overflow-x: hidden;
   overscroll-behavior: contain;
-  animation: sheetUp 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transform-origin: 50% 100%;
+  box-shadow:
+    inset 0 1px 0 var(--edge-highlight),
+    0 -2px 0 color-mix(in srgb, var(--plate-shadow) 78%, transparent),
+    0 -16px 32px -24px var(--contact-shadow);
+  animation: sheetDock var(--motion-enter) var(--ease-mech) both;
+}
+
+.modal-overlay.is-closing {
+  pointer-events: none;
+  animation: backdropOut var(--motion-exit) linear both;
+}
+
+.modal-overlay.is-closing .modal {
+  animation: sheetUndock var(--motion-exit) var(--ease-press) both;
 }
 
 /* 中身をスクロールしても閉じるボタンが隠れないよう、ヘッダーを常に上端に固定する */
@@ -1121,9 +1310,31 @@ body {
   opacity: 0.32;
 }
 
-@keyframes sheetUp {
-  from { opacity: 0; transform: translateY(48px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes sheetDock {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 34px, -18px) rotateX(-2deg);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotateX(0);
+  }
+}
+
+@keyframes sheetUndock {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(0, 24px, -12px) rotateX(-1.5deg);
+  }
+}
+
+@keyframes backdropOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
 .feature-list {
@@ -1135,17 +1346,48 @@ body {
   line-height: 1.6;
 }
 
+#paywall .feature-list {
+  gap: 0;
+  padding: 2px 14px;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--plate) 74%, var(--card));
+  box-shadow:
+    inset 0 1px 0 var(--edge-highlight),
+    0 2px 0 var(--plate-shadow);
+}
+
+#paywall .feature-list li {
+  padding: 11px 0;
+}
+
+#paywall .feature-list li + li {
+  border-top: 1px solid var(--line);
+}
+
 .price {
-  text-align: center;
+  text-align: left;
   font-size: 1.3rem;
   font-weight: 800;
   color: var(--accent);
+  padding: 12px 14px;
+  border: 1px solid var(--card-border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-plate);
+  background: var(--bg);
+  font-variant-numeric: tabular-nums;
 }
 
 .price-sub {
+  display: block;
+  margin-top: 2px;
   font-size: 0.8rem;
   font-weight: 400;
   color: var(--sub);
+}
+
+#paywall .big-btn {
+  width: 100%;
 }
 
 .error-banner.success {
@@ -1163,7 +1405,7 @@ body {
   background: var(--danger);
   color: #fff;
   padding: 14px 16px;
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   font-size: 0.9rem;
   line-height: 1.6;
 }
@@ -1226,18 +1468,23 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 1px solid var(--card-border);
   border-radius: 8px;
   background: transparent;
   color: var(--sub);
   cursor: pointer;
+  transition:
+    transform var(--motion-press) var(--ease-press),
+    background-color var(--motion-fast) var(--ease-mech),
+    border-color var(--motion-fast) var(--ease-mech);
 }
 
 .icon-only-btn:active {
   background: var(--card);
+  transform: translate3d(0, 1px, 0);
 }
 
 .bell-btn .ic {
@@ -1278,12 +1525,37 @@ body {
 /* =====================================================================
    乗り方ガイドの図解 (文章を読ませず、動きで理解させる)
    ===================================================================== */
+.guide-sec {
+  position: relative;
+  margin-top: 12px;
+  padding: 0 12px 14px;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-plate);
+  background: color-mix(in srgb, var(--plate) 74%, var(--card));
+  box-shadow:
+    inset 0 1px 0 var(--edge-highlight),
+    0 2px 0 var(--plate-shadow);
+  overflow: hidden;
+}
+
+.guide-sec::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 4px;
+  background: var(--accent);
+}
+
 .guide-sec h3 {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 1rem;
-  margin: 18px 0 10px;
+  margin: 0 -12px 10px;
+  padding: 13px 12px 10px 16px;
+  border-bottom: 1px solid var(--line);
 }
 
 .guide-sec h3 .ic {
@@ -1291,11 +1563,14 @@ body {
 }
 
 .scene {
-  background: var(--card);
+  background: var(--bg);
   border: 1px solid var(--card-border);
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   padding: 10px;
   margin-bottom: 10px;
+  box-shadow:
+    inset 0 2px 0 color-mix(in srgb, var(--contact-shadow) 34%, transparent),
+    inset 0 -1px 0 var(--edge-highlight);
 }
 
 .scene svg {
@@ -1412,18 +1687,18 @@ body {
 }
 
 /* --- アニメーション (display:noneの節では自動的に止まる) --- */
-.sc-phone { animation: scTapDown 4s ease-in-out infinite; }
-.sc-card { animation: scTapDown 4s ease-in-out infinite; }
-.sc-flap-l { animation: scFlapL 4s ease-in-out infinite; transform-origin: 76px 83px; }
-.sc-flap-r { animation: scFlapR 4s ease-in-out infinite; transform-origin: 164px 83px; }
-.sc-ping { animation: scPing 4s ease-out infinite; }
+.sc-phone { animation: scTapDown var(--motion-guide) ease-in-out infinite; }
+.sc-card { animation: scTapDown var(--motion-guide) ease-in-out infinite; }
+.sc-flap-l { animation: scFlapL var(--motion-guide) ease-in-out infinite; transform-origin: 76px 83px; }
+.sc-flap-r { animation: scFlapR var(--motion-guide) ease-in-out infinite; transform-origin: 164px 83px; }
+.sc-ping { animation: scPing var(--motion-guide) ease-out infinite; }
 .sc-ping2 { animation-delay: .28s; }
-.sc-tk-in { animation: scTicketIn 4s ease-in-out infinite; }
-.sc-tk-out { animation: scTicketOut 4s ease-in-out infinite; }
-.sc-fare-in { animation: scFareIn 4s ease-in-out infinite; }
-.sc-fare-out { animation: scFareOut 4s ease-in-out infinite; }
-.sc-pass { animation: scShow 4s ease-in-out infinite; }
-.sc-mover { animation: scTransfer 5s ease-in-out infinite; }
+.sc-tk-in { animation: scTicketIn var(--motion-guide) ease-in-out infinite; }
+.sc-tk-out { animation: scTicketOut var(--motion-guide) ease-in-out infinite; }
+.sc-fare-in { animation: scFareIn var(--motion-guide) ease-in-out infinite; }
+.sc-fare-out { animation: scFareOut var(--motion-guide) ease-in-out infinite; }
+.sc-pass { animation: scShow var(--motion-guide) ease-in-out infinite; }
+.sc-mover { animation: scTransfer var(--motion-guide) ease-in-out infinite; }
 
 /* かざす/タッチする: 下降 → 静止 → 離す */
 @keyframes scTapDown {
@@ -1503,10 +1778,17 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .sc-phone, .sc-card, .sc-flap-l, .sc-flap-r, .sc-ping,
   .sc-tk-in, .sc-tk-out, .sc-fare-in, .sc-fare-out, .sc-pass, .sc-mover,
+  .hero-stage, .station-name.pulse, .r-station.pulse,
+  .modal-overlay, .modal, .modal-overlay.is-closing,
+  .modal-overlay.is-closing .modal,
   #start-screen::after, .alert-overlay::before, .alert-overlay::after {
-    animation: none;
+    animation: none !important;
   }
   .sc-tk-out, .sc-fare-out { opacity: 1; }
+  .big-btn, .mode-btn, .icon-btn, .icon-only-btn,
+  .tab-btn, .chip-btn, .dest-item, .route-list li {
+    transition: none;
+  }
 }
 
 /* 手順は短く、番号を振って図と対応させる */
@@ -1555,7 +1837,11 @@ body {
 }
 
 .chip-btn {
-  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+  transition:
+    transform var(--motion-press) var(--ease-press),
+    background-color var(--motion-fast) var(--ease-mech),
+    border-color var(--motion-fast) var(--ease-mech),
+    color var(--motion-fast) var(--ease-mech);
 }
 
 .chip-btn.active {
@@ -1568,7 +1854,114 @@ body {
   background: color-mix(in srgb, var(--fg) 8%, transparent);
 }
 
+.route-list li:active {
+  transform: translate3d(0, 1px, 0);
+}
+
+.route-list li:active::after {
+  transform: translateY(-50%) scale(0.86);
+}
+
 /* 目的地一覧のスクロール端で内容が切れて見えないよう余白を持たせる */
 .dest-list {
   padding-bottom: 4px;
+}
+
+@media (max-height: 600px) and (orientation: landscape) {
+  #start-screen {
+    justify-content: flex-start;
+    gap: 10px;
+    padding-top: 12px;
+    padding-bottom: 16px;
+    overflow-y: auto;
+  }
+
+  .hero-stage {
+    height: 150px;
+  }
+
+  .hero-sign {
+    top: 0;
+    width: min(260px, 68%);
+  }
+
+  .hero-sign-face {
+    padding: 12px 15px 10px;
+  }
+
+  .hero-mark {
+    width: 20px;
+    height: 20px;
+    margin-bottom: 0;
+  }
+
+  .hero-pole {
+    top: 92px;
+    height: 56px;
+  }
+
+  .hero-ground {
+    bottom: -34px;
+    height: 220px;
+  }
+
+  .logo {
+    font-size: 1.65rem;
+  }
+
+  .tagline {
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+
+  #start-screen .big-btn {
+    padding: 12px 28px;
+    font-size: 1rem;
+  }
+
+  #start-screen .note {
+    font-size: 0.7rem;
+    line-height: 1.45;
+  }
+}
+
+@media (max-width: 370px) {
+  .screen {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .status-bar {
+    gap: 4px;
+  }
+
+  .status-actions {
+    gap: 0;
+  }
+
+  .icon-btn {
+    width: 34px;
+  }
+
+  .status-actions .pill-btn {
+    margin-left: 2px;
+    padding: 7px 9px;
+    font-size: 0.74rem;
+  }
+
+  .badge {
+    font-size: 0.68rem;
+  }
+
+  .modal {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .modal-header-row {
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
 }

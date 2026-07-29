@@ -94,6 +94,122 @@ const nearbyList = $("nearby-list");
 const updatedAt = $("updated-at");
 const errorBanner = $("error-banner");
 
+// ---- ボトムシート / キーボード操作 ----
+// 開閉の時間は style.css の --motion-exit と揃える。
+const SHEET_CLOSE_MS = 180;
+const sheetReturnFocus = new Map();
+const sheetCloseTimers = new Map();
+
+function currentOpenSheet() {
+  return [...document.querySelectorAll(".modal-overlay")].find(
+    (overlay) =>
+      !overlay.classList.contains("hidden") &&
+      !overlay.classList.contains("is-closing")
+  );
+}
+
+function openSheet(id, initialFocus = null, explicitOpener = null) {
+  const overlay = $(id);
+  const pendingClose = sheetCloseTimers.get(id);
+  if (pendingClose) window.clearTimeout(pendingClose);
+  sheetCloseTimers.delete(id);
+
+  const opener = explicitOpener || document.activeElement;
+  if (opener && opener !== document.body) {
+    sheetReturnFocus.set(id, opener);
+    if (opener.getAttribute?.("aria-controls") === id) {
+      opener.setAttribute("aria-expanded", "true");
+    }
+  }
+
+  overlay.classList.remove("hidden", "is-closing");
+  overlay.querySelector(".modal").scrollTop = 0;
+  document.body.classList.add("sheet-open");
+
+  window.requestAnimationFrame(() => {
+    const target =
+      initialFocus ||
+      overlay.querySelector(
+        "button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex='-1'])"
+      );
+    target?.focus({ preventScroll: true });
+  });
+}
+
+function closeSheet(id) {
+  const overlay = $(id);
+  if (
+    overlay.classList.contains("hidden") ||
+    overlay.classList.contains("is-closing")
+  ) {
+    return;
+  }
+
+  overlay.classList.add("is-closing");
+  const timer = window.setTimeout(() => {
+    overlay.classList.add("hidden");
+    overlay.classList.remove("is-closing");
+    sheetCloseTimers.delete(id);
+    if (!currentOpenSheet()) document.body.classList.remove("sheet-open");
+
+    const storedOpener = sheetReturnFocus.get(id);
+    const opener = storedOpener?.isConnected
+      ? storedOpener
+      : document.querySelector(`[aria-controls="${id}"]`);
+    if (opener?.getAttribute?.("aria-controls") === id) {
+      opener.setAttribute("aria-expanded", "false");
+    }
+    opener?.focus?.({ preventScroll: true });
+    sheetReturnFocus.delete(id);
+  }, SHEET_CLOSE_MS);
+  sheetCloseTimers.set(id, timer);
+}
+
+function makeKeyboardAction(el, action) {
+  el.setAttribute("role", "button");
+  el.tabIndex = 0;
+  el.addEventListener("click", action);
+  el.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    action();
+  });
+}
+
+document.querySelectorAll(".modal-overlay").forEach((overlay) => {
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) closeSheet(overlay.id);
+  });
+});
+
+document.addEventListener("keydown", (event) => {
+  const overlay = currentOpenSheet();
+  if (!overlay) return;
+
+  if (event.key === "Escape") {
+    event.preventDefault();
+    closeSheet(overlay.id);
+    return;
+  }
+  if (event.key !== "Tab") return;
+
+  const focusable = [...overlay.querySelectorAll(
+    "button:not([disabled]), input:not([disabled]), select:not([disabled]), " +
+    "textarea:not([disabled]), [href], [tabindex]:not([tabindex='-1'])"
+  )].filter((el) => !el.closest(".hidden") && el.offsetParent !== null);
+  if (focusable.length === 0) return;
+
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+});
+
 // =====================================================================
 // 多言語対応 (日本語 / English)
 // =====================================================================
@@ -514,18 +630,16 @@ function applyPlanUI() {
 }
 
 // 「プレミアム機能を使おうとしたら案内を出す」ゲート
-function requirePremium() {
+function requirePremium(opener = null) {
   if (isPremium()) return true;
-  $("paywall").classList.remove("hidden");
+  openSheet("paywall", null, opener);
   return false;
 }
 
-$("premium-btn").addEventListener("click", () =>
-  $("paywall").classList.remove("hidden")
+$("premium-btn").addEventListener("click", (event) =>
+  openSheet("paywall", null, event.currentTarget)
 );
-$("paywall-close").addEventListener("click", () =>
-  $("paywall").classList.add("hidden")
-);
+$("paywall-close").addEventListener("click", () => closeSheet("paywall"));
 
 // =====================================================================
 // 駅の乗り方ガイド (訪日客向け・無料機能)
@@ -542,6 +656,7 @@ function renderGuide() {
   const sel = getTicketType();
   document.querySelectorAll("#guide-modal .chip-btn").forEach((b) => {
     b.classList.toggle("active", b.dataset.ticket === sel);
+    b.setAttribute("aria-pressed", String(b.dataset.ticket === sel));
   });
   document.querySelectorAll("#guide-modal .guide-sec").forEach((sec) => {
     const key = sec.dataset.sec;
@@ -550,13 +665,11 @@ function renderGuide() {
   });
 }
 
-$("guide-btn").addEventListener("click", () => {
+$("guide-btn").addEventListener("click", (event) => {
   renderGuide();
-  $("guide-modal").classList.remove("hidden");
+  openSheet("guide-modal", null, event.currentTarget);
 });
-$("guide-close").addEventListener("click", () =>
-  $("guide-modal").classList.add("hidden")
-);
+$("guide-close").addEventListener("click", () => closeSheet("guide-modal"));
 document.querySelectorAll("#guide-modal .chip-btn").forEach((b) => {
   b.addEventListener("click", () => {
     // 同じ種別をもう一度タップすると選択解除 (全種別表示に戻る)
@@ -573,11 +686,11 @@ $("buy-yearly-btn").addEventListener("click", () => startCheckout("yearly"));
 $("manage-btn").addEventListener("click", openPortal);
 $("purchase-btn").addEventListener("click", () => {
   setPlan("premium");
-  $("paywall").classList.add("hidden");
+  closeSheet("paywall");
 });
 $("restore-btn").addEventListener("click", () => {
   setPlan("free");
-  $("paywall").classList.add("hidden");
+  closeSheet("paywall");
 });
 
 // =====================================================================
@@ -983,7 +1096,7 @@ function nearbyItem(s) {
   bell.appendChild(icon(on ? "bell" : "bell-off"));
   bell.classList.toggle("on", on);
   bell.title = "この駅で降車アラートを設定";
-  bell.addEventListener("click", () => setAlert(s));
+  bell.addEventListener("click", (event) => setAlert(s, event.currentTarget));
   right.append(dist, bell);
   li.append(name, right);
   return li;
@@ -1070,8 +1183,8 @@ function formatDistance(m) {
 // =====================================================================
 // 降車アラート (プレミアム)
 // =====================================================================
-async function setAlert(station) {
-  if (!requirePremium()) return;
+async function setAlert(station, opener = null) {
+  if (!requirePremium(opener)) return;
   alertStation = {
     name: station.name,
     kana: station.kana || "",
@@ -1107,14 +1220,13 @@ function cancelAlert() {
 // =====================================================================
 const DEST_RESULT_MAX = 50;
 
-$("dest-btn").addEventListener("click", () => {
-  if (!requirePremium()) return;
-  $("dest-modal").classList.remove("hidden");
+$("dest-btn").addEventListener("click", (event) => {
+  if (!requirePremium(event.currentTarget)) return;
   showDestView("search");
   $("dest-search").value = "";
   $("dest-clear").classList.toggle("hidden", !alertStation);
   renderDestList("");
-  $("dest-search").focus();
+  openSheet("dest-modal", $("dest-search"), event.currentTarget);
 });
 $("dest-close").addEventListener("click", closeDestModal);
 $("dest-clear").addEventListener("click", () => {
@@ -1126,7 +1238,7 @@ $("dest-search").addEventListener("input", (e) =>
 );
 
 function closeDestModal() {
-  $("dest-modal").classList.add("hidden");
+  closeSheet("dest-modal");
 }
 
 // =====================================================================
@@ -1271,7 +1383,7 @@ function renderDestList(query) {
     line.className = "dist";
     line.textContent = s.lines?.[0] || "";
     li.append(name, line);
-    li.addEventListener("click", () => {
+    makeKeyboardAction(li, () => {
       setAlert(s);
       closeDestModal();
     });
@@ -1358,6 +1470,9 @@ function showDestView(view) {
   $("dest-stations-view").classList.toggle("hidden", view !== "stations");
   $("dest-tab-search").classList.toggle("active", view === "search");
   $("dest-tab-lines").classList.toggle("active", view !== "search");
+  $("dest-tab-search").setAttribute("aria-selected", String(view === "search"));
+  $("dest-tab-lines").setAttribute("aria-selected", String(view !== "search"));
+  $("dest-modal").querySelector(".modal").scrollTop = 0;
 }
 
 $("dest-tab-search").addEventListener("click", () => showDestView("search"));
@@ -1402,7 +1517,7 @@ function renderLineList(query = "") {
     count.className = "dist";
     count.textContent = t("stationsCount", index.get(name).length);
     li.append(label, count);
-    li.addEventListener("click", () => renderRouteList(name));
+    makeKeyboardAction(li, () => renderRouteList(name));
     listEl.appendChild(li);
   }
 }
@@ -1422,7 +1537,7 @@ function renderRouteList(lineName) {
     kana.className = "kana";
     kana.textContent = lang === "en" ? "" : s.kana;
     li.append(name, kana);
-    li.addEventListener("click", () => {
+    makeKeyboardAction(li, () => {
       setAlert(s);
       closeDestModal();
     });
@@ -1631,10 +1746,21 @@ let ridingClockTimer = null;
 let ridingAcquiredWakeLock = false;
 
 $("riding-btn").addEventListener("click", enterRidingMode);
-$("riding-screen").addEventListener("click", exitRidingMode);
+$("riding-screen").addEventListener("click", (event) => {
+  if (event.target.closest?.("#riding-exit-btn")) return;
+  exitRidingMode();
+});
+$("riding-exit-btn").addEventListener("click", exitRidingMode);
+$("riding-screen").addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  event.preventDefault();
+  exitRidingMode();
+});
 
 async function enterRidingMode() {
   $("riding-screen").classList.remove("hidden");
+  $("riding-btn").setAttribute("aria-expanded", "true");
+  $("riding-exit-btn").focus({ preventScroll: true });
   updateRidingClock();
   ridingClockTimer = setInterval(updateRidingClock, 1000);
   // 車内モード中は画面を消灯させない (非対応端末では表示のみ)
@@ -1643,9 +1769,11 @@ async function enterRidingMode() {
 
 function exitRidingMode() {
   $("riding-screen").classList.add("hidden");
+  $("riding-btn").setAttribute("aria-expanded", "false");
   clearInterval(ridingClockTimer);
   if (ridingAcquiredWakeLock) releaseWakeLock();
   ridingAcquiredWakeLock = false;
+  $("riding-btn").focus({ preventScroll: true });
 }
 
 function updateRidingClock() {

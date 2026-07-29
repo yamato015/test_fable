@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0a0b10">
   <meta name="description" content="電車内で現在いる駅・最寄り駅をすぐ確認できるアプリ">
   <!-- iPhoneのホーム画面追加でアプリのように全画面起動させる -->
@@ -185,7 +185,7 @@
           <button id="daynight-btn" class="icon-btn" title="ライト/ダーク切り替え"><svg class="ic"><use href="#i-moon"/></svg></button>
           <button id="theme-btn" class="icon-btn" title="テーマ切り替え"><svg class="ic"><use href="#i-contrast"/></svg></button>
           <button id="wakelock-btn" class="icon-btn" title="画面を常時点灯"><svg class="ic"><use href="#i-bulb"/></svg></button>
-          <button id="premium-btn" class="pill-btn"><svg class="ic"><use href="#i-star"/></svg><span id="premium-btn-label" data-i18n="premiumBtn">プレミアム</span></button>
+          <button id="premium-btn" class="pill-btn" aria-haspopup="dialog" aria-controls="paywall" aria-expanded="false"><svg class="ic"><use href="#i-star"/></svg><span id="premium-btn-label" data-i18n="premiumBtn">プレミアム</span></button>
         </div>
       </header>
 
@@ -214,10 +214,10 @@
         <p id="next-station" class="next-station hidden"></p>
       </div>
 
-      <button id="riding-btn" class="mode-btn"><svg class="ic"><use href="#i-train"/></svg><span data-i18n="ridingBtn">車内モード</span></button>
+      <button id="riding-btn" class="mode-btn" aria-controls="riding-screen" aria-expanded="false"><svg class="ic"><use href="#i-train"/></svg><span data-i18n="ridingBtn">車内モード</span></button>
       <div class="mode-row">
-        <button id="dest-btn" class="mode-btn secondary"><svg class="ic"><use href="#i-pin"/></svg><span data-i18n="destBtn">目的地</span></button>
-        <button id="guide-btn" class="mode-btn secondary"><svg class="ic"><use href="#i-ticket"/></svg><span data-i18n="guideBtn">乗り方ガイド</span></button>
+        <button id="dest-btn" class="mode-btn secondary" aria-haspopup="dialog" aria-controls="dest-modal" aria-expanded="false"><svg class="ic"><use href="#i-pin"/></svg><span data-i18n="destBtn">目的地</span></button>
+        <button id="guide-btn" class="mode-btn secondary" aria-haspopup="dialog" aria-controls="guide-modal" aria-expanded="false"><svg class="ic"><use href="#i-ticket"/></svg><span data-i18n="guideBtn">乗り方ガイド</span></button>
       </div>
 
       <!-- 降車アラート設定状態 -->
@@ -253,40 +253,40 @@
     </section>
 
     <!-- 車内モード: 起動したまま膝上・手元でチラ見するための特大全画面表示 -->
-    <section id="riding-screen" class="riding hidden">
+    <section id="riding-screen" class="riding hidden" aria-labelledby="r-station">
       <p id="r-clock" class="r-clock"></p>
       <p id="r-status" class="status-label" data-i18n="nearest">最寄り駅</p>
       <h2 id="r-station" class="r-station">---</h2>
       <p id="r-dist" class="r-dist"></p>
       <p id="r-next" class="r-next"></p>
       <p id="r-alert" class="r-alert"></p>
-      <p class="r-hint" data-i18n="tapBack">タップで戻る</p>
+      <button id="riding-exit-btn" class="r-hint" type="button" data-i18n="tapBack">タップで戻る</button>
     </section>
 
     <!-- 目的地ピッカー (検索 / 路線図 / プレミアム) -->
     <div id="dest-modal" class="modal-overlay hidden">
-      <div class="modal">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dest-modal-title">
         <div class="modal-header-row">
-          <h2 data-i18n="destTitle">目的地を選択</h2>
+          <h2 id="dest-modal-title" data-i18n="destTitle">目的地を選択</h2>
           <button id="dest-close" class="icon-only-btn" title="閉じる"><svg class="ic"><use href="#i-close"/></svg></button>
         </div>
-        <div class="dest-tabs">
-          <button id="dest-tab-search" class="tab-btn active"><svg class="ic"><use href="#i-search"/></svg><span data-i18n="searchTab">検索</span></button>
-          <button id="dest-tab-lines" class="tab-btn"><svg class="ic"><use href="#i-routemap"/></svg><span data-i18n="linesTab">路線図</span></button>
+        <div class="dest-tabs" role="tablist">
+          <button id="dest-tab-search" class="tab-btn active" role="tab" aria-selected="true" aria-controls="dest-search-view"><svg class="ic"><use href="#i-search"/></svg><span data-i18n="searchTab">検索</span></button>
+          <button id="dest-tab-lines" class="tab-btn" role="tab" aria-selected="false" aria-controls="dest-lines-view"><svg class="ic"><use href="#i-routemap"/></svg><span data-i18n="linesTab">路線図</span></button>
         </div>
-        <div id="dest-search-view">
+        <div id="dest-search-view" role="tabpanel" aria-labelledby="dest-tab-search">
           <input id="dest-search" class="search-input" type="search"
                  placeholder="駅名・ひらがなで検索..." data-i18n-ph="searchPh" autocomplete="off">
           <button id="dest-clear" class="text-btn hidden" data-i18n="clearDest">目的地をクリア</button>
           <ul id="dest-list" class="nearby-list dest-list"></ul>
           <p id="dest-credit" class="api-credit hidden"></p>
         </div>
-        <div id="dest-lines-view" class="hidden">
+        <div id="dest-lines-view" class="hidden" role="tabpanel" aria-labelledby="dest-tab-lines">
           <input id="line-search" class="search-input" type="search"
                  placeholder="路線名・駅名で検索..." data-i18n-ph="lineSearchPh" autocomplete="off">
           <ul id="line-list" class="nearby-list dest-list"></ul>
         </div>
-        <div id="dest-stations-view" class="hidden">
+        <div id="dest-stations-view" class="hidden" role="tabpanel" aria-labelledby="dest-tab-lines">
           <button id="dest-back" class="text-btn" data-i18n="backToLines">← 路線一覧に戻る</button>
           <p id="dest-line-title" class="line-title"></p>
           <ul id="route-list" class="route-list"></ul>
@@ -296,17 +296,17 @@
 
     <!-- 駅の乗り方ガイド: 文章を減らし、動く図で見せる。きっぷ種別で出し分け -->
     <div id="guide-modal" class="modal-overlay hidden">
-      <div class="modal">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="guide-modal-title">
         <div class="modal-header-row">
-          <h2 data-i18n="guideTitle">改札の通り方</h2>
+          <h2 id="guide-modal-title" data-i18n="guideTitle">改札の通り方</h2>
           <button id="guide-close" class="icon-only-btn" title="閉じる"><svg class="ic"><use href="#i-close"/></svg></button>
         </div>
         <p class="guide-ask" data-i18n="guideAsk">何で乗りますか？</p>
         <div class="guide-chips">
-          <button class="chip-btn" data-ticket="qr"><svg class="ic"><use href="#i-qr"/></svg><span data-i18n="ticketQr">QR</span></button>
-          <button class="chip-btn" data-ticket="ic"><svg class="ic"><use href="#i-card"/></svg><span data-i18n="ticketIc">ICカード</span></button>
-          <button class="chip-btn" data-ticket="paper"><svg class="ic"><use href="#i-ticket"/></svg><span data-i18n="ticketPaper">きっぷ</span></button>
-          <button class="chip-btn" data-ticket="jrpass"><svg class="ic"><use href="#i-shinkansen"/></svg><span data-i18n="ticketJrpass">JR Pass</span></button>
+          <button class="chip-btn" data-ticket="qr" aria-pressed="false"><svg class="ic"><use href="#i-qr"/></svg><span data-i18n="ticketQr">QR</span></button>
+          <button class="chip-btn" data-ticket="ic" aria-pressed="false"><svg class="ic"><use href="#i-card"/></svg><span data-i18n="ticketIc">ICカード</span></button>
+          <button class="chip-btn" data-ticket="paper" aria-pressed="false"><svg class="ic"><use href="#i-ticket"/></svg><span data-i18n="ticketPaper">きっぷ</span></button>
+          <button class="chip-btn" data-ticket="jrpass" aria-pressed="false"><svg class="ic"><use href="#i-shinkansen"/></svg><span data-i18n="ticketJrpass">JR Pass</span></button>
         </div>
         <div id="guide-body">
           <!-- QR: リーダーにかざす -->
@@ -460,9 +460,9 @@
 
     <!-- プレミアム案内モーダル -->
     <div id="paywall" class="modal-overlay hidden">
-      <div class="modal">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="paywall-title">
         <div class="modal-header-row">
-          <h2 data-i18n="pwTitle">プレミアム</h2>
+          <h2 id="paywall-title" data-i18n="pwTitle">プレミアム</h2>
           <button id="paywall-close" class="icon-only-btn" title="閉じる"><svg class="ic"><use href="#i-close"/></svg></button>
         </div>
         <ul class="feature-list">
