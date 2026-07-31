@@ -2594,6 +2594,8 @@ body[data-theme="pink"] .alert-overlay {
   stroke: var(--accent2);
   stroke-width: 2;
   opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 .sc-lineA {
@@ -2627,12 +2629,25 @@ body[data-theme="pink"] .alert-overlay {
 }
 
 /* --- 図解はガイドを開いたときだけ1回再生する --- */
-.guide-animating .sc-phone { animation: scTapDown var(--motion-guide) ease-in-out 1; }
-.guide-animating .sc-card { animation: scTapDown var(--motion-guide) ease-in-out 1; }
-.guide-animating .sc-flap-l { animation: scFlapL var(--motion-guide) ease-in-out 1; transform-origin: 76px 83px; }
-.guide-animating .sc-flap-r { animation: scFlapR var(--motion-guide) ease-in-out 1; transform-origin: 164px 83px; }
-.guide-animating .sc-ping { animation: scPing var(--motion-guide) ease-out 1; }
-.sc-ping2 { animation-delay: .28s; }
+.sc-flap-l,
+.sc-flap-r {
+  transform-box: fill-box;
+}
+
+.sc-flap-l {
+  transform-origin: left center;
+}
+
+.sc-flap-r {
+  transform-origin: right center;
+}
+
+.guide-animating .sc-phone { animation: scTapDown var(--motion-guide) ease-in-out 1 both; }
+.guide-animating .sc-card { animation: scTapDown var(--motion-guide) ease-in-out 1 both; }
+.guide-animating .sc-flap-l { animation: scFlapL var(--motion-guide) ease-in-out 1 both; }
+.guide-animating .sc-flap-r { animation: scFlapR var(--motion-guide) ease-in-out 1 both; }
+.guide-animating .sc-ping { animation: scPing var(--motion-guide) ease-out 1 both; }
+.guide-animating .sc-ping2 { animation-delay: .28s; }
 .guide-animating .sc-tk-in { animation: scTicketIn var(--motion-guide) ease-in-out 1; }
 .guide-animating .sc-tk-out { animation: scTicketOut var(--motion-guide) ease-in-out 1; }
 .guide-animating .sc-fare-in { animation: scFareIn var(--motion-guide) ease-in-out 1; }
@@ -2640,21 +2655,19 @@ body[data-theme="pink"] .alert-overlay {
 .guide-animating .sc-pass { animation: scShow var(--motion-guide) ease-in-out 1; }
 .guide-animating .sc-mover { animation: scTransfer var(--motion-guide) ease-in-out 1; }
 
-/* かざす/タッチする: 下降 → 静止 → 離す */
+/* かざす/タッチする: 読み取り面へ下降して静止 */
 @keyframes scTapDown {
-  0%   { transform: translateY(-6px); }
-  25%  { transform: translateY(0); }
-  50%  { transform: translateY(0); }
-  70%  { transform: translateY(-6px); }
-  100% { transform: translateY(-6px); }
+  0%   { transform: translateY(-8px); opacity: .72; }
+  30%  { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(0); opacity: 1; }
 }
 
 /* 読み取り成功の輪 */
 @keyframes scPing {
-  0%, 24%  { transform: scale(.7); opacity: 0; }
-  30%      { opacity: .9; }
-  55%      { transform: scale(1.9); opacity: 0; }
-  100%     { transform: scale(1.9); opacity: 0; }
+  0%, 24% { transform: scale(.7); opacity: 0; }
+  30%     { opacity: .9; }
+  58%     { transform: scale(1.8); opacity: 0; }
+  100%    { transform: scale(1); opacity: 0; }
 }
 
 /* 扉が開く */

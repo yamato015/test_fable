@@ -164,7 +164,8 @@ function focusableIn(container) {
     (element) =>
       !element.closest(".hidden") &&
       element.getClientRects().length > 0 &&
-      !element.inert
+      element.tabIndex >= 0 &&
+      !element.closest("[inert]")
   );
 }
 
@@ -1068,18 +1069,32 @@ function getTicketType() {
 }
 
 let guideAnimationTimer = null;
+let guideAnimationFrame = null;
 
 function playGuideAnimation() {
   const body = $("guide-body");
   window.clearTimeout(guideAnimationTimer);
-  body.classList.remove("guide-animating");
+  window.cancelAnimationFrame(guideAnimationFrame);
+  guideAnimationTimer = null;
+  guideAnimationFrame = null;
+  body.querySelectorAll(".scene.guide-animating").forEach((scene) => {
+    scene.classList.remove("guide-animating");
+  });
   if (reduceMotionQuery.matches) return;
-  void body.offsetWidth;
-  body.classList.add("guide-animating");
-  guideAnimationTimer = window.setTimeout(
-    () => body.classList.remove("guide-animating"),
-    900
+  const selected = getTicketType();
+  const animationTarget = body.querySelector(
+    `.guide-sec[data-sec="${selected === "all" ? "qr" : selected}"] .scene`
   );
+  if (!animationTarget) return;
+  guideAnimationFrame = window.requestAnimationFrame(() => {
+    guideAnimationFrame = null;
+    animationTarget.classList.add("guide-animating");
+    // 最長の遅延付きアニメーション（900ms + 280ms）まで待ってから後始末する。
+    guideAnimationTimer = window.setTimeout(() => {
+      animationTarget.classList.remove("guide-animating");
+      guideAnimationTimer = null;
+    }, 1240);
+  });
 }
 
 function renderGuide(animate = false) {
@@ -1113,6 +1128,7 @@ const guideTicketButtons = [...document.querySelectorAll(
 )];
 guideTicketButtons.forEach((b) => {
   b.addEventListener("click", () => {
+    if (b.dataset.ticket === getTicketType()) return;
     if (b.dataset.ticket === "all") {
       localStorage.removeItem("ticketType");
     } else {
