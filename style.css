@@ -36,7 +36,7 @@
   --motion-normal: 200ms;
   --motion-enter: 260ms;
   --motion-exit: 180ms;
-  --motion-guide: 900ms;
+  --motion-guide: 1600ms;
   --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-mech: cubic-bezier(0.2, 0, 0, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
@@ -2647,7 +2647,6 @@ body[data-theme="pink"] .alert-overlay {
 .guide-animating .sc-flap-l { animation: scFlapL var(--motion-guide) ease-in-out 1 both; }
 .guide-animating .sc-flap-r { animation: scFlapR var(--motion-guide) ease-in-out 1 both; }
 .guide-animating .sc-ping { animation: scPing var(--motion-guide) ease-out 1 both; }
-.guide-animating .sc-ping2 { animation-delay: .28s; }
 .guide-animating .sc-tk-in { animation: scTicketIn var(--motion-guide) ease-in-out 1; }
 .guide-animating .sc-tk-out { animation: scTicketOut var(--motion-guide) ease-in-out 1; }
 .guide-animating .sc-fare-in { animation: scFareIn var(--motion-guide) ease-in-out 1; }
@@ -2655,18 +2654,22 @@ body[data-theme="pink"] .alert-overlay {
 .guide-animating .sc-pass { animation: scShow var(--motion-guide) ease-in-out 1; }
 .guide-animating .sc-mover { animation: scTransfer var(--motion-guide) ease-in-out 1; }
 
+.guide-animating .sc-ping2 {
+  animation-delay: 280ms;
+}
+
 /* かざす/タッチする: 読み取り面へ下降して静止 */
 @keyframes scTapDown {
-  0%   { transform: translateY(-8px); opacity: .72; }
-  30%  { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(0); opacity: 1; }
+  0%   { transform: translateY(-8px); }
+  30%  { transform: translateY(0); }
+  100% { transform: translateY(0); }
 }
 
 /* 読み取り成功の輪 */
 @keyframes scPing {
-  0%, 24% { transform: scale(.7); opacity: 0; }
-  30%     { opacity: .9; }
-  58%     { transform: scale(1.8); opacity: 0; }
+  0%, 24% { transform: scale(.8); opacity: 0; }
+  30%     { transform: scale(.9); opacity: .72; }
+  58%     { transform: scale(1.6); opacity: 0; }
   100%    { transform: scale(1); opacity: 0; }
 }
 
