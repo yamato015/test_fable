@@ -80,6 +80,9 @@ let lastRideStation = null; // 乗車路線推定に使う直近の停車駅
 let alertStation = null;  // 降車アラート対象 { name, lat, lon }
 let pendingDestination = null; // モーダル内で選択中、未確定の目的地
 let lastHistoryName = null;
+let geoWatchId = null;
+let geoState = "idle";
+let lastGpsAccuracy = null;
 
 // ---- DOM ----
 const $ = (id) => document.getElementById(id);
@@ -95,18 +98,89 @@ const nearbyList = $("nearby-list");
 const updatedAt = $("updated-at");
 const errorBanner = $("error-banner");
 
-// ---- ボトムシート / キーボード操作 ----
-// 開閉の時間は style.css の --motion-exit と揃える。
+// ---- モーション / オーバーレイ / キーボード操作 ----
+const reduceMotionQuery = window.matchMedia(
+  "(prefers-reduced-motion: reduce)"
+);
+const motionMs = (normalMs) => (reduceMotionQuery.matches ? 1 : normalMs);
 const SHEET_CLOSE_MS = 180;
 const sheetReturnFocus = new Map();
 const sheetCloseTimers = new Map();
+const overlayStack = [];
+const overlayFrames = new Map();
 
 function currentOpenSheet() {
-  return [...document.querySelectorAll(".modal-overlay")].find(
-    (overlay) =>
-      !overlay.classList.contains("hidden") &&
-      !overlay.classList.contains("is-closing")
+  return [...overlayStack]
+    .reverse()
+    .map((frame) => frame.overlay)
+    .find((overlay) => overlay.classList.contains("modal-overlay")) || null;
+}
+
+function topOverlay() {
+  return overlayStack.at(-1)?.overlay || null;
+}
+
+function activateOverlay(overlay) {
+  if (overlayFrames.has(overlay.id)) return;
+  const siblings = [...$("app").children].filter(
+    (item) => item !== overlay && item.id !== "error-banner"
   );
+  const snapshot = siblings.map((item) => ({
+    item,
+    inert: item.inert,
+    ariaHidden: item.getAttribute("aria-hidden"),
+  }));
+  for (const { item } of snapshot) {
+    item.inert = true;
+    item.setAttribute("aria-hidden", "true");
+  }
+  overlay.inert = false;
+  overlay.setAttribute("aria-hidden", "false");
+  const frame = { overlay, snapshot };
+  overlayFrames.set(overlay.id, frame);
+  overlayStack.push(frame);
+}
+
+function deactivateOverlay(overlay) {
+  const frame = overlayFrames.get(overlay.id);
+  if (!frame) return;
+  for (const { item, inert, ariaHidden } of frame.snapshot) {
+    item.inert = inert;
+    if (ariaHidden === null) item.removeAttribute("aria-hidden");
+    else item.setAttribute("aria-hidden", ariaHidden);
+  }
+  overlay.inert = true;
+  overlay.setAttribute("aria-hidden", "true");
+  overlayFrames.delete(overlay.id);
+  const index = overlayStack.indexOf(frame);
+  if (index >= 0) overlayStack.splice(index, 1);
+}
+
+function focusableIn(container) {
+  return [...container.querySelectorAll(
+    "button:not([disabled]), input:not([disabled]), select:not([disabled]), " +
+    "textarea:not([disabled]), [href], [tabindex]:not([tabindex='-1'])"
+  )].filter(
+    (element) =>
+      !element.closest(".hidden") &&
+      element.getClientRects().length > 0 &&
+      !element.inert
+  );
+}
+
+function trapOverlayFocus(event, overlay) {
+  if (event.key !== "Tab") return;
+  const focusable = focusableIn(overlay);
+  if (focusable.length === 0) return;
+  const first = focusable[0];
+  const last = focusable.at(-1);
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
 }
 
 function openSheet(id, initialFocus = null, explicitOpener = null) {
@@ -123,11 +197,14 @@ function openSheet(id, initialFocus = null, explicitOpener = null) {
     }
   }
 
+  overlay.dataset.state = "opening";
   overlay.classList.remove("hidden", "is-closing");
   overlay.querySelector(".modal").scrollTop = 0;
   document.body.classList.add("sheet-open");
+  activateOverlay(overlay);
 
   window.requestAnimationFrame(() => {
+    overlay.dataset.state = "open";
     const target =
       initialFocus ||
       overlay.querySelector(
@@ -147,22 +224,28 @@ function closeSheet(id) {
   }
 
   overlay.classList.add("is-closing");
+  overlay.dataset.state = "closing";
+  const controlledOpener =
+    sheetReturnFocus.get(id) ||
+    document.querySelector(`[aria-controls="${id}"]`);
+  if (controlledOpener?.getAttribute?.("aria-controls") === id) {
+    controlledOpener.setAttribute("aria-expanded", "false");
+  }
   const timer = window.setTimeout(() => {
     overlay.classList.add("hidden");
     overlay.classList.remove("is-closing");
+    overlay.dataset.state = "closed";
     sheetCloseTimers.delete(id);
-    if (!currentOpenSheet()) document.body.classList.remove("sheet-open");
+    deactivateOverlay(overlay);
+    if (!topOverlay()) document.body.classList.remove("sheet-open");
 
     const storedOpener = sheetReturnFocus.get(id);
     const opener = storedOpener?.isConnected
       ? storedOpener
       : document.querySelector(`[aria-controls="${id}"]`);
-    if (opener?.getAttribute?.("aria-controls") === id) {
-      opener.setAttribute("aria-expanded", "false");
-    }
     opener?.focus?.({ preventScroll: true });
     sheetReturnFocus.delete(id);
-  }, SHEET_CLOSE_MS);
+  }, motionMs(SHEET_CLOSE_MS));
   sheetCloseTimers.set(id, timer);
 }
 
@@ -184,31 +267,17 @@ document.querySelectorAll(".modal-overlay").forEach((overlay) => {
 });
 
 document.addEventListener("keydown", (event) => {
-  const overlay = currentOpenSheet();
+  const overlay = topOverlay();
   if (!overlay) return;
 
   if (event.key === "Escape") {
     event.preventDefault();
-    closeSheet(overlay.id);
+    if (overlay.id === "alert-overlay") dismissArrivalAlert();
+    else if (overlay.id === "settings-overlay") setSettingsOpen(false, true);
+    else closeSheet(overlay.id);
     return;
   }
-  if (event.key !== "Tab") return;
-
-  const focusable = [...overlay.querySelectorAll(
-    "button:not([disabled]), input:not([disabled]), select:not([disabled]), " +
-    "textarea:not([disabled]), [href], [tabindex]:not([tabindex='-1'])"
-  )].filter((el) => !el.closest(".hidden") && el.offsetParent !== null);
-  if (focusable.length === 0) return;
-
-  const first = focusable[0];
-  const last = focusable[focusable.length - 1];
-  if (event.shiftKey && document.activeElement === first) {
-    event.preventDefault();
-    last.focus();
-  } else if (!event.shiftKey && document.activeElement === last) {
-    event.preventDefault();
-    first.focus();
-  }
+  trapOverlayFocus(event, overlay);
 });
 
 // =====================================================================
@@ -226,6 +295,13 @@ const STRINGS = {
     brandDescriptor: "駅位置インストゥルメント",
     settingsLabel: "表示設定",
     gpsWait: "GPS取得中…",
+    gpsRequestingDetail: "現在地を確認しています。",
+    gpsReady: "現在地を取得しました",
+    gpsDenied: "位置情報がオフです",
+    gpsUnavailable: "現在地を取得できません",
+    gpsTimedOut: "取得がタイムアウトしました",
+    gpsRetry: "もう一度試す",
+    gpsSettingsHint: "端末の設定で、このサイトの位置情報を許可してください。",
     gpsAcc: (n) => `GPS ±${n}m`,
     gpsAccLow: (n) => `GPS ±${n}m 誤差大`,
     fetching: "駅データ取得中…",
@@ -256,6 +332,7 @@ const STRINGS = {
     nearbyTitle: "周辺の駅",
     nearbyHint: "",
     historyTitle: "乗車履歴",
+    historyEmpty: "乗車履歴はまだありません。移動した駅がここに記録されます。",
     adPlaceholder: "広告スペース",
     updated: (t) => `更新: ${t}`,
     privacyFooter: "プライバシー",
@@ -277,7 +354,7 @@ const STRINGS = {
     searchTab: "検索",
     linesTab: "路線",
     mapCurrent: "現在地へ",
-    mapHint: "地図を動かして駅を選択",
+    mapHint: "ドラッグ／矢印で移動、＋−でズーム、Enterで駅を選択",
     mapLoading: "全国の駅を読み込み中…",
     mapNoLocation: "現在地を取得できていません",
     mapVisible: (n) => `${n}駅を表示`,
@@ -291,18 +368,31 @@ const STRINGS = {
     destMapLocate: "現在地へ",
     destMapZoomIn: "地図を拡大",
     destMapZoomOut: "地図を縮小",
-    destMapHint: "地図を動かして駅を選択してください",
+    destMapHint: "ドラッグ／矢印で移動、＋−でズーム、Enterで駅を選択",
     destSelected: (n) => `${n}を選択中`,
+    destProvisionalSelected: (n) => `${n}を仮選択しました`,
+    provisionalSelection: "仮選択",
+    currentSelection: "設定済み",
     destConfirm: "この駅を目的地にする",
     destDistance: (d) => `現在地から${d}`,
     backToLines: "← 路線一覧に戻る",
     clearDest: "目的地をクリア",
+    searchLabel: "駅名から探す",
+    lineSearchLabel: "路線名・駅名から探す",
     searchPh: "駅名・ひらがなで検索...",
     lineSearchPh: "路線名・駅名で検索...",
+    searchIdle: "最近の目的地と現在地周辺から8件を表示します。",
+    searchLoading: "全国の駅を検索しています…",
+    searchEmpty: (q) => `「${q}」に一致する駅はありません。`,
+    lineEmpty: (q) => q ? `「${q}」に一致する路線はありません。` : "路線が見つかりません。",
+    resultsCount: (shown, total) => `${total}件中${shown}件を表示`,
+    clearSearch: "検索をクリア",
+    showMore20: "さらに20件表示",
     apiCredit: "全国の駅を含む",
     guideBtn: "乗り方ガイド",
     guideTitle: "改札の通り方",
     guideAsk: "何で乗りますか？",
+    ticketAll: "すべて",
     ticketQr: "QR",
     ticketIc: "ICカード",
     ticketPaper: "きっぷ",
@@ -354,12 +444,23 @@ const STRINGS = {
     price: '月額 240円 <span class="price-sub">/ 年額 1,800円（38%おトク）</span>',
     buyMonthly: "月額プランに登録する",
     buyYearly: "年額プランに登録する",
-    buyDemo: "アップグレードする（デモ）",
+    buyDemo: "デモ機能を有効にする",
     manageSub: "サブスクリプションを管理・解約する",
-    cancelDemo: "プレミアムを解約する（デモ）",
+    cancelDemo: "デモを終了する",
     premiumBtn: "機能を見る",
     premiumMember: "会員機能",
     plusDescription: "降車前通知・次駅予測・乗車履歴",
+    plusPreviewTitle: "Plus 機能プレビュー",
+    plusPreviewDetail: "デモ環境です。課金は発生しません。",
+    plusDemoTitle: "デモ機能を利用中",
+    plusDemoDetail: "降車前通知などのPlus機能を端末内で試せます。",
+    plusAvailableTitle: "Plus を利用できます",
+    plusAvailableDetail: "プランを選ぶと決済ページへ移動します。",
+    plusActiveTitle: "Plus を利用中",
+    plusActiveDetail: "現在の契約内容は管理画面で確認できます。",
+    plusPending: "処理しています…",
+    plusDemoEnabled: "デモ機能を有効にしました。",
+    plusDemoEnded: "デモを終了しました。",
     headerControls: "表示と端末の設定",
     controlLang: "言語",
     controlMode: "明暗",
@@ -391,6 +492,13 @@ const STRINGS = {
     brandDescriptor: "Station location instrument",
     settingsLabel: "Display",
     gpsWait: "Getting GPS…",
+    gpsRequestingDetail: "Checking your current location.",
+    gpsReady: "Location found",
+    gpsDenied: "Location is turned off",
+    gpsUnavailable: "Location unavailable",
+    gpsTimedOut: "Location request timed out",
+    gpsRetry: "Try again",
+    gpsSettingsHint: "Allow location access for this site in your device settings.",
     gpsAcc: (n) => `GPS ±${n}m`,
     gpsAccLow: (n) => `GPS ±${n}m low`,
     fetching: "Loading stations…",
@@ -421,6 +529,7 @@ const STRINGS = {
     nearbyTitle: "Nearby stations",
     nearbyHint: "",
     historyTitle: "Ride history",
+    historyEmpty: "No ride history yet. Stations you pass will appear here.",
     adPlaceholder: "Ad space",
     updated: (t) => `Updated: ${t}`,
     privacyFooter: "Privacy",
@@ -442,7 +551,7 @@ const STRINGS = {
     searchTab: "Search",
     linesTab: "Lines",
     mapCurrent: "My location",
-    mapHint: "Move the map and choose a station",
+    mapHint: "Drag or use arrow keys to move; +/− to zoom; Enter for stations",
     mapLoading: "Loading stations across Japan…",
     mapNoLocation: "Your location is not available yet",
     mapVisible: (n) => `Showing ${n} stations`,
@@ -456,18 +565,31 @@ const STRINGS = {
     destMapLocate: "My location",
     destMapZoomIn: "Zoom in",
     destMapZoomOut: "Zoom out",
-    destMapHint: "Move the map and choose a station",
+    destMapHint: "Drag or use arrow keys to move; +/− to zoom; Enter for stations",
     destSelected: (n) => `${n} selected`,
+    destProvisionalSelected: (n) => `${n} provisionally selected`,
+    provisionalSelection: "Provisional",
+    currentSelection: "Current destination",
     destConfirm: "Set this station as destination",
     destDistance: (d) => `${d} from your location`,
     backToLines: "← Back to lines",
     clearDest: "Clear destination",
+    searchLabel: "Search by station",
+    lineSearchLabel: "Search lines or stations",
     searchPh: "Search by station name...",
     lineSearchPh: "Search lines or stations...",
+    searchIdle: "Showing up to 8 recent and nearby stations.",
+    searchLoading: "Searching stations across Japan…",
+    searchEmpty: (q) => `No stations match “${q}”.`,
+    lineEmpty: (q) => q ? `No lines match “${q}”.` : "No lines found.",
+    resultsCount: (shown, total) => `Showing ${shown} of ${total}`,
+    clearSearch: "Clear search",
+    showMore20: "Show 20 more",
     apiCredit: "Includes nationwide stations",
     guideBtn: "Station guide",
     guideTitle: "Through the gate",
     guideAsk: "What are you traveling with?",
+    ticketAll: "All",
     ticketQr: "QR",
     ticketIc: "IC card",
     ticketPaper: "Ticket",
@@ -519,12 +641,23 @@ const STRINGS = {
     price: '¥240/month <span class="price-sub">or ¥1,800/year (save 38%)</span>',
     buyMonthly: "Subscribe monthly",
     buyYearly: "Subscribe yearly",
-    buyDemo: "Upgrade (demo)",
+    buyDemo: "Enable demo features",
     manageSub: "Manage / cancel subscription",
-    cancelDemo: "Cancel premium (demo)",
+    cancelDemo: "End demo",
     premiumBtn: "View features",
     premiumMember: "Member features",
     plusDescription: "Arrival alerts, next station and ride history",
+    plusPreviewTitle: "Plus feature preview",
+    plusPreviewDetail: "This is a demo environment. You will not be charged.",
+    plusDemoTitle: "Demo features active",
+    plusDemoDetail: "Try Plus features such as arrival alerts on this device.",
+    plusAvailableTitle: "Plus is available",
+    plusAvailableDetail: "Choose a plan to continue to checkout.",
+    plusActiveTitle: "Plus is active",
+    plusActiveDetail: "View or change your subscription in the management page.",
+    plusPending: "Working…",
+    plusDemoEnabled: "Demo features are now active.",
+    plusDemoEnded: "The demo has ended.",
     headerControls: "Display and device settings",
     controlLang: "LANG",
     controlMode: "MODE",
@@ -643,8 +776,21 @@ function applyLang() {
   renderPendingDestination();
   if (isDestMapVisible()) renderDestMap();
   applyPlanUI();
+  renderGuide(false);
+  if (geoState !== "idle") {
+    setGpsState(geoState);
+    $("screen-live").textContent =
+      geoState === "success"
+        ? t("gpsReady")
+        : `${gpsStatus.textContent}. ${$("gps-state-detail").textContent}`;
+  }
+  if (!$("dest-modal").classList.contains("hidden")) {
+    renderDestList($("dest-search").value.trim());
+    renderLineList($("line-search").value.trim());
+  }
   renderRideChip();
   renderLineFilter();
+  if (isPremium()) renderHistory();
   if (curPos) render(curPos.lat, curPos.lon);
 }
 
@@ -656,30 +802,46 @@ $("lang-btn").addEventListener("click", () => {
 // 表示設定は常時並べず、ヘッダーの一つの操作から必要なときだけ展開する。
 const settingsPanel = $("settings-panel");
 const settingsButton = $("settings-btn");
+const settingsOverlay = $("settings-overlay");
+let settingsCloseTimer = null;
 
 function setSettingsOpen(open, returnFocus = false) {
-  settingsPanel.classList.toggle("hidden", !open);
-  settingsButton.setAttribute("aria-expanded", String(open));
   if (open) {
-    requestAnimationFrame(() => $("lang-btn").focus({ preventScroll: true }));
-  } else if (returnFocus) {
-    settingsButton.focus({ preventScroll: true });
+    if (settingsOverlay.dataset.state === "open") return;
+    window.clearTimeout(settingsCloseTimer);
+    settingsOverlay.dataset.state = "opening";
+    settingsOverlay.classList.remove("hidden", "is-closing");
+    settingsButton.setAttribute("aria-expanded", "true");
+    document.body.classList.add("sheet-open");
+    activateOverlay(settingsOverlay);
+    requestAnimationFrame(() => {
+      settingsOverlay.dataset.state = "open";
+      $("settings-close").focus({ preventScroll: true });
+    });
+    return;
   }
+  if (
+    settingsOverlay.classList.contains("hidden") ||
+    settingsOverlay.dataset.state === "closing"
+  ) return;
+  settingsOverlay.dataset.state = "closing";
+  settingsOverlay.classList.add("is-closing");
+  settingsButton.setAttribute("aria-expanded", "false");
+  settingsCloseTimer = window.setTimeout(() => {
+    settingsOverlay.classList.add("hidden");
+    settingsOverlay.classList.remove("is-closing");
+    settingsOverlay.dataset.state = "closed";
+    deactivateOverlay(settingsOverlay);
+    if (!topOverlay()) document.body.classList.remove("sheet-open");
+    if (returnFocus) settingsButton.focus({ preventScroll: true });
+  }, motionMs(140));
 }
 
 settingsButton.addEventListener("click", () => {
-  setSettingsOpen(settingsPanel.classList.contains("hidden"));
+  setSettingsOpen(settingsOverlay.classList.contains("hidden"));
 });
 $("settings-close").addEventListener("click", () => setSettingsOpen(false, true));
-document.addEventListener("pointerdown", (event) => {
-  if (settingsPanel.classList.contains("hidden")) return;
-  if (!event.target.closest(".status-bar")) setSettingsOpen(false);
-});
-document.addEventListener("keydown", (event) => {
-  if (event.key !== "Escape" || settingsPanel.classList.contains("hidden")) return;
-  event.preventDefault();
-  setSettingsOpen(false, true);
-});
+$("settings-scrim").addEventListener("click", () => setSettingsOpen(false, true));
 
 // =====================================================================
 // プラン管理 (フリーミアム)
@@ -691,6 +853,8 @@ document.addEventListener("keydown", (event) => {
 const CONFIG = window.APP_CONFIG || {};
 const BACKEND_URL = (CONFIG.backendUrl || "").replace(/\/+$/, "");
 const LICENSE_RECHECK_MS = 1 * 3600 * 1000; // サブスク状態の再確認間隔 (解約を約1時間以内に反映)
+let plusPending = false;
+let plusStatusMessage = "";
 
 function billingEnabled() {
   return BACKEND_URL !== "";
@@ -770,35 +934,96 @@ async function maybeRefreshLicense() {
 }
 
 async function startCheckout(plan) {
+  if (plusPending) return;
+  setPlusPending(true);
+  clearPlusError();
   try {
     const r = await api("/api/checkout", { plan });
     location.href = r.url;
   } catch {
-    showToast(t("toastCheckoutFail"));
+    setPlusError(t("toastCheckoutFail"));
+    setPlusPending(false);
   }
 }
 
 async function openPortal() {
   const lic = getLicense();
   if (!lic) return;
+  if (plusPending) return;
+  setPlusPending(true);
+  clearPlusError();
   try {
     const r = await api("/api/portal", { token: lic.token });
     location.href = r.url;
   } catch {
-    showToast(t("toastPortalFail"));
+    setPlusError(t("toastPortalFail"));
+    setPlusPending(false);
   }
+}
+
+function setPlusPending(pending) {
+  plusPending = pending;
+  applyPlanUI();
+}
+
+function setPlusError(message) {
+  const error = $("plus-error");
+  error.textContent = message;
+  error.classList.toggle("hidden", !message);
+}
+
+function clearPlusError() {
+  setPlusError("");
 }
 
 function applyPlanUI() {
   const premium = isPremium();
   const billing = billingEnabled();
-  $("premium-btn-label").textContent = premium ? t("premiumMember") : t("premiumBtn");
+  const plusState = plusPending
+    ? "pending"
+    : billing
+      ? (premium ? "active" : "available")
+      : (premium ? "demo-active" : "preview");
+  const stateCopy = {
+    preview: ["plusPreviewTitle", "plusPreviewDetail"],
+    "demo-active": ["plusDemoTitle", "plusDemoDetail"],
+    available: ["plusAvailableTitle", "plusAvailableDetail"],
+    active: ["plusActiveTitle", "plusActiveDetail"],
+    pending: [
+      billing
+        ? (premium ? "plusActiveTitle" : "plusAvailableTitle")
+        : (premium ? "plusDemoTitle" : "plusPreviewTitle"),
+      "plusPending",
+    ],
+  };
+  const [titleKey, detailKey] = stateCopy[plusState];
+  $("paywall").dataset.plusState = plusState;
+  $("paywall").querySelector(".modal").setAttribute(
+    "aria-busy",
+    String(plusPending)
+  );
+  $("plus-mode-label").textContent = t(titleKey);
+  $("plus-status").textContent =
+    plusStatusMessage ? t(plusStatusMessage) : t(detailKey);
+  $("premium-btn-label").textContent = premium
+    ? (billing ? t("premiumMember") : t("plusDemoTitle"))
+    : t("premiumBtn");
   $("ad-slot").classList.toggle("hidden", premium);
+  $("plus-price").classList.toggle("hidden", !billing || premium);
   $("buy-monthly-btn").classList.toggle("hidden", !billing || premium);
   $("buy-yearly-btn").classList.toggle("hidden", !billing || premium);
   $("purchase-btn").classList.toggle("hidden", billing || premium);
   $("manage-btn").classList.toggle("hidden", !billing || !premium);
   $("restore-btn").classList.toggle("hidden", billing || !premium);
+  for (const button of [
+    $("buy-monthly-btn"),
+    $("buy-yearly-btn"),
+    $("purchase-btn"),
+    $("manage-btn"),
+    $("restore-btn"),
+  ]) {
+    button.disabled = plusPending;
+  }
   $("history-section").classList.toggle("hidden", !premium);
   $("line-filter-wrap").classList.toggle(
     "hidden",
@@ -822,7 +1047,12 @@ function requirePremium(opener = null) {
 }
 
 $("premium-btn").addEventListener("click", (event) =>
-  openSheet("paywall", null, event.currentTarget)
+  {
+    plusStatusMessage = "";
+    clearPlusError();
+    applyPlanUI();
+    openSheet("paywall", $("paywall-close"), event.currentTarget);
+  }
 );
 $("paywall-close").addEventListener("click", () => closeSheet("paywall"));
 
@@ -834,48 +1064,103 @@ $("paywall-close").addEventListener("click", () => closeSheet("paywall"));
 // 2027年春からの首都圏QR乗車券移行で、QRの「リーダー付き改札を探す」案内が要になる。
 function getTicketType() {
   const v = localStorage.getItem("ticketType");
-  return ["qr", "ic", "paper", "jrpass"].includes(v) ? v : null;
+  return ["qr", "ic", "paper", "jrpass"].includes(v) ? v : "all";
 }
 
-function renderGuide() {
+let guideAnimationTimer = null;
+
+function playGuideAnimation() {
+  const body = $("guide-body");
+  window.clearTimeout(guideAnimationTimer);
+  body.classList.remove("guide-animating");
+  if (reduceMotionQuery.matches) return;
+  void body.offsetWidth;
+  body.classList.add("guide-animating");
+  guideAnimationTimer = window.setTimeout(
+    () => body.classList.remove("guide-animating"),
+    900
+  );
+}
+
+function renderGuide(animate = false) {
   const sel = getTicketType();
-  document.querySelectorAll("#guide-modal .chip-btn").forEach((b) => {
+  const buttons = [...document.querySelectorAll("#guide-modal .chip-btn")];
+  buttons.forEach((b) => {
     b.classList.toggle("active", b.dataset.ticket === sel);
-    b.setAttribute("aria-pressed", String(b.dataset.ticket === sel));
+    b.setAttribute("aria-checked", String(b.dataset.ticket === sel));
+    b.tabIndex = b.dataset.ticket === sel ? 0 : -1;
   });
   document.querySelectorAll("#guide-modal .guide-sec").forEach((sec) => {
     const key = sec.dataset.sec;
     const common = key === "common" || key === "common2";
-    sec.classList.toggle("hidden", !common && sel !== null && key !== sel);
+    sec.classList.toggle("hidden", !common && sel !== "all" && key !== sel);
   });
+  if ($("guide-status")) {
+    const selectedButton = buttons.find((button) => button.dataset.ticket === sel);
+    $("guide-status").textContent =
+      selectedButton?.textContent.trim() || t("ticketAll");
+  }
+  if (animate) playGuideAnimation();
 }
 
 $("guide-btn").addEventListener("click", (event) => {
-  renderGuide();
-  openSheet("guide-modal", null, event.currentTarget);
+  renderGuide(true);
+  openSheet("guide-modal", $("guide-close"), event.currentTarget);
 });
 $("guide-close").addEventListener("click", () => closeSheet("guide-modal"));
-document.querySelectorAll("#guide-modal .chip-btn").forEach((b) => {
+const guideTicketButtons = [...document.querySelectorAll(
+  "#guide-modal .chip-btn"
+)];
+guideTicketButtons.forEach((b) => {
   b.addEventListener("click", () => {
-    // 同じ種別をもう一度タップすると選択解除 (全種別表示に戻る)
-    if (getTicketType() === b.dataset.ticket) {
+    if (b.dataset.ticket === "all") {
       localStorage.removeItem("ticketType");
     } else {
       localStorage.setItem("ticketType", b.dataset.ticket);
     }
-    renderGuide();
+    renderGuide(true);
+  });
+  b.addEventListener("keydown", (event) => {
+    if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) {
+      return;
+    }
+    event.preventDefault();
+    const current = guideTicketButtons.indexOf(event.currentTarget);
+    let next = current;
+    if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      next = (current - 1 + guideTicketButtons.length) % guideTicketButtons.length;
+    }
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      next = (current + 1) % guideTicketButtons.length;
+    }
+    if (event.key === "Home") next = 0;
+    if (event.key === "End") next = guideTicketButtons.length - 1;
+    guideTicketButtons[next].click();
+    guideTicketButtons[next].focus();
   });
 });
 $("buy-monthly-btn").addEventListener("click", () => startCheckout("monthly"));
 $("buy-yearly-btn").addEventListener("click", () => startCheckout("yearly"));
 $("manage-btn").addEventListener("click", openPortal);
 $("purchase-btn").addEventListener("click", () => {
-  setPlan("premium");
-  closeSheet("paywall");
+  if (plusPending) return;
+  setPlusPending(true);
+  clearPlusError();
+  window.setTimeout(() => {
+    setPlan("premium");
+    plusStatusMessage = "plusDemoEnabled";
+    setPlusPending(false);
+  }, motionMs(160));
 });
 $("restore-btn").addEventListener("click", () => {
-  setPlan("free");
-  closeSheet("paywall");
+  if (plusPending) return;
+  setPlusPending(true);
+  clearPlusError();
+  window.setTimeout(() => {
+    setPlan("free");
+    plusStatusMessage = "plusDemoEnded";
+    setPlusPending(false);
+  }, motionMs(160));
 });
 
 // =====================================================================
@@ -913,26 +1198,100 @@ function initAds() {
 // 起動
 // =====================================================================
 $("start-btn").addEventListener("click", () => {
-  if (!("geolocation" in navigator)) {
-    showError(t("geoUnsupported"));
-    return;
-  }
   startScreen.classList.add("hidden");
   mainScreen.classList.remove("hidden");
   applyPlanUI();
-  navigator.geolocation.watchPosition(onPosition, onGeoError, {
+  requestAnimationFrame(() => {
+    document.querySelector(".station-display")?.focus?.({ preventScroll: true });
+  });
+  startLocationWatch();
+});
+
+$("gps-retry-btn").addEventListener("click", startLocationWatch);
+
+function startLocationWatch() {
+  if (geoWatchId !== null && "geolocation" in navigator) {
+    navigator.geolocation.clearWatch(geoWatchId);
+    geoWatchId = null;
+  }
+  if (!("geolocation" in navigator)) {
+    setGpsState("unavailable", t("geoUnsupported"));
+    return;
+  }
+  setGpsState("requesting");
+  geoWatchId = navigator.geolocation.watchPosition(onPosition, onGeoError, {
     enableHighAccuracy: true,
     maximumAge: 5000,
     timeout: 20000,
   });
-});
+}
+
+function setGpsState(state, detail = "") {
+  const previous = geoState;
+  geoState = state;
+  const stateEl = $("gps-state");
+  const detailEl = $("gps-state-detail");
+  const retry = $("gps-retry-btn");
+  const settingsHint = $("gps-settings-hint");
+  stateEl.dataset.state = state;
+  const isSuccess = state === "success";
+  const isRequesting = state === "requesting";
+  const isDenied = state === "permission-denied";
+  const labelKeys = {
+    requesting: "gpsWait",
+    success: "gpsReady",
+    "permission-denied": "gpsDenied",
+    timeout: "gpsTimedOut",
+    unavailable: "gpsUnavailable",
+  };
+  const lowAccuracy =
+    isSuccess &&
+    Number.isFinite(lastGpsAccuracy) &&
+    lastGpsAccuracy > ACCURACY_WARN_M;
+  gpsStatus.textContent =
+    isSuccess && Number.isFinite(lastGpsAccuracy)
+      ? t(lowAccuracy ? "gpsAccLow" : "gpsAcc", Math.round(lastGpsAccuracy))
+      : t(labelKeys[state] || "gpsUnavailable");
+  gpsStatus.classList.toggle("ok", isSuccess && !lowAccuracy);
+  gpsStatus.classList.toggle(
+    "warn",
+    lowAccuracy || (!isSuccess && !isRequesting)
+  );
+  detailEl.textContent =
+    detail ||
+    (isRequesting
+      ? t("gpsRequestingDetail")
+      : isDenied
+        ? t("geo1")
+        : state === "timeout"
+          ? t("geo3")
+          : state === "unavailable"
+            ? t("geo2")
+            : "");
+  stateEl.classList.toggle("is-compact", isSuccess);
+  detailEl.classList.toggle("hidden", isSuccess);
+  retry.classList.toggle("hidden", isSuccess || isRequesting || isDenied);
+  settingsHint.classList.toggle("hidden", !isDenied);
+  if (!isSuccess && !isRequesting && !curPos) {
+    stationName.textContent = gpsStatus.textContent;
+    stationName.classList.add("is-state-message");
+    stationKana.textContent = "";
+  }
+  if (isRequesting && !curPos) {
+    stationName.textContent = "---";
+    stationName.classList.remove("is-state-message");
+  }
+  if (isSuccess) stationName.classList.remove("is-state-message");
+  if (previous !== state) {
+    $("screen-live").textContent = isSuccess
+      ? t("gpsReady")
+      : `${gpsStatus.textContent}. ${detailEl.textContent}`;
+  }
+}
 
 $("wakelock-btn").addEventListener("click", toggleWakeLock);
 $("alert-cancel-btn").addEventListener("click", cancelAlert);
-$("alert-dismiss-btn").addEventListener("click", () => {
-  $("alert-overlay").classList.add("hidden");
-  navigator.vibrate?.(0);
-});
+$("alert-dismiss-btn").addEventListener("click", dismissArrivalAlert);
 $("line-filter").addEventListener("change", (e) => {
   selectedLine = e.target.value;
   if (curPos) render(curPos.lat, curPos.lon);
@@ -944,14 +1303,11 @@ $("line-filter").addEventListener("change", (e) => {
 async function onPosition(pos) {
   const { latitude: lat, longitude: lon, accuracy } = pos.coords;
   curPos = { lat, lon };
+  lastGpsAccuracy = accuracy;
   syncDestMapPosition();
   // 誤差半径が大きい測位 (Wi-Fi/基地局による概算など) は駅を取り違えることがあるため、
   // 「参考程度」と明示する。位置自体はそのまま使う (無視すると更新が止まって見えるため)
-  const lowAcc = accuracy > ACCURACY_WARN_M;
-  gpsStatus.textContent = t(lowAcc ? "gpsAccLow" : "gpsAcc", Math.round(accuracy));
-  gpsStatus.classList.toggle("ok", !lowAcc);
-  gpsStatus.classList.toggle("warn", lowAcc);
-  hideError();
+  setGpsState("success");
 
   updateHeading(lat, lon, pos.coords.heading, pos.coords.speed);
 
@@ -1053,7 +1409,12 @@ function circularMean(arr) {
 
 function onGeoError(err) {
   const messages = { 1: t("geo1"), 2: t("geo2"), 3: t("geo3") };
-  showError(messages[err.code] || t("geoFail"));
+  const state = err.code === 1
+    ? "permission-denied"
+    : err.code === 3
+      ? "timeout"
+      : "unavailable";
+  setGpsState(state, messages[err.code] || t("geoFail"));
 }
 
 function needsRefetch(lat, lon) {
@@ -1067,7 +1428,7 @@ function needsRefetch(lat, lon) {
 // =====================================================================
 async function fetchStations(lat, lon) {
   fetching = true;
-  gpsStatus.textContent = t("fetching");
+  $("screen-live").textContent = t("fetching");
   // プライバシー保護: 外部APIには約1km単位に丸めた座標のみ送信し、
   // 正確な現在地を外部に出さない (丸め誤差ぶん検索半径を広げて補う)
   const qLat = lat.toFixed(2);
@@ -1207,6 +1568,7 @@ function render(lat, lon) {
   statusLabel.classList.toggle("at-station", atStation);
   const displayName = dispName(nearest);
   stationName.textContent = displayName;
+  stationName.classList.remove("is-state-message");
   stationName.classList.toggle(
     "is-long",
     displayName.length > (lang === "en" ? 14 : 7)
@@ -1435,13 +1797,19 @@ function cancelAlert() {
 // =====================================================================
 // 目的地ピッカー (プレミアム): 駅名・ひらがな検索で降車アラートを設定
 // =====================================================================
-const DEST_RESULT_MAX = 50;
+const DEST_IDLE_MAX = 8;
+const RESULT_BATCH_SIZE = 20;
+const DEST_SEARCH_CAP = 200;
+let destVisibleLimit = RESULT_BATCH_SIZE;
+let lineVisibleLimit = RESULT_BATCH_SIZE;
 
 $("dest-btn").addEventListener("click", (event) => {
   if (!requirePremium(event.currentTarget)) return;
   $("dest-search").value = "";
   $("dest-clear").classList.toggle("hidden", !alertStation);
   pendingDestination = alertStation ? { ...alertStation } : null;
+  destVisibleLimit = RESULT_BATCH_SIZE;
+  lineVisibleLimit = RESULT_BATCH_SIZE;
   renderPendingDestination();
   renderDestList("");
   const mapTarget = curPos || alertStation || loadRecentDests()[0] || null;
@@ -1462,6 +1830,15 @@ $("dest-clear").addEventListener("click", () => {
 $("dest-search").addEventListener("input", (e) =>
   onDestSearchInput(e.target.value.trim())
 );
+$("dest-more").addEventListener("click", () => {
+  destVisibleLimit += RESULT_BATCH_SIZE;
+  renderDestList($("dest-search").value.trim(), true);
+});
+$("dest-search-reset").addEventListener("click", () => {
+  $("dest-search").value = "";
+  onDestSearchInput("");
+  $("dest-search").focus();
+});
 $("dest-confirm").addEventListener("click", async (event) => {
   if (!pendingDestination) return;
   await setAlert(pendingDestination, event.currentTarget);
@@ -1511,11 +1888,15 @@ function loadJpIndex() {
 
 function onDestSearchInput(query) {
   const seq = ++jpSearchSeq;
+  destVisibleLimit = RESULT_BATCH_SIZE;
   jpResults = [];
+  $("dest-list").setAttribute("aria-busy", String(query.length >= 2));
   renderDestList(query); // まず内蔵データで即時表示
   if (query.length < 2) {
+    $("dest-list").setAttribute("aria-busy", "false");
     return;
   }
+  $("dest-search-status").textContent = t("searchLoading");
   loadJpIndex().then((idx) => searchJp(query, idx, seq));
 }
 
@@ -1537,11 +1918,12 @@ function searchJp(query, idx, seq) {
         lines: [],
         source: "jp",
       });
-      if (hits.length >= 30) break;
+      if (hits.length >= DEST_SEARCH_CAP) break;
     }
   }
   if (seq !== jpSearchSeq) return; // より新しい入力が来ていたら破棄
   jpResults = hits;
+  $("dest-list").setAttribute("aria-busy", "false");
   renderDestList(query);
 }
 
@@ -1569,7 +1951,7 @@ function destRelevance(s, query, q) {
   return 4;
 }
 
-function renderDestList(query) {
+function renderDestList(query, fromMore = false) {
   const listEl = $("dest-list");
   listEl.innerHTML = "";
   const hits = destCandidates().filter(
@@ -1585,10 +1967,21 @@ function renderDestList(query) {
     // 検索語が空のときは「最近の目的地」を先頭に (毎日同じ駅を使う通勤者向け)
     const recents = loadRecentDests().map((s) => ({ ...s, recent: true }));
     const recentKeys = new Set(recents.map(mapStationKey));
+    const listAnchor = curPos || {
+      lat: destMapState.centerLat,
+      lon: destMapState.centerLon,
+    };
+    const nearby = hits
+      .filter((s) => !recentKeys.has(mapStationKey(s)))
+      .sort(
+        (a, b) =>
+          haversine(listAnchor.lat, listAnchor.lon, a.lat, a.lon) -
+          haversine(listAnchor.lat, listAnchor.lon, b.lat, b.lon)
+      );
     items = [
       ...recents,
-      ...hits.filter((s) => !recentKeys.has(mapStationKey(s))),
-    ].slice(0, DEST_RESULT_MAX);
+      ...nearby,
+    ];
   } else {
     // 内蔵に無い駅は全国データで補完し、完全一致→前方一致→部分一致の順に並べる
     const localKeys = new Set(hits.map(mapStationKey));
@@ -1603,11 +1996,16 @@ function renderDestList(query) {
         const lb = b.source === "jp" ? 1 : 0;
         if (la !== lb) return la - lb;
         return a.name.length - b.name.length;
-      })
-      .slice(0, DEST_RESULT_MAX);
+      });
   }
 
-  for (const s of items) {
+  const total = items.length;
+  const visibleItems = items.slice(
+    0,
+    query ? destVisibleLimit : DEST_IDLE_MAX
+  );
+  const fragment = document.createDocumentFragment();
+  for (const s of visibleItems) {
     const li = document.createElement("li");
     li.className = "dest-item";
     const name = document.createElement("span");
@@ -1626,15 +2024,34 @@ function renderDestList(query) {
     line.textContent = meta.join(" · ");
     li.append(name, line);
     makeKeyboardAction(li, () => {
-      selectPendingDestination(s, { source: "search", focus: true });
+      selectPendingDestination(s, { source: "search", focus: li });
     });
-    listEl.appendChild(li);
+    fragment.appendChild(li);
   }
+  listEl.appendChild(fragment);
+
+  const status = $("dest-search-status");
+  const reset = $("dest-search-reset");
+  const more = $("dest-more");
+  reset.classList.toggle("hidden", !query);
+  if (!query) {
+    status.textContent = t("searchIdle");
+  } else if (total === 0 && listEl.getAttribute("aria-busy") !== "true") {
+    status.textContent = t("searchEmpty", query);
+  } else if (listEl.getAttribute("aria-busy") !== "true") {
+    status.textContent = t("resultsCount", visibleItems.length, total);
+  }
+  const hasMore = Boolean(query && visibleItems.length < total);
+  if (fromMore && !hasMore && document.activeElement === more) {
+    status.tabIndex = -1;
+    status.focus({ preventScroll: true });
+  }
+  more.classList.toggle("hidden", !hasMore);
 
   // 全国データ由来の結果を表示しているときは目印を説明
   const credit = $("dest-credit");
   if (credit) {
-    const usingJp = items.some((s) => s.source === "jp");
+    const usingJp = visibleItems.some((s) => s.source === "jp");
     credit.textContent = usingJp ? t("apiCredit") : "";
     credit.classList.toggle("hidden", !usingJp);
   }
@@ -1715,6 +2132,11 @@ const DEST_TABS = [
 
 function showDestView(view, focusTab = false) {
   currentDestView = view;
+  if (view !== "map") {
+    destMapKeyboardMode = false;
+    destMapFocusedKey = "";
+    $("dest-map-svg").tabIndex = 0;
+  }
   const activeTab = view === "stations" ? "lines" : view;
   const panelIds = [
     "dest-map-view",
@@ -1771,9 +2193,20 @@ for (const item of DEST_TABS) {
     showDestView(target.name, true);
   });
 }
-$("line-search").addEventListener("input", (e) =>
-  renderLineList(e.target.value.trim())
-);
+$("line-search").addEventListener("input", (e) => {
+  lineVisibleLimit = RESULT_BATCH_SIZE;
+  renderLineList(e.target.value.trim());
+});
+$("line-more").addEventListener("click", () => {
+  lineVisibleLimit += RESULT_BATCH_SIZE;
+  renderLineList($("line-search").value.trim(), true);
+});
+$("line-search-reset").addEventListener("click", () => {
+  $("line-search").value = "";
+  lineVisibleLimit = RESULT_BATCH_SIZE;
+  renderLineList("");
+  $("line-search").focus();
+});
 $("dest-back").addEventListener("click", () => {
   showDestView("lines");
   requestAnimationFrame(() => {
@@ -1799,12 +2232,16 @@ function lineMatches(name, members, query) {
   );
 }
 
-function renderLineList(query = "") {
+function renderLineList(query = "", fromMore = false) {
   const listEl = $("line-list");
   listEl.innerHTML = "";
   const index = getLineIndex();
-  for (const name of [...index.keys()].sort()) {
-    if (!lineMatches(name, index.get(name), query)) continue;
+  const matches = [...index.keys()]
+    .sort()
+    .filter((name) => lineMatches(name, index.get(name), query));
+  const visible = matches.slice(0, lineVisibleLimit);
+  const fragment = document.createDocumentFragment();
+  for (const name of visible) {
     const li = document.createElement("li");
     li.className = "dest-item";
     const label = document.createElement("span");
@@ -1820,8 +2257,22 @@ function renderLineList(query = "") {
       destLineReturnFocus = li;
       renderRouteList(name);
     });
-    listEl.appendChild(li);
+    fragment.appendChild(li);
   }
+  listEl.appendChild(fragment);
+  const status = $("line-search-status");
+  const reset = $("line-search-reset");
+  const more = $("line-more");
+  reset.classList.toggle("hidden", !query);
+  status.textContent = matches.length
+    ? t("resultsCount", visible.length, matches.length)
+    : t("lineEmpty", query);
+  const hasMore = visible.length < matches.length;
+  if (fromMore && !hasMore && document.activeElement === more) {
+    status.tabIndex = -1;
+    status.focus({ preventScroll: true });
+  }
+  more.classList.toggle("hidden", !hasMore);
 }
 
 function renderRouteList(lineName) {
@@ -1840,7 +2291,7 @@ function renderRouteList(lineName) {
     kana.textContent = lang === "en" ? "" : s.kana;
     li.append(name, kana);
     makeKeyboardAction(li, () => {
-      selectPendingDestination(s, { source: "lines", focus: true });
+      selectPendingDestination(s, { source: "lines", focus: li });
     });
     listEl.appendChild(li);
   }
@@ -1865,6 +2316,11 @@ let destMapNationwide = [];
 let destMapLoadStarted = false;
 let destMapLineGeometry = null;
 let destMapPointer = null;
+let destMapKeyboardMode = false;
+let destMapFocusedKey = "";
+let destMapWheelTimer = null;
+let destMapWheelDirection = 0;
+let destMapWheelAnchor = { x: 500, y: 500 };
 const destMapState = {
   centerLat: DEST_MAP_FALLBACK.lat,
   centerLon: DEST_MAP_FALLBACK.lon,
@@ -1918,6 +2374,12 @@ function selectPendingDestination(station, { source = "", focus = false } = {}) 
     return;
   }
   pendingDestination = normalized;
+  if (source) {
+    $("dest-selection-live").textContent = t(
+      "destProvisionalSelected",
+      dispName(normalized)
+    );
+  }
   if (source) destMapState.userMoved = true;
   if (source && source !== "map") {
     destMapState.centerLat = normalized.lat;
@@ -1967,6 +2429,14 @@ function renderPendingDestination(source = "") {
   $("dest-selection-sub").textContent = sub;
   $("dest-selection-sub").classList.toggle("hidden", !sub);
   $("dest-selection-meta").textContent = meta.join(" · ");
+  const selectionLabel = tray.querySelector(".selection-label");
+  if (selectionLabel) {
+    selectionLabel.textContent = t(
+      sameDestination(pendingDestination, alertStation)
+        ? "currentSelection"
+        : "provisionalSelection"
+    );
+  }
   tray.setAttribute("aria-label", t("destSelected", name));
   if (source) tray.dataset.source = source;
 }
@@ -2270,6 +2740,8 @@ function renderDestMapStation(
   });
   group.dataset.stationKey = mapStationKey(station);
   group.dataset.mapOrder = String(mapOrder);
+  group.dataset.mapX = String(point.x);
+  group.dataset.mapY = String(point.y);
   group.appendChild(
     createMapSvgElement("circle", {
       class: "dest-map-hit",
@@ -2296,17 +2768,25 @@ function renderDestMapStation(
   }
   group.addEventListener("click", (event) => {
     event.stopPropagation();
-    selectPendingDestination(station, { source: "map", focus: true });
+    selectPendingDestination(station, { source: "map" });
   });
   group.addEventListener("focus", () => {
     // フォーカス中の駅をGPS更新で作り直さないよう、自動追従を止める。
     destMapState.userMoved = true;
+    destMapFocusedKey = group.dataset.stationKey;
   });
   group.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      exitDestMapMarkerMode();
+      return;
+    }
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       event.stopPropagation();
-      selectPendingDestination(station, { source: "map", focus: true });
+      destMapFocusedKey = group.dataset.stationKey;
+      selectPendingDestination(station, { source: "map" });
       return;
     }
     if (
@@ -2325,22 +2805,57 @@ function renderDestMapStation(
     const nodes = [...content.querySelectorAll(".dest-map-node")].sort(
       (a, b) => Number(a.dataset.mapOrder) - Number(b.dataset.mapOrder)
     );
-    const index = nodes.indexOf(group);
-    let next = index;
-    if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
-      next = (index - 1 + nodes.length) % nodes.length;
-    }
-    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
-      next = (index + 1) % nodes.length;
-    }
-    if (event.key === "Home") next = 0;
-    if (event.key === "End") next = nodes.length - 1;
-    nodes.forEach((node, nodeIndex) => {
-      node.tabIndex = nodeIndex === next ? 0 : -1;
+    let nextNode = null;
+    if (event.key === "Home") nextNode = nodes[0];
+    else if (event.key === "End") nextNode = nodes.at(-1);
+    else nextNode = mapNodeInDirection(group, nodes, event.key);
+    if (!nextNode) return;
+    nodes.forEach((node) => {
+      node.tabIndex = node === nextNode ? 0 : -1;
     });
-    nodes[next]?.focus({ preventScroll: true });
+    destMapFocusedKey = nextNode.dataset.stationKey;
+    nextNode.focus({ preventScroll: true });
   });
   content.appendChild(group);
+}
+
+function mapNodeInDirection(current, nodes, key) {
+  const x = Number(current.dataset.mapX);
+  const y = Number(current.dataset.mapY);
+  const direction = {
+    ArrowLeft: [-1, 0],
+    ArrowRight: [1, 0],
+    ArrowUp: [0, -1],
+    ArrowDown: [0, 1],
+  }[key];
+  if (!direction) return null;
+  let best = null;
+  let bestScore = Infinity;
+  for (const node of nodes) {
+    if (node === current) continue;
+    const dx = Number(node.dataset.mapX) - x;
+    const dy = Number(node.dataset.mapY) - y;
+    const forward = dx * direction[0] + dy * direction[1];
+    if (forward <= 1) continue;
+    const sideways = Math.abs(dx * direction[1] - dy * direction[0]);
+    const score = Math.hypot(dx, dy) + sideways * 1.4;
+    if (score < bestScore) {
+      best = node;
+      bestScore = score;
+    }
+  }
+  return best;
+}
+
+function exitDestMapMarkerMode() {
+  destMapKeyboardMode = false;
+  destMapFocusedKey = "";
+  const svg = $("dest-map-svg");
+  svg.tabIndex = 0;
+  svg.querySelectorAll(".dest-map-node").forEach((node) => {
+    node.tabIndex = -1;
+  });
+  svg.focus({ preventScroll: true });
 }
 
 function renderDestMapCurrentPosition(content) {
@@ -2362,11 +2877,14 @@ function renderDestMapCurrentPosition(content) {
 function renderDestMap() {
   const content = $("dest-map-content");
   if (!content || !destMapState.initialized) return;
+  const mapSvg = $("dest-map-svg");
+  mapSvg.tabIndex = destMapKeyboardMode ? -1 : 0;
   const focusedStationKey = document.activeElement?.classList?.contains(
     "dest-map-node"
   )
     ? document.activeElement.dataset.stationKey
     : "";
+  const preferredFocusKey = focusedStationKey || destMapFocusedKey;
   content.removeAttribute("transform");
   content.replaceChildren();
 
@@ -2382,6 +2900,9 @@ function renderDestMap() {
   renderDestMapLines(content);
 
   if (destMapState.zoom < DEST_MAP_STATION_ZOOM) {
+    destMapKeyboardMode = false;
+    destMapFocusedKey = "";
+    mapSvg.tabIndex = 0;
     setDestMapStatus(t("mapZoomMore"));
     if ($("dest-map-hint")) $("dest-map-hint").textContent = t("mapZoomMore");
     renderDestMapCurrentPosition(content);
@@ -2419,6 +2940,11 @@ function renderDestMap() {
   ) {
     visible = [...visible.slice(0, markerLimit - 1), selectedItem];
   }
+  if (visible.length === 0 && destMapKeyboardMode) {
+    destMapKeyboardMode = false;
+    destMapFocusedKey = "";
+    mapSvg.tabIndex = 0;
+  }
   // 小さい画面でも駅名が重ならないよう、低ズームでは中心付近だけを表示する。
   const labelCount =
     destMapState.zoom >= 15
@@ -2438,11 +2964,12 @@ function renderDestMap() {
     visible.map(({ station }) => mapStationKey(station))
   );
   const tabStopKey =
-    (focusedStationKey && visibleKeys.has(focusedStationKey)
-      ? focusedStationKey
+    (preferredFocusKey && visibleKeys.has(preferredFocusKey)
+      ? preferredFocusKey
       : selectedItem
         ? mapStationKey(selectedItem.station)
         : mapStationKey(visible[0]?.station || DEST_MAP_FALLBACK));
+  destMapFocusedKey = destMapKeyboardMode ? tabStopKey : "";
   const markerStack = visible
     .map((item, mapOrder) => ({ item, mapOrder }))
     .sort((a, b) => {
@@ -2457,15 +2984,15 @@ function renderDestMap() {
       content,
       item,
       labelled.has(key),
-      key === tabStopKey,
+      destMapKeyboardMode && key === tabStopKey,
       mapOrder
     );
   }
   renderDestMapCurrentPosition(content);
-  if (focusedStationKey) {
+  if (destMapKeyboardMode && destMapFocusedKey) {
     requestAnimationFrame(() => {
       const match = [...content.querySelectorAll(".dest-map-node")].find(
-        (node) => node.dataset.stationKey === focusedStationKey
+        (node) => node.dataset.stationKey === destMapFocusedKey
       );
       match?.focus({ preventScroll: true });
     });
@@ -2575,6 +3102,69 @@ function endDestMapPan(event) {
 }
 
 const destMapStage = $("dest-map-stage");
+const destMapSvg = $("dest-map-svg");
+
+function panDestMapByKeyboard(key, largeStep = false) {
+  const center = mercatorPoint(
+    destMapState.centerLat,
+    destMapState.centerLon,
+    destMapState.zoom
+  );
+  const step = largeStep ? 180 : 64;
+  if (key === "ArrowLeft") center.x -= step;
+  if (key === "ArrowRight") center.x += step;
+  if (key === "ArrowUp") center.y -= step;
+  if (key === "ArrowDown") center.y += step;
+  const next = mercatorLatLon(center.x, center.y, destMapState.zoom);
+  destMapState.centerLat = next.lat;
+  destMapState.centerLon = next.lon;
+  destMapState.userMoved = true;
+  renderDestMap();
+}
+
+destMapSvg.addEventListener("keydown", (event) => {
+  if (event.target !== destMapSvg) return;
+  if (event.key === "Enter") {
+    const nodes = [...destMapSvg.querySelectorAll(".dest-map-node")];
+    if (nodes.length === 0) {
+      setDestMapStatus(t("mapNoStations"));
+      return;
+    }
+    event.preventDefault();
+    destMapKeyboardMode = true;
+    const selected =
+      nodes.find((node) => node.getAttribute("aria-pressed") === "true") ||
+      nodes[0];
+    destMapFocusedKey = selected.dataset.stationKey;
+    destMapSvg.tabIndex = -1;
+    nodes.forEach((node) => {
+      node.tabIndex = node === selected ? 0 : -1;
+    });
+    selected.focus({ preventScroll: true });
+    return;
+  }
+  if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
+    event.preventDefault();
+    panDestMapByKeyboard(event.key, event.shiftKey);
+    return;
+  }
+  if (event.key === "+" || event.key === "=") {
+    event.preventDefault();
+    setDestMapZoom(destMapState.zoom + 1);
+    return;
+  }
+  if (event.key === "-") {
+    event.preventDefault();
+    setDestMapZoom(destMapState.zoom - 1);
+    return;
+  }
+  if (event.key === "0") {
+    event.preventDefault();
+    initializeDestMapCenter(curPos || alertStation || null, true);
+    renderDestMap();
+  }
+});
+
 destMapStage.addEventListener("pointerdown", startDestMapPan);
 destMapStage.addEventListener("pointermove", moveDestMap);
 destMapStage.addEventListener("pointerup", endDestMapPan);
@@ -2582,9 +3172,24 @@ destMapStage.addEventListener("pointercancel", endDestMapPan);
 destMapStage.addEventListener(
   "wheel",
   (event) => {
+    const direction = event.deltaY < 0 ? 1 : -1;
+    const atLimit =
+      (direction > 0 && destMapState.zoom >= DEST_MAP_MAX_ZOOM) ||
+      (direction < 0 && destMapState.zoom <= DEST_MAP_MIN_ZOOM);
+    if (atLimit) return;
     event.preventDefault();
     const anchor = mapEventPoint(event);
-    setDestMapZoom(destMapState.zoom + (event.deltaY < 0 ? 1 : -1), anchor.x, anchor.y);
+    destMapWheelDirection = direction;
+    destMapWheelAnchor = anchor;
+    window.clearTimeout(destMapWheelTimer);
+    destMapWheelTimer = window.setTimeout(() => {
+      setDestMapZoom(
+        destMapState.zoom + destMapWheelDirection,
+        destMapWheelAnchor.x,
+        destMapWheelAnchor.y
+      );
+      destMapWheelDirection = 0;
+    }, 80);
   },
   { passive: false }
 );
@@ -2634,6 +3239,8 @@ const MODE_BG = { light: "#f4f2ec", dark: "#131517" };
 
 function applyMode(mode) {
   document.body.dataset.mode = mode;
+  document.documentElement.dataset.mode = mode;
+  document.documentElement.style.backgroundColor = MODE_BG[mode];
   localStorage.setItem("mode", mode);
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute("content", MODE_BG[mode]);
@@ -2692,6 +3299,42 @@ function rememberDest(st) {
   localStorage.setItem("recentDests", JSON.stringify(list.slice(0, 5)));
 }
 
+let alertReturnFocus = null;
+
+function showArrivalAlert() {
+  const overlay = $("alert-overlay");
+  if (!overlay.classList.contains("hidden")) return;
+  alertReturnFocus =
+    document.activeElement && document.activeElement !== document.body
+      ? document.activeElement
+      : null;
+  overlay.classList.remove("hidden");
+  activateOverlay(overlay);
+  requestAnimationFrame(() => {
+    $("alert-dismiss-btn").focus({ preventScroll: true });
+  });
+}
+
+function dismissArrivalAlert() {
+  const overlay = $("alert-overlay");
+  if (overlay.classList.contains("hidden")) return;
+  overlay.classList.add("hidden");
+  deactivateOverlay(overlay);
+  navigator.vibrate?.(0);
+  const connectedReturn = alertReturnFocus?.isConnected
+    ? alertReturnFocus
+    : null;
+  const fallback =
+    connectedReturn ||
+    (!$("riding-screen").classList.contains("hidden")
+      ? $("riding-exit-btn")
+      : currentOpenSheet()
+        ? focusableIn(currentOpenSheet())[0]
+        : $("dest-btn"));
+  fallback?.focus?.({ preventScroll: true });
+  alertReturnFocus = null;
+}
+
 function checkAlert(lat, lon) {
   if (!alertStation) return;
   const dist = haversine(lat, lon, alertStation.lat, alertStation.lon);
@@ -2706,7 +3349,7 @@ function checkAlert(lat, lon) {
   const hintKey = ticket && { qr: "ticketHintQr", ic: "ticketHintIc", paper: "ticketHintPaper", jrpass: "ticketHintJrpass" }[ticket];
   $("alert-ticket-hint").textContent = hintKey ? t(hintKey) : "";
   $("alert-ticket-hint").classList.toggle("hidden", !hintKey);
-  $("alert-overlay").classList.remove("hidden");
+  showArrivalAlert();
   navigator.vibrate?.([400, 200, 400, 200, 800]);
   beep();
   if ("Notification" in window && Notification.permission === "granted") {
@@ -2753,16 +3396,22 @@ function loadHistory() {
 function renderHistory() {
   const listEl = $("history-list");
   listEl.innerHTML = "";
-  for (const h of loadHistory().slice(0, 5)) {
+  const historyItems = loadHistory().slice(0, 5);
+  $("history-empty").classList.toggle("hidden", historyItems.length > 0);
+  listEl.classList.toggle("hidden", historyItems.length === 0);
+  for (const h of historyItems) {
     const li = document.createElement("li");
     const name = document.createElement("span");
     name.textContent = h.name;
     const time = document.createElement("span");
     time.className = "dist";
-    time.textContent = new Date(h.ts).toLocaleTimeString("ja-JP", {
+    time.textContent = new Date(h.ts).toLocaleTimeString(
+      lang === "ja" ? "ja-JP" : "en-US",
+      {
       hour: "2-digit",
       minute: "2-digit",
-    });
+      }
+    );
     li.append(name, time);
     listEl.appendChild(li);
   }
@@ -2805,6 +3454,7 @@ let ridingClockTimer = null;
 let ridingAcquiredWakeLock = false;
 let ridingExitTimer = null;
 let ridingGeneration = 0;
+let ridingThemeColor = null;
 
 $("riding-btn").addEventListener("click", enterRidingMode);
 $("riding-screen").addEventListener("click", (event) => {
@@ -2822,18 +3472,25 @@ async function enterRidingMode() {
   if (!$("riding-screen").classList.contains("hidden")) return;
   const generation = ++ridingGeneration;
   clearTimeout(ridingExitTimer);
-  $("riding-screen").classList.remove("is-leaving");
+  const ridingScreen = $("riding-screen");
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+  ridingThemeColor = themeMeta?.getAttribute("content") || MODE_BG.dark;
+  document.documentElement.classList.add("riding-active");
+  document.documentElement.style.backgroundColor = "#000";
   document.body.classList.add("riding-active");
-  mainScreen.inert = true;
-  $("riding-screen").classList.remove("hidden");
+  if (themeMeta) themeMeta.setAttribute("content", "#000");
+  ridingScreen.classList.remove("hidden", "is-leaving");
+  activateOverlay(ridingScreen);
   $("riding-btn").setAttribute("aria-expanded", "true");
   $("riding-exit-btn").focus({ preventScroll: true });
   updateRidingClock();
   ridingClockTimer = setInterval(updateRidingClock, 1000);
-  // 車内モード中は画面を消灯させない (非対応端末では表示のみ)
-  const acquired = !wakeLock && (await acquireWakeLock());
+  // 車内モード中は画面を消灯させない。手動設定とは別の所有理由として管理する。
+  wakeReasons.add("riding");
+  const acquired = await syncWakeLock();
   if (generation !== ridingGeneration || $("riding-screen").classList.contains("is-leaving")) {
-    if (acquired) void releaseWakeLock();
+    wakeReasons.delete("riding");
+    void syncWakeLock();
     return;
   }
   ridingAcquiredWakeLock = acquired;
@@ -2848,15 +3505,27 @@ function exitRidingMode() {
   ridingScreen.classList.add("is-leaving");
   $("riding-btn").setAttribute("aria-expanded", "false");
   clearInterval(ridingClockTimer);
-  if (ridingAcquiredWakeLock) void releaseWakeLock();
+  wakeReasons.delete("riding");
+  void syncWakeLock();
   ridingAcquiredWakeLock = false;
   ridingExitTimer = setTimeout(() => {
     ridingScreen.classList.add("hidden");
     ridingScreen.classList.remove("is-leaving");
+    deactivateOverlay(ridingScreen);
+    document.documentElement.classList.remove("riding-active");
+    document.documentElement.style.backgroundColor =
+      MODE_BG[document.body.dataset.mode || "dark"];
     document.body.classList.remove("riding-active");
-    mainScreen.inert = false;
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeMeta) {
+      themeMeta.setAttribute(
+        "content",
+        ridingThemeColor || MODE_BG[document.body.dataset.mode || "dark"]
+      );
+    }
+    ridingThemeColor = null;
     $("riding-btn").focus({ preventScroll: true });
-  }, 260);
+  }, motionMs(160));
 }
 
 function updateRidingClock() {
@@ -2872,26 +3541,37 @@ function updateRidingClock() {
 // =====================================================================
 // 画面常時点灯 (Wake Lock)
 // =====================================================================
+const wakeReasons = new Set();
 let wakeLockReleasePromise = null;
+let wakeLockAcquirePromise = null;
 
 async function acquireWakeLock() {
   if (wakeLockReleasePromise) await wakeLockReleasePromise;
   if (wakeLock) return true;
-  try {
-    const acquiredLock = await navigator.wakeLock.request("screen");
-    wakeLock = acquiredLock;
-    $("wakelock-btn").classList.add("active");
-    updateHeaderUI();
-    acquiredLock.addEventListener("release", () => {
-      if (wakeLock !== acquiredLock) return;
-      wakeLock = null;
-      $("wakelock-btn").classList.remove("active");
+  if (wakeLockAcquirePromise) return wakeLockAcquirePromise;
+  wakeLockAcquirePromise = (async () => {
+    try {
+      const acquiredLock = await navigator.wakeLock.request("screen");
+      wakeLock = acquiredLock;
+      $("wakelock-btn").classList.add("active");
       updateHeaderUI();
-    });
-    return true;
-  } catch {
-    return false;
-  }
+      acquiredLock.addEventListener("release", () => {
+        if (wakeLock !== acquiredLock) return;
+        wakeLock = null;
+        $("wakelock-btn").classList.remove("active");
+        updateHeaderUI();
+        if (wakeReasons.size > 0 && document.visibilityState === "visible") {
+          void syncWakeLock();
+        }
+      });
+      return true;
+    } catch {
+      return false;
+    } finally {
+      wakeLockAcquirePromise = null;
+    }
+  })();
+  return wakeLockAcquirePromise;
 }
 
 async function releaseWakeLock() {
@@ -2916,12 +3596,31 @@ async function releaseWakeLock() {
 }
 
 async function toggleWakeLock() {
-  if (wakeLock) {
-    await releaseWakeLock();
-  } else if (!(await acquireWakeLock())) {
+  const button = $("wakelock-btn");
+  if (button.getAttribute("aria-busy") === "true") return;
+  button.setAttribute("aria-busy", "true");
+  const enabling = !wakeReasons.has("manual");
+  if (enabling) wakeReasons.add("manual");
+  else wakeReasons.delete("manual");
+  const success = await syncWakeLock();
+  button.setAttribute("aria-busy", "false");
+  if (enabling && !success) {
+    wakeReasons.delete("manual");
     showError(t("wakeLockFail"));
   }
 }
+
+async function syncWakeLock() {
+  if (wakeReasons.size > 0) return acquireWakeLock();
+  await releaseWakeLock();
+  return true;
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && wakeReasons.size > 0) {
+    void syncWakeLock();
+  }
+});
 
 // =====================================================================
 // エラー表示
@@ -2929,6 +3628,8 @@ async function toggleWakeLock() {
 let errorTimer = null;
 function showToast(msg, isError = true) {
   errorBanner.textContent = msg;
+  errorBanner.setAttribute("role", isError ? "alert" : "status");
+  errorBanner.setAttribute("aria-live", isError ? "assertive" : "polite");
   errorBanner.classList.toggle("success", !isError);
   errorBanner.classList.remove("hidden");
   clearTimeout(errorTimer);

@@ -28,13 +28,19 @@
   --radius-plate: 10px;
   --radius-control: 6px;
   --press-depth: 2px;
-  --motion-press: 100ms;
-  --motion-fast: 180ms;
+  --motion-instant: 1ms;
+  --motion-press: 80ms;
+  --motion-release: 120ms;
+  --motion-fast: 120ms;
+  --motion-small: 160ms;
+  --motion-normal: 200ms;
   --motion-enter: 260ms;
   --motion-exit: 180ms;
-  --motion-guide: 4.2s;
-  --ease-mech: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --ease-press: cubic-bezier(0.3, 0.7, 0.4, 1);
+  --motion-guide: 900ms;
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-mech: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ease-press: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* ライトモード */
@@ -1942,7 +1948,7 @@ body[data-theme="pink"] .alert-overlay {
   z-index: 100;
 }
 
-/* 踏切の警告灯のように、上下の帯が交互に切り替わる (フェードではなく機械的に) */
+/* 警告色は点滅させず、静止した上下線で状態を伝える */
 .alert-overlay::before,
 .alert-overlay::after {
   content: "";
@@ -1951,7 +1957,7 @@ body[data-theme="pink"] .alert-overlay {
   right: 0;
   height: 14px;
   background: var(--accent);
-  animation: barBlink 1s steps(1, end) infinite;
+  animation: none;
   pointer-events: none;
 }
 
@@ -2028,7 +2034,6 @@ body[data-theme="pink"] .alert-overlay {
   justify-content: center;
   align-items: flex-end;
   z-index: 50;
-  perspective: 1000px;
   animation: backdropIn var(--motion-fast) linear both;
 }
 
@@ -2222,23 +2227,23 @@ body[data-theme="pink"] .alert-overlay {
 
 @keyframes sheetDock {
   from {
-    opacity: 0;
-    transform: translate3d(0, 34px, -18px) rotateX(-2deg);
+    opacity: 0.98;
+    transform: translateY(24px);
   }
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0) rotateX(0);
+    transform: translateY(0);
   }
 }
 
 @keyframes sheetUndock {
   from {
     opacity: 1;
-    transform: translate3d(0, 0, 0) rotateX(0);
+    transform: translateY(0);
   }
   to {
     opacity: 0;
-    transform: translate3d(0, 24px, -12px) rotateX(-1.5deg);
+    transform: translateY(16px);
   }
 }
 
@@ -2621,19 +2626,19 @@ body[data-theme="pink"] .alert-overlay {
   fill: var(--fg);
 }
 
-/* --- アニメーション (display:noneの節では自動的に止まる) --- */
-.sc-phone { animation: scTapDown var(--motion-guide) ease-in-out infinite; }
-.sc-card { animation: scTapDown var(--motion-guide) ease-in-out infinite; }
-.sc-flap-l { animation: scFlapL var(--motion-guide) ease-in-out infinite; transform-origin: 76px 83px; }
-.sc-flap-r { animation: scFlapR var(--motion-guide) ease-in-out infinite; transform-origin: 164px 83px; }
-.sc-ping { animation: scPing var(--motion-guide) ease-out infinite; }
+/* --- 図解はガイドを開いたときだけ1回再生する --- */
+.guide-animating .sc-phone { animation: scTapDown var(--motion-guide) ease-in-out 1; }
+.guide-animating .sc-card { animation: scTapDown var(--motion-guide) ease-in-out 1; }
+.guide-animating .sc-flap-l { animation: scFlapL var(--motion-guide) ease-in-out 1; transform-origin: 76px 83px; }
+.guide-animating .sc-flap-r { animation: scFlapR var(--motion-guide) ease-in-out 1; transform-origin: 164px 83px; }
+.guide-animating .sc-ping { animation: scPing var(--motion-guide) ease-out 1; }
 .sc-ping2 { animation-delay: .28s; }
-.sc-tk-in { animation: scTicketIn var(--motion-guide) ease-in-out infinite; }
-.sc-tk-out { animation: scTicketOut var(--motion-guide) ease-in-out infinite; }
-.sc-fare-in { animation: scFareIn var(--motion-guide) ease-in-out infinite; }
-.sc-fare-out { animation: scFareOut var(--motion-guide) ease-in-out infinite; }
-.sc-pass { animation: scShow var(--motion-guide) ease-in-out infinite; }
-.sc-mover { animation: scTransfer var(--motion-guide) ease-in-out infinite; }
+.guide-animating .sc-tk-in { animation: scTicketIn var(--motion-guide) ease-in-out 1; }
+.guide-animating .sc-tk-out { animation: scTicketOut var(--motion-guide) ease-in-out 1; }
+.guide-animating .sc-fare-in { animation: scFareIn var(--motion-guide) ease-in-out 1; }
+.guide-animating .sc-fare-out { animation: scFareOut var(--motion-guide) ease-in-out 1; }
+.guide-animating .sc-pass { animation: scShow var(--motion-guide) ease-in-out 1; }
+.guide-animating .sc-mover { animation: scTransfer var(--motion-guide) ease-in-out 1; }
 
 /* かざす/タッチする: 下降 → 静止 → 離す */
 @keyframes scTapDown {
@@ -3035,8 +3040,8 @@ textarea {
 body {
   background: var(--bg);
   font-family:
-    "Inter", "IBM Plex Sans", "Noto Sans JP", system-ui, -apple-system,
-    BlinkMacSystemFont, "Segoe UI", "Yu Gothic UI", "Hiragino Sans", sans-serif;
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Yu Gothic UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
   font-feature-settings: "palt" 1;
   transition:
     background-color var(--motion-fast) var(--ease-mech),
@@ -4374,33 +4379,29 @@ body.riding-active #main-screen {
 
 .riding {
   background: #000;
-  animation: ridingReveal 320ms var(--ease-mech) both;
+  animation: none;
 }
 
 .riding.is-leaving {
   pointer-events: none;
-  animation: ridingConceal 260ms var(--ease-mech) both;
+  animation: none;
 }
 
 @keyframes ridingReveal {
   from {
-    opacity: 0.72;
-    clip-path: inset(88% 16px 16px 16px round 6px);
+    opacity: 1;
   }
   to {
     opacity: 1;
-    clip-path: inset(0 round 0);
   }
 }
 
 @keyframes ridingConceal {
   from {
     opacity: 1;
-    clip-path: inset(0 round 0);
   }
   to {
-    opacity: 0;
-    clip-path: inset(88% 16px 16px 16px round 6px);
+    opacity: 1;
   }
 }
 
@@ -4575,5 +4576,683 @@ body.riding-active #main-screen {
 
   body.riding-active #main-screen {
     transition: none;
+  }
+}
+
+/* =====================================================================
+   Quiet Depth — UI/UX・モーション仕様の最終適用レイヤー
+   文字、余白、面の差、短い応答だけで奥行きを作る。
+   ===================================================================== */
+
+html {
+  background: var(--bg);
+}
+
+html[data-mode="light"] body:not([data-mode]) {
+  background: #f4f2ec;
+  color: #17191c;
+}
+
+body {
+  font-family:
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Yu Gothic UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  transition:
+    background-color var(--motion-fast) var(--ease-mech),
+    color var(--motion-fast) var(--ease-mech);
+}
+
+#app {
+  max-width: 520px;
+}
+
+button,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.big-btn:active,
+.pass-btn:active,
+.mode-btn:active,
+.ride-mode-row:active,
+.destination-action:active,
+.console-key:active,
+.text-btn:active,
+.more-btn:active {
+  transform: translateY(1px);
+}
+
+.start-eyebrow,
+#start-screen .wordmark-en,
+#start-screen .note,
+.brand-mark,
+.brand-descriptor,
+.settings-panel-head,
+.control-index,
+.control-label,
+.station-eyebrow .status-label,
+.badge,
+.station-readouts .updated,
+.ride-mode-copy > span:last-child,
+.destination-kicker,
+.destination-modes,
+.section-index,
+.plus-row .pass-kicker,
+.plus-description,
+.plus-action,
+.ad-slot,
+#dest-map-status,
+#dest-map-hint,
+.riding .status-label {
+  font-size: 0.75rem;
+}
+
+#start-screen .hero-sign-face {
+  border-radius: 12px;
+  box-shadow:
+    0 1px 0 var(--edge-highlight),
+    0 18px 50px -32px var(--contact-shadow);
+}
+
+#start-screen #start-btn,
+.destination-action .action-copy > span:first-child,
+.ride-mode-copy > span:first-child,
+.mode-btn,
+.big-btn,
+.more-btn {
+  font-size: 0.9375rem;
+}
+
+#main-screen.screen {
+  transition:
+    opacity var(--motion-normal) var(--ease-mech),
+    color var(--motion-fast) var(--ease-mech);
+}
+
+.status-bar {
+  backdrop-filter: none;
+  background: color-mix(in srgb, var(--bg) 98%, transparent);
+}
+
+.settings-trigger,
+.console-key,
+.icon-only-btn,
+.tab-btn,
+.chip-btn,
+.text-btn,
+.more-btn {
+  transition:
+    transform var(--motion-press) var(--ease-press),
+    background-color var(--motion-fast) var(--ease-mech),
+    color var(--motion-fast) var(--ease-mech),
+    border-color var(--motion-fast) var(--ease-mech);
+}
+
+.station-display {
+  min-height: 250px;
+  padding-top: 24px;
+  padding-bottom: 38px;
+}
+
+.station-name {
+  max-width: 100%;
+  font-size: clamp(3.4rem, 16vw, 5.8rem);
+  font-weight: 650;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+  text-wrap: balance;
+}
+
+.station-name.is-state-message {
+  max-width: 320px;
+  font-size: clamp(2rem, 10vw, 2.7rem);
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: -0.035em;
+}
+
+.station-display:focus-visible {
+  outline: none;
+}
+
+.station-sub {
+  margin-top: 12px;
+  font-size: 0.9375rem;
+}
+
+.gps-state {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  margin: -8px 0 20px;
+  padding: 14px 16px;
+  border-left: 2px solid var(--accent);
+  border-radius: 0 12px 12px 0;
+  background: color-mix(in srgb, var(--card) 74%, transparent);
+  color: var(--sub);
+  font-size: 0.875rem;
+  line-height: 1.55;
+  animation: quietEnter var(--motion-small) var(--ease-enter) both;
+}
+
+.gps-state.is-compact {
+  display: none;
+}
+
+.gps-state[data-state="permission-denied"],
+.gps-state[data-state="timeout"],
+.gps-state[data-state="unavailable"] {
+  border-left-color: var(--danger);
+}
+
+.gps-state .text-btn {
+  min-height: 44px;
+  justify-self: start;
+  padding: 8px 12px;
+  border: 1px solid var(--control-border);
+  border-radius: 10px;
+  color: var(--fg);
+}
+
+.gps-settings-hint {
+  color: var(--fg);
+}
+
+@keyframes quietEnter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 設定はヘッダー内のドロップダウンではなく、独立した短いダイアログにする。 */
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  align-items: start;
+  justify-items: center;
+  padding:
+    calc(72px + env(safe-area-inset-top))
+    16px
+    calc(16px + env(safe-area-inset-bottom));
+}
+
+.settings-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.28);
+  animation: backdropIn var(--motion-normal) linear both;
+}
+
+body[data-mode="light"] .settings-scrim {
+  background: rgba(17, 19, 21, 0.16);
+}
+
+.settings-panel {
+  position: relative;
+  top: auto;
+  right: auto;
+  left: auto;
+  z-index: 1;
+  width: min(100%, 488px);
+  max-height: calc(100dvh - 88px - env(safe-area-inset-bottom));
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid var(--control-border);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--card) 97%, var(--bg));
+  box-shadow:
+    0 1px 0 var(--edge-highlight) inset,
+    0 24px 72px -38px rgba(0, 0, 0, 0.56);
+  animation: settingsPanelIn var(--motion-normal) var(--ease-enter) both;
+}
+
+.settings-overlay.is-closing .settings-scrim {
+  animation: backdropOut 140ms linear both;
+}
+
+.settings-overlay.is-closing .settings-panel {
+  animation: settingsPanelOut 140ms var(--ease-exit) both;
+}
+
+@keyframes settingsPanelIn {
+  from {
+    opacity: 0.96;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes settingsPanelOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+.settings-panel-head {
+  min-height: 48px;
+  padding: 0 2px 12px 6px;
+}
+
+.status-actions {
+  border-color: var(--control-border);
+  border-radius: 12px;
+  background: var(--control-border);
+}
+
+.console-key {
+  min-height: 66px;
+}
+
+.console-key:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  box-shadow: none;
+}
+
+/* ボトムシート。掴めない装飾ハンドルと3D回転は置かない。 */
+.modal-overlay {
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.58);
+}
+
+body[data-mode="light"] .modal-overlay {
+  background: rgba(17, 19, 21, 0.42);
+}
+
+.modal {
+  max-width: 520px;
+  max-height: 86dvh;
+  border: 1px solid var(--control-border);
+  border-bottom: 0;
+  border-radius: 20px 20px 0 0;
+  background: color-mix(in srgb, var(--card) 98%, var(--bg));
+  box-shadow:
+    0 1px 0 var(--edge-highlight) inset,
+    0 -28px 70px -48px rgba(0, 0, 0, 0.72);
+  animation: sheetDock var(--motion-enter) var(--ease-enter) both;
+}
+
+#dest-modal .modal,
+#guide-modal .modal,
+#paywall .modal {
+  max-height: 86dvh;
+  border-color: var(--control-border);
+  border-radius: 20px 20px 0 0;
+  background: color-mix(in srgb, var(--card) 98%, var(--bg));
+  box-shadow:
+    0 1px 0 var(--edge-highlight) inset,
+    0 -28px 70px -48px rgba(0, 0, 0, 0.72);
+}
+
+.modal-overlay.is-closing .modal {
+  animation: sheetUndock var(--motion-exit) var(--ease-exit) both;
+}
+
+.modal-header-row,
+#dest-modal .modal-header-row {
+  padding-top: 18px;
+  background: color-mix(in srgb, var(--card) 98%, var(--bg));
+}
+
+.modal-header-row::before,
+#dest-modal .modal-header-row::before {
+  display: none;
+}
+
+.modal-header-row h2,
+#dest-modal .modal-header-row h2 {
+  font-size: 1.375rem;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+
+.field-label {
+  display: block;
+  margin: 4px 2px -4px;
+  color: var(--fg);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.result-state,
+.empty-state {
+  min-height: 24px;
+  color: var(--sub);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.search-input {
+  min-height: 50px;
+  padding: 12px 14px;
+  border: 1px solid var(--control-border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg) 88%, var(--card));
+  font-size: 0.9375rem;
+}
+
+.search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.more-btn {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 4px;
+  border: 1px solid var(--control-border);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+}
+
+.history:has(> .nearby-list:empty) {
+  display: block;
+}
+
+#history-empty {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+#dest-map-stage {
+  border-color: var(--control-border);
+  border-radius: 16px;
+  background-color: color-mix(in srgb, var(--card) 90%, var(--bg));
+}
+
+#dest-map-stage::after {
+  display: none;
+}
+
+#dest-map-svg:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -3px;
+}
+
+.dest-map-zoom,
+#dest-map-locate {
+  border-color: var(--control-border);
+  border-radius: 10px;
+}
+
+.dest-map-node .dest-map-dot {
+  transition:
+    fill var(--motion-fast) var(--ease-mech),
+    stroke var(--motion-fast) var(--ease-mech),
+    stroke-width var(--motion-fast) var(--ease-mech),
+    r var(--motion-fast) var(--ease-mech);
+}
+
+#dest-selection,
+.dest-selection {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto auto;
+  padding-top: 12px;
+  border-top-color: var(--control-border);
+}
+
+.selection-label {
+  grid-column: 1;
+  grid-row: 1;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+}
+
+#dest-selection-name {
+  grid-row: 2;
+}
+
+#dest-selection-sub {
+  grid-row: 3;
+}
+
+#dest-selection-meta {
+  grid-row: 4;
+}
+
+#dest-confirm {
+  grid-row: 1 / 5;
+  border-radius: 12px;
+  font-size: 0.875rem;
+}
+
+/* ガイド選択は明示的な単一選択。図解はJSで1度だけ再生する。 */
+.guide-chips {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.chip-btn,
+.chip-btn.active,
+.chip-btn[aria-checked="true"] {
+  min-height: 46px;
+  border: 1px solid var(--control-border);
+  border-radius: 12px;
+  background: transparent;
+}
+
+.chip-btn[data-ticket="all"] {
+  grid-column: 1 / -1;
+}
+
+.chip-btn.active,
+.chip-btn[aria-checked="true"] {
+  border-width: 2px;
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--fg);
+}
+
+.guide-sec {
+  padding-block: 22px;
+}
+
+.guide-steps {
+  font-size: 0.9375rem;
+  line-height: 1.65;
+}
+
+.scene {
+  border-color: var(--control-border);
+  border-radius: 14px;
+}
+
+/* Plusは本番契約とデモを同時に見せない。 */
+.plus-state {
+  display: grid;
+  gap: 5px;
+  padding: 14px 16px;
+  border-left: 2px solid var(--accent);
+  border-radius: 0 12px 12px 0;
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+}
+
+.plus-mode-label {
+  color: var(--fg);
+  font-size: 0.9375rem;
+  font-weight: 650;
+}
+
+.plus-status,
+.plus-error {
+  color: var(--sub);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.plus-error {
+  color: var(--danger);
+}
+
+#paywall .big-btn {
+  min-height: 50px;
+  border-radius: 12px;
+}
+
+.price {
+  border-left-width: 2px;
+  font-size: 1.125rem;
+}
+
+/* 車内面が存在する全フレームを完全な黒にする。内容だけを短くフェード。 */
+html.riding-active,
+html.riding-active body,
+body.riding-active {
+  background: #000 !important;
+  overflow: hidden !important;
+}
+
+body.riding-active #main-screen {
+  opacity: 1;
+  transform: none;
+}
+
+.riding {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  isolation: isolate;
+  background: #000 !important;
+  opacity: 1;
+}
+
+.riding::before,
+.riding::after {
+  display: none;
+}
+
+.riding > * {
+  animation: ridingContentIn var(--motion-small) var(--ease-enter) both;
+}
+
+.riding.is-leaving > * {
+  opacity: 0;
+  transition: opacity var(--motion-fast) var(--ease-exit);
+}
+
+@keyframes ridingContentIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.alert-overlay {
+  z-index: 130;
+}
+
+.alert-overlay::before,
+.alert-overlay::after {
+  height: 3px;
+  animation: none;
+}
+
+.error-banner {
+  z-index: 140;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+  .modal-overlay {
+    align-items: center;
+    padding: 24px;
+  }
+
+  .modal,
+  #dest-modal .modal,
+  #guide-modal .modal,
+  #paywall .modal {
+    max-width: 520px;
+    max-height: min(780px, calc(100dvh - 48px));
+    border-bottom: 1px solid var(--control-border);
+    border-radius: 20px;
+  }
+
+  .settings-overlay {
+    padding-top: calc(86px + env(safe-area-inset-top));
+  }
+
+  .settings-panel {
+    justify-self: end;
+    margin-right: max(24px, calc((100vw - 760px) / 2));
+  }
+}
+
+@media (max-width: 370px) {
+  #dest-selection,
+  .dest-selection {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #dest-confirm {
+    grid-column: 1;
+    grid-row: 5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .modal,
+  .modal-overlay.is-closing .modal,
+  .settings-panel,
+  .settings-overlay.is-closing .settings-panel,
+  .gps-state,
+  .riding > *,
+  .riding.is-leaving > *,
+  #start-screen #start-btn::after,
+  .row-arrow,
+  .plus-action {
+    transform: none !important;
+  }
+
+  .guide-animating .sc-phone,
+  .guide-animating .sc-card,
+  .guide-animating .sc-flap-l,
+  .guide-animating .sc-flap-r,
+  .guide-animating .sc-ping,
+  .guide-animating .sc-tk-in,
+  .guide-animating .sc-tk-out,
+  .guide-animating .sc-fare-in,
+  .guide-animating .sc-fare-out,
+  .guide-animating .sc-pass,
+  .guide-animating .sc-mover {
+    animation: none !important;
   }
 }

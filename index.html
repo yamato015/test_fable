@@ -4,6 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#131517">
+  <script>
+    try {
+      const savedMode = localStorage.getItem("mode") === "light" ? "light" : "dark";
+      const initialColor = savedMode === "light" ? "#f4f2ec" : "#131517";
+      document.documentElement.dataset.mode = savedMode;
+      document.documentElement.style.backgroundColor = initialColor;
+      document.querySelector('meta[name="theme-color"]').content = initialColor;
+    } catch {
+      /* 保存設定を読めない環境では既定のダーク表示を使う */
+    }
+  </script>
   <meta name="description" content="電車内で現在いる駅・最寄り駅をすぐ確認できるアプリ">
   <!-- iPhoneのホーム画面追加でアプリのように全画面起動させる -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -200,39 +211,6 @@
           <svg class="ic" aria-hidden="true"><use href="#i-tune"/></svg>
           <span data-i18n="settingsLabel">表示設定</span>
         </button>
-        <div id="settings-panel" class="settings-panel hidden" role="region" aria-labelledby="settings-title">
-          <div class="settings-panel-head">
-            <span id="settings-title" data-i18n="headerControls">表示と端末の設定</span>
-            <button id="settings-close" class="icon-only-btn" type="button">
-              <svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>
-              <span class="sr-only" data-i18n="close">閉じる</span>
-            </button>
-          </div>
-          <div id="status-actions" class="status-actions" role="group" aria-label="表示と端末の設定">
-            <button id="lang-btn" class="console-key" type="button">
-              <span class="control-index" aria-hidden="true">01</span>
-              <span id="lang-btn-value" class="control-value">JA</span>
-              <span class="control-label" data-i18n="controlLang">言語</span>
-            </button>
-            <button id="daynight-btn" class="console-key" type="button">
-              <span class="control-index" aria-hidden="true">02</span>
-              <span id="mode-btn-value" class="control-value">DARK</span>
-              <span class="control-label" data-i18n="controlMode">明暗</span>
-            </button>
-            <button id="theme-btn" class="console-key" type="button">
-              <span class="control-index" aria-hidden="true">03</span>
-              <span class="theme-swatch" aria-hidden="true"></span>
-              <span id="theme-btn-value" class="control-value">AMBER</span>
-              <span class="control-label" data-i18n="controlTheme">配色</span>
-            </button>
-            <button id="wakelock-btn" class="console-key" type="button" aria-pressed="false">
-              <span class="control-index" aria-hidden="true">04</span>
-              <span class="pilot-lamp" aria-hidden="true"></span>
-              <span id="wake-btn-value" class="control-value">OFF</span>
-              <span class="control-label" data-i18n="controlWake">点灯</span>
-            </button>
-          </div>
-        </div>
       </header>
 
       <!-- 路線絞り込み (プレミアム / 路線データが取得できた場合のみ表示) -->
@@ -250,11 +228,17 @@
         <button id="ride-chip-clear" class="icon-only-btn" title="解除"><svg class="ic"><use href="#i-close"/></svg></button>
       </div>
 
-      <div class="station-display">
+      <div class="station-display" tabindex="-1" aria-labelledby="status-label">
         <div class="station-eyebrow">
           <p id="status-label" class="status-label" data-i18n="nearest">最寄り駅</p>
           <span id="gps-status" class="badge" data-i18n="gpsWait">GPS取得中…</span>
         </div>
+        <div id="gps-state" class="gps-state" data-state="requesting" role="status" aria-live="polite" aria-atomic="true">
+          <p id="gps-state-detail" data-i18n="gpsRequestingDetail">現在地を確認しています。</p>
+          <button id="gps-retry-btn" class="text-btn hidden" type="button" data-i18n="gpsRetry">もう一度試す</button>
+          <p id="gps-settings-hint" class="gps-settings-hint hidden" data-i18n="gpsSettingsHint">端末の設定で、このサイトの位置情報を許可してください。</p>
+        </div>
+        <p id="screen-live" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
         <h2 id="station-name" class="station-name">---</h2>
         <p id="station-kana" class="station-sub"></p>
         <div id="station-lines" class="lines"></div>
@@ -322,6 +306,7 @@
       <!-- 乗車履歴 (プレミアム) -->
       <div id="history-section" class="history hidden">
         <h3><span class="section-index" aria-hidden="true">HISTORY / 02</span><span data-i18n="historyTitle">乗車履歴</span></h3>
+        <p id="history-empty" class="empty-state hidden" data-i18n="historyEmpty">乗車履歴はまだありません。</p>
         <ol id="history-list" class="nearby-list"></ol>
       </div>
 
@@ -339,6 +324,44 @@
       </footer>
     </section>
 
+    <!-- 表示設定: 背面から独立したダイアログとして開き、フォーカスを閉じ込める -->
+    <div id="settings-overlay" class="settings-overlay hidden" aria-hidden="true">
+      <div id="settings-scrim" class="settings-scrim" aria-hidden="true"></div>
+      <div id="settings-panel" class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <div class="settings-panel-head">
+          <span id="settings-title" data-i18n="headerControls">表示と端末の設定</span>
+          <button id="settings-close" class="icon-only-btn" type="button">
+            <svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>
+            <span class="sr-only" data-i18n="close">閉じる</span>
+          </button>
+        </div>
+        <div id="status-actions" class="status-actions" role="group" aria-label="表示と端末の設定">
+          <button id="lang-btn" class="console-key" type="button">
+            <span class="control-index" aria-hidden="true">01</span>
+            <span id="lang-btn-value" class="control-value">JA</span>
+            <span class="control-label" data-i18n="controlLang">言語</span>
+          </button>
+          <button id="daynight-btn" class="console-key" type="button">
+            <span class="control-index" aria-hidden="true">02</span>
+            <span id="mode-btn-value" class="control-value">DARK</span>
+            <span class="control-label" data-i18n="controlMode">明暗</span>
+          </button>
+          <button id="theme-btn" class="console-key" type="button">
+            <span class="control-index" aria-hidden="true">03</span>
+            <span class="theme-swatch" aria-hidden="true"></span>
+            <span id="theme-btn-value" class="control-value">AMBER</span>
+            <span class="control-label" data-i18n="controlTheme">配色</span>
+          </button>
+          <button id="wakelock-btn" class="console-key" type="button" aria-pressed="false">
+            <span class="control-index" aria-hidden="true">04</span>
+            <span class="pilot-lamp" aria-hidden="true"></span>
+            <span id="wake-btn-value" class="control-value">OFF</span>
+            <span class="control-label" data-i18n="controlWake">点灯</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- 車内モード: 起動したまま膝上・手元でチラ見するための特大全画面表示 -->
     <section id="riding-screen" class="riding hidden" aria-labelledby="r-station">
       <p id="r-clock" class="r-clock"></p>
@@ -351,7 +374,7 @@
     </section>
 
     <!-- 目的地ピッカー (地図 / 検索 / 路線図 / プレミアム) -->
-    <div id="dest-modal" class="modal-overlay hidden">
+    <div id="dest-modal" class="modal-overlay hidden" aria-hidden="true">
       <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dest-modal-title">
         <div class="modal-header-row">
           <h2 id="dest-modal-title" data-i18n="destTitle">どこで降りますか？</h2>
@@ -368,7 +391,9 @@
             <p id="dest-map-status" data-i18n="destMapStatus">現在地周辺の駅</p>
           </div>
           <div id="dest-map-stage">
-            <svg id="dest-map-svg" viewBox="0 0 1000 1000" role="region" aria-label="目的地の駅を選ぶ地図" aria-describedby="dest-map-hint">
+            <svg id="dest-map-svg" viewBox="0 0 1000 1000" role="region" tabindex="0"
+                 aria-label="目的地の駅を選ぶ地図" aria-describedby="dest-map-hint"
+                 aria-keyshortcuts="Enter ArrowUp ArrowDown ArrowLeft ArrowRight + - 0">
               <g id="dest-map-content"></g>
             </svg>
             <div class="dest-map-zoom">
@@ -389,45 +414,59 @@
           <p id="dest-map-hint" data-i18n="destMapHint">地図を動かして駅をタップしてください</p>
         </div>
         <div id="dest-search-view" class="hidden" role="tabpanel" aria-labelledby="dest-tab-search">
+          <label class="field-label" for="dest-search" data-i18n="searchLabel">駅名から探す</label>
           <input id="dest-search" class="search-input" type="search"
-                 placeholder="駅名・ひらがなで検索..." data-i18n-ph="searchPh" autocomplete="off">
+                 placeholder="駅名・ひらがなで検索..." data-i18n-ph="searchPh" autocomplete="off"
+                 aria-controls="dest-list" aria-describedby="dest-search-status">
           <button id="dest-clear" class="text-btn hidden" data-i18n="clearDest">目的地をクリア</button>
-          <ul id="dest-list" class="nearby-list dest-list"></ul>
+          <div id="dest-search-status" class="result-state" role="status" aria-live="polite" aria-atomic="true"></div>
+          <button id="dest-search-reset" class="text-btn hidden" type="button" data-i18n="clearSearch">検索をクリア</button>
+          <ul id="dest-list" class="nearby-list dest-list" aria-busy="false"></ul>
+          <button id="dest-more" class="more-btn hidden" type="button" data-i18n="showMore20">さらに20件表示</button>
           <p id="dest-credit" class="api-credit hidden"></p>
         </div>
         <div id="dest-lines-view" class="hidden" role="tabpanel" aria-labelledby="dest-tab-lines">
+          <label class="field-label" for="line-search" data-i18n="lineSearchLabel">路線名・駅名から探す</label>
           <input id="line-search" class="search-input" type="search"
-                 placeholder="路線名・駅名で検索..." data-i18n-ph="lineSearchPh" autocomplete="off">
+                 placeholder="路線名・駅名で検索..." data-i18n-ph="lineSearchPh" autocomplete="off"
+                 aria-controls="line-list" aria-describedby="line-search-status">
+          <div id="line-search-status" class="result-state" role="status" aria-live="polite" aria-atomic="true"></div>
+          <button id="line-search-reset" class="text-btn hidden" type="button" data-i18n="clearSearch">検索をクリア</button>
           <ul id="line-list" class="nearby-list dest-list"></ul>
+          <button id="line-more" class="more-btn hidden" type="button" data-i18n="showMore20">さらに20件表示</button>
         </div>
         <div id="dest-stations-view" class="hidden" role="tabpanel" aria-labelledby="dest-tab-lines">
           <button id="dest-back" class="text-btn" data-i18n="backToLines">← 路線一覧に戻る</button>
           <p id="dest-line-title" class="line-title"></p>
           <ul id="route-list" class="route-list"></ul>
         </div>
-        <div id="dest-selection" class="dest-selection hidden" aria-live="polite">
+        <div id="dest-selection" class="dest-selection hidden">
+          <span class="selection-label" data-i18n="provisionalSelection">仮選択</span>
           <p id="dest-selection-name"></p>
           <p id="dest-selection-sub"></p>
           <p id="dest-selection-meta"></p>
           <button id="dest-confirm" type="button" data-i18n="destConfirm">この駅を目的地にする</button>
         </div>
+        <p id="dest-selection-live" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
       </div>
     </div>
 
     <!-- 駅の乗り方ガイド: 文章を減らし、動く図で見せる。きっぷ種別で出し分け -->
-    <div id="guide-modal" class="modal-overlay hidden">
+    <div id="guide-modal" class="modal-overlay hidden" aria-hidden="true">
       <div class="modal" role="dialog" aria-modal="true" aria-labelledby="guide-modal-title">
         <div class="modal-header-row">
           <h2 id="guide-modal-title" data-i18n="guideTitle">改札の通り方</h2>
           <button id="guide-close" class="icon-only-btn" title="閉じる"><svg class="ic"><use href="#i-close"/></svg></button>
         </div>
         <p class="guide-ask" data-i18n="guideAsk">何で乗りますか？</p>
-        <div class="guide-chips">
-          <button class="chip-btn" data-ticket="qr" aria-pressed="false"><svg class="ic"><use href="#i-qr"/></svg><span data-i18n="ticketQr">QR</span></button>
-          <button class="chip-btn" data-ticket="ic" aria-pressed="false"><svg class="ic"><use href="#i-card"/></svg><span data-i18n="ticketIc">ICカード</span></button>
-          <button class="chip-btn" data-ticket="paper" aria-pressed="false"><svg class="ic"><use href="#i-ticket"/></svg><span data-i18n="ticketPaper">きっぷ</span></button>
-          <button class="chip-btn" data-ticket="jrpass" aria-pressed="false"><svg class="ic"><use href="#i-shinkansen"/></svg><span data-i18n="ticketJrpass">JR Pass</span></button>
+        <div class="guide-chips" role="radiogroup" aria-labelledby="guide-modal-title">
+          <button class="chip-btn" type="button" role="radio" data-ticket="all" aria-checked="true"><span data-i18n="ticketAll">すべて</span></button>
+          <button class="chip-btn" type="button" role="radio" data-ticket="qr" aria-checked="false"><svg class="ic"><use href="#i-qr"/></svg><span data-i18n="ticketQr">QR</span></button>
+          <button class="chip-btn" type="button" role="radio" data-ticket="ic" aria-checked="false"><svg class="ic"><use href="#i-card"/></svg><span data-i18n="ticketIc">ICカード</span></button>
+          <button class="chip-btn" type="button" role="radio" data-ticket="paper" aria-checked="false"><svg class="ic"><use href="#i-ticket"/></svg><span data-i18n="ticketPaper">きっぷ</span></button>
+          <button class="chip-btn" type="button" role="radio" data-ticket="jrpass" aria-checked="false"><svg class="ic"><use href="#i-shinkansen"/></svg><span data-i18n="ticketJrpass">JR Pass</span></button>
         </div>
+        <p id="guide-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
         <div id="guide-body">
           <!-- QR: リーダーにかざす -->
           <section class="guide-sec" data-sec="qr">
@@ -579,11 +618,16 @@
     </div>
 
     <!-- プレミアム案内モーダル -->
-    <div id="paywall" class="modal-overlay hidden">
+    <div id="paywall" class="modal-overlay hidden" aria-hidden="true">
       <div class="modal" role="dialog" aria-modal="true" aria-labelledby="paywall-title">
         <div class="modal-header-row">
           <h2 id="paywall-title" data-i18n="pwTitle">プレミアム</h2>
           <button id="paywall-close" class="icon-only-btn" title="閉じる"><svg class="ic"><use href="#i-close"/></svg></button>
+        </div>
+        <div class="plus-state">
+          <p id="plus-mode-label" class="plus-mode-label"></p>
+          <p id="plus-status" class="plus-status" role="status" aria-live="polite" aria-atomic="true"></p>
+          <p id="plus-error" class="plus-error hidden" role="alert"></p>
         </div>
         <ul class="feature-list">
           <li><svg class="ic"><use href="#i-bell"/></svg><span data-i18n-html="pw1"><b>降車アラート</b> — 降りる駅が近づくと通知。寝過ごし防止に</span></li>
@@ -592,7 +636,7 @@
           <li><svg class="ic"><use href="#i-list"/></svg><span data-i18n-html="pw4"><b>乗車履歴</b> — 通った駅を自動で記録</span></li>
           <li><svg class="ic"><use href="#i-noads"/></svg><span data-i18n-html="pw5"><b>広告非表示</b></span></li>
         </ul>
-        <p class="price" data-i18n-html="price">月額 240円 <span class="price-sub">/ 年額 1,800円（38%おトク）</span></p>
+        <p id="plus-price" class="price hidden" data-i18n-html="price">月額 240円 <span class="price-sub">/ 年額 1,800円（38%おトク）</span></p>
         <!-- config.jsのbackendUrl設定時はStripe Checkoutへ遷移し、
              未設定時はデモボタン (即時有効化) が表示される -->
         <button id="buy-monthly-btn" class="big-btn hidden" data-i18n="buyMonthly">月額プランに登録する</button>
@@ -604,15 +648,17 @@
     </div>
 
     <!-- 降車アラート発火時の全画面表示 -->
-    <div id="alert-overlay" class="alert-overlay hidden">
-      <p class="alert-title"><svg class="ic"><use href="#i-bell"/></svg><span data-i18n="soonTitle">まもなく</span></p>
+    <div id="alert-overlay" class="alert-overlay hidden" role="alertdialog" aria-modal="true"
+         aria-labelledby="alert-overlay-title" aria-describedby="alert-overlay-station alert-ticket-hint"
+         aria-hidden="true">
+      <p id="alert-overlay-title" class="alert-title"><svg class="ic"><use href="#i-bell"/></svg><span data-i18n="soonTitle">まもなく</span></p>
       <p id="alert-overlay-station" class="alert-station-name"></p>
       <p id="alert-ticket-hint" class="alert-ticket-hint hidden"></p>
       <button id="alert-dismiss-btn" class="big-btn" data-i18n="alertDismiss">アラートを停止</button>
     </div>
 
     <!-- エラー表示 -->
-    <div id="error-banner" class="error-banner hidden"></div>
+    <div id="error-banner" class="error-banner hidden" role="status" aria-live="polite" aria-atomic="true"></div>
   </main>
 
   <script src="config.js"></script>
