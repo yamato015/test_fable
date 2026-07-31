@@ -223,6 +223,8 @@ const STRINGS = {
     startBtn: "現在地を確認する",
     startNote: "位置情報は端末内だけで使い、保存しません。",
     privacyLink: "プライバシーポリシー",
+    brandDescriptor: "駅位置インストゥルメント",
+    settingsLabel: "表示設定",
     gpsWait: "GPS取得中…",
     gpsAcc: (n) => `GPS ±${n}m`,
     gpsAccLow: (n) => `GPS ±${n}m 誤差大`,
@@ -240,7 +242,9 @@ const STRINGS = {
     nextIs: (n, d) => `次は ${n}（${d}）`,
     nextIsShort: (n) => `次は ${n}`,
     ridingBtn: "車内モード",
+    ridingHint: "駅名を拡大し、低照度で表示",
     destBtn: "目的地",
+    destinationLabel: "降りる駅",
     destSet: (n) => `目的地 ${n}`,
     alertSet: (n) => `${n} でアラート`,
     stopsLeft: (n) => `あと${n}駅`,
@@ -262,7 +266,7 @@ const STRINGS = {
     lineFilterLabel: "路線で絞り込み",
     allLines: "すべての路線",
     rideChip: (l) => `${l} に乗車中？`,
-    tapBack: "タップで戻る",
+    tapBack: "通常表示に戻る",
     destTitle: "どこで降りますか？",
     destPrompt: "降りる駅を選ぶ",
     destPromptHint: "地図・駅名・路線から",
@@ -341,7 +345,7 @@ const STRINGS = {
       "<li>基本は<b>一度改札を出て入り直す</b></li>" +
       "<li><b>オレンジの乗換改札</b>ならそのまま通れる</li>",
     stationsCount: (n) => `${n}駅`,
-    pwTitle: "プレミアム",
+    pwTitle: "EKIKOKO Plus",
     pw1: "<b>降車アラート</b> — 降りる駅が近づくと通知。寝過ごし防止に",
     pw2: "<b>次の駅予測</b> — 進行方向から次の駅を表示",
     pw3: "<b>路線絞り込み</b> — 乗っている路線だけ表示",
@@ -353,8 +357,9 @@ const STRINGS = {
     buyDemo: "アップグレードする（デモ）",
     manageSub: "サブスクリプションを管理・解約する",
     cancelDemo: "プレミアムを解約する（デモ）",
-    premiumBtn: "プレミアム",
-    premiumMember: "会員",
+    premiumBtn: "機能を見る",
+    premiumMember: "会員機能",
+    plusDescription: "降車前通知・次駅予測・乗車履歴",
     headerControls: "表示と端末の設定",
     controlLang: "言語",
     controlMode: "明暗",
@@ -383,6 +388,8 @@ const STRINGS = {
     startBtn: "Show my location",
     startNote: "Please allow location access.<br>Your location is processed only on this device and never stored.",
     privacyLink: "Privacy Policy",
+    brandDescriptor: "Station location instrument",
+    settingsLabel: "Display",
     gpsWait: "Getting GPS…",
     gpsAcc: (n) => `GPS ±${n}m`,
     gpsAccLow: (n) => `GPS ±${n}m low`,
@@ -400,7 +407,9 @@ const STRINGS = {
     nextIs: (n, d) => `Next: ${n} (${d})`,
     nextIsShort: (n) => `Next: ${n}`,
     ridingBtn: "On-board",
+    ridingHint: "Enlarge the station name in low light",
     destBtn: "Destination",
+    destinationLabel: "Your stop",
     destSet: (n) => `To ${n}`,
     alertSet: (n) => `Alert at ${n}`,
     stopsLeft: (n) => `${n} ${n === 1 ? "stop" : "stops"} to go`,
@@ -422,7 +431,7 @@ const STRINGS = {
     lineFilterLabel: "Filter by line",
     allLines: "All lines",
     rideChip: (l) => `Riding ${l}?`,
-    tapBack: "Tap to go back",
+    tapBack: "Return to standard view",
     destTitle: "Where are you getting off?",
     destPrompt: "Choose where to get off",
     destPromptHint: "From the map, station name, or line",
@@ -501,7 +510,7 @@ const STRINGS = {
       "<li>Usually <b>exit and enter again</b></li>" +
       "<li><b>Orange transfer gates</b> let you pass straight through</li>",
     stationsCount: (n) => `${n} stations`,
-    pwTitle: "Premium",
+    pwTitle: "EKIKOKO Plus",
     pw1: "<b>Get-off alert</b> — a nudge as your stop approaches",
     pw2: "<b>Next station</b> — predicted from your direction",
     pw3: "<b>Line filter</b> — only stations on your line",
@@ -513,8 +522,9 @@ const STRINGS = {
     buyDemo: "Upgrade (demo)",
     manageSub: "Manage / cancel subscription",
     cancelDemo: "Cancel premium (demo)",
-    premiumBtn: "Premium",
-    premiumMember: "Member",
+    premiumBtn: "View features",
+    premiumMember: "Member features",
+    plusDescription: "Arrival alerts, next station and ride history",
     headerControls: "Display and device settings",
     controlLang: "LANG",
     controlMode: "MODE",
@@ -566,6 +576,7 @@ function updateHeaderUI() {
   $("wake-btn-value").textContent = wakeOn ? "ON" : "OFF";
 
   $("status-actions").setAttribute("aria-label", t("headerControls"));
+  $("settings-btn").setAttribute("aria-label", t("settingsLabel"));
   $("lang-btn").setAttribute(
     "aria-label",
     t("switchLanguage", lang === "ja" ? "English" : "日本語")
@@ -596,12 +607,12 @@ function updateDestinationAction() {
   const primary = alertStation
     ? t("destSet", dispName(alertStation))
     : t("destPrompt");
+  const hintText = t(alertStation ? "destChangeHint" : "destPromptHint");
 
   if (label) label.textContent = primary;
   else if ($("dest-btn")) setBtnLabel("dest-btn", primary);
-  if (hint) {
-    hint.textContent = t(alertStation ? "destChangeHint" : "destPromptHint");
-  }
+  if (hint) hint.textContent = hintText;
+  $("dest-btn")?.setAttribute("aria-label", `${primary}. ${hintText}`);
 }
 
 function applyLang() {
@@ -616,6 +627,12 @@ function applyLang() {
   document.querySelectorAll("[data-i18n-ph]").forEach((el) => {
     el.placeholder = t(el.dataset.i18nPh);
   });
+  for (const id of ["dest-close", "guide-close", "paywall-close"]) {
+    const closeButton = $(id);
+    if (!closeButton) continue;
+    closeButton.title = t("close");
+    closeButton.setAttribute("aria-label", t("close"));
+  }
   // 動的に組み立てている文言を現在の状態で再描画
   updateDestinationAction();
   if (alertStation) {
@@ -634,6 +651,34 @@ function applyLang() {
 $("lang-btn").addEventListener("click", () => {
   lang = lang === "ja" ? "en" : "ja";
   applyLang();
+});
+
+// 表示設定は常時並べず、ヘッダーの一つの操作から必要なときだけ展開する。
+const settingsPanel = $("settings-panel");
+const settingsButton = $("settings-btn");
+
+function setSettingsOpen(open, returnFocus = false) {
+  settingsPanel.classList.toggle("hidden", !open);
+  settingsButton.setAttribute("aria-expanded", String(open));
+  if (open) {
+    requestAnimationFrame(() => $("lang-btn").focus({ preventScroll: true }));
+  } else if (returnFocus) {
+    settingsButton.focus({ preventScroll: true });
+  }
+}
+
+settingsButton.addEventListener("click", () => {
+  setSettingsOpen(settingsPanel.classList.contains("hidden"));
+});
+$("settings-close").addEventListener("click", () => setSettingsOpen(false, true));
+document.addEventListener("pointerdown", (event) => {
+  if (settingsPanel.classList.contains("hidden")) return;
+  if (!event.target.closest(".status-bar")) setSettingsOpen(false);
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape" || settingsPanel.classList.contains("hidden")) return;
+  event.preventDefault();
+  setSettingsOpen(false, true);
 });
 
 // =====================================================================
@@ -1160,7 +1205,12 @@ function render(lat, lon) {
 
   statusLabel.textContent = atStation ? t("here") : t("nearest");
   statusLabel.classList.toggle("at-station", atStation);
-  stationName.textContent = dispName(nearest);
+  const displayName = dispName(nearest);
+  stationName.textContent = displayName;
+  stationName.classList.toggle(
+    "is-long",
+    displayName.length > (lang === "en" ? 14 : 7)
+  );
   stationKana.textContent = dispSub(nearest);
   distanceEl.textContent = atStation ? "" : t("about", formatDistance(nearest.dist));
   renderLineChips(nearest);
@@ -1168,7 +1218,11 @@ function render(lat, lon) {
   // 車内モード側にも同じ内容を反映
   $("r-status").textContent = statusLabel.textContent;
   $("r-status").classList.toggle("at-station", atStation);
-  $("r-station").textContent = dispName(nearest);
+  $("r-station").textContent = displayName;
+  $("r-station").classList.toggle(
+    "is-long",
+    displayName.length > (lang === "en" ? 14 : 7)
+  );
   $("r-dist").textContent = atStation ? "" : t("about", formatDistance(nearest.dist));
 
   if (atStation) recordHistory(nearest.name);
@@ -1224,10 +1278,34 @@ $("ride-chip-clear").addEventListener("click", () => {
 
 function nearbyItem(s) {
   const li = document.createElement("li");
+  const line = (s.lines || [])[0] || "";
+  li.style.setProperty("--route-color", line ? lineColor(line) : "var(--accent)");
+
+  const rail = document.createElement("span");
+  rail.className = "nearby-route-rail";
+  rail.setAttribute("aria-hidden", "true");
+
+  const copy = document.createElement("span");
+  copy.className = "nearby-copy";
   const name = document.createElement("span");
+  name.className = "nearby-name";
   name.textContent = dispName(s);
+  const sub = document.createElement("span");
+  sub.className = "nearby-sub";
+  sub.textContent = [dispSub(s), line].filter(Boolean).join(" · ");
+  copy.append(name, sub);
+
   const right = document.createElement("span");
   right.className = "item-right";
+  const direction = document.createElement("span");
+  direction.className = "nearby-direction";
+  direction.setAttribute("aria-hidden", "true");
+  if (curPos) {
+    direction.style.setProperty(
+      "--bearing",
+      `${Math.round(bearing(curPos.lat, curPos.lon, s.lat, s.lon))}deg`
+    );
+  }
   const dist = document.createElement("span");
   dist.className = "dist";
   dist.textContent = formatDistance(s.dist);
@@ -1238,8 +1316,8 @@ function nearbyItem(s) {
   bell.classList.toggle("on", on);
   bell.title = "この駅で降車アラートを設定";
   bell.addEventListener("click", (event) => setAlert(s, event.currentTarget));
-  right.append(dist, bell);
-  li.append(name, right);
+  right.append(direction, dist, bell);
+  li.append(rail, copy, right);
   return li;
 }
 
@@ -1367,8 +1445,8 @@ $("dest-btn").addEventListener("click", (event) => {
   renderPendingDestination();
   renderDestList("");
   const mapTarget = curPos || alertStation || loadRecentDests()[0] || null;
-  const initialView = mapTarget ? "map" : "search";
-  if (initialView === "map") initializeDestMapCenter(mapTarget);
+  const initialView = "map";
+  initializeDestMapCenter(mapTarget);
   showDestView(initialView);
   openSheet(
     "dest-modal",
@@ -1779,7 +1857,7 @@ const DEST_MAP_WORLD_VIEW_PX = 440;
 const DEST_MAP_MIN_ZOOM = 9;
 const DEST_MAP_MAX_ZOOM = 15;
 const DEST_MAP_STATION_ZOOM = 9.8;
-const DEST_MAP_MARKER_MAX = 60;
+const DEST_MAP_MARKER_MAX = 36;
 const DEST_MAP_LINE_MAX = 12;
 const DEST_MAP_FALLBACK = { lat: 35.68139, lon: 139.7661 };
 
@@ -2173,7 +2251,13 @@ function mapMarkerAriaLabel(station) {
   return parts.join(". ");
 }
 
-function renderDestMapStation(content, item, showLabel, isTabStop) {
+function renderDestMapStation(
+  content,
+  item,
+  showLabel,
+  isTabStop,
+  mapOrder
+) {
   const { station, point } = item;
   const selected = sameDestination(station, pendingDestination);
   const group = createMapSvgElement("g", {
@@ -2185,6 +2269,7 @@ function renderDestMapStation(content, item, showLabel, isTabStop) {
     "aria-label": mapMarkerAriaLabel(station),
   });
   group.dataset.stationKey = mapStationKey(station);
+  group.dataset.mapOrder = String(mapOrder);
   group.appendChild(
     createMapSvgElement("circle", {
       class: "dest-map-hit",
@@ -2237,7 +2322,9 @@ function renderDestMapStation(content, item, showLabel, isTabStop) {
       return;
     }
     event.preventDefault();
-    const nodes = [...content.querySelectorAll(".dest-map-node")];
+    const nodes = [...content.querySelectorAll(".dest-map-node")].sort(
+      (a, b) => Number(a.dataset.mapOrder) - Number(b.dataset.mapOrder)
+    );
     const index = nodes.indexOf(group);
     let next = index;
     if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
@@ -2321,7 +2408,7 @@ function renderDestMap() {
     .sort((a, b) => a.distance - b.distance);
 
   const markerLimit =
-    window.innerWidth <= 370 ? 42 : DEST_MAP_MARKER_MAX;
+    window.innerWidth <= 370 ? 28 : DEST_MAP_MARKER_MAX;
   let visible = projected.slice(0, markerLimit);
   const selectedItem = projected.find(({ station }) =>
     sameDestination(station, pendingDestination)
@@ -2340,9 +2427,11 @@ function renderDestMap() {
         ? 6
         : destMapState.zoom >= 13
           ? 4
-          : 2;
+          : 1;
   const labelled = new Set(
-    visible.slice(0, labelCount).map(({ station }) => mapStationKey(station))
+    (selectedItem ? [] : visible.slice(0, labelCount)).map(({ station }) =>
+      mapStationKey(station)
+    )
   );
   if (selectedItem) labelled.add(mapStationKey(selectedItem.station));
   const visibleKeys = new Set(
@@ -2354,13 +2443,22 @@ function renderDestMap() {
       : selectedItem
         ? mapStationKey(selectedItem.station)
         : mapStationKey(visible[0]?.station || DEST_MAP_FALLBACK));
-  for (const item of visible) {
+  const markerStack = visible
+    .map((item, mapOrder) => ({ item, mapOrder }))
+    .sort((a, b) => {
+      const aSelected = sameDestination(a.item.station, pendingDestination);
+      const bSelected = sameDestination(b.item.station, pendingDestination);
+      if (aSelected !== bSelected) return aSelected ? 1 : -1;
+      return b.mapOrder - a.mapOrder;
+    });
+  for (const { item, mapOrder } of markerStack) {
     const key = mapStationKey(item.station);
     renderDestMapStation(
       content,
       item,
       labelled.has(key),
-      key === tabStopKey
+      key === tabStopKey,
+      mapOrder
     );
   }
   renderDestMapCurrentPosition(content);
@@ -2532,7 +2630,7 @@ applyTheme(
 // =====================================================================
 // ライト/ダークモード切り替え
 // =====================================================================
-const MODE_BG = { light: "#f6f2ea", dark: "#0a0b10" };
+const MODE_BG = { light: "#f4f2ec", dark: "#131517" };
 
 function applyMode(mode) {
   document.body.dataset.mode = mode;
@@ -2705,6 +2803,8 @@ function angleDiff(a, b) {
 // =====================================================================
 let ridingClockTimer = null;
 let ridingAcquiredWakeLock = false;
+let ridingExitTimer = null;
+let ridingGeneration = 0;
 
 $("riding-btn").addEventListener("click", enterRidingMode);
 $("riding-screen").addEventListener("click", (event) => {
@@ -2719,41 +2819,71 @@ $("riding-screen").addEventListener("keydown", (event) => {
 });
 
 async function enterRidingMode() {
+  if (!$("riding-screen").classList.contains("hidden")) return;
+  const generation = ++ridingGeneration;
+  clearTimeout(ridingExitTimer);
+  $("riding-screen").classList.remove("is-leaving");
+  document.body.classList.add("riding-active");
+  mainScreen.inert = true;
   $("riding-screen").classList.remove("hidden");
   $("riding-btn").setAttribute("aria-expanded", "true");
   $("riding-exit-btn").focus({ preventScroll: true });
   updateRidingClock();
   ridingClockTimer = setInterval(updateRidingClock, 1000);
   // 車内モード中は画面を消灯させない (非対応端末では表示のみ)
-  ridingAcquiredWakeLock = !wakeLock && (await acquireWakeLock());
+  const acquired = !wakeLock && (await acquireWakeLock());
+  if (generation !== ridingGeneration || $("riding-screen").classList.contains("is-leaving")) {
+    if (acquired) void releaseWakeLock();
+    return;
+  }
+  ridingAcquiredWakeLock = acquired;
 }
 
 function exitRidingMode() {
-  $("riding-screen").classList.add("hidden");
+  const ridingScreen = $("riding-screen");
+  if (ridingScreen.classList.contains("hidden") || ridingScreen.classList.contains("is-leaving")) {
+    return;
+  }
+  ridingGeneration += 1;
+  ridingScreen.classList.add("is-leaving");
   $("riding-btn").setAttribute("aria-expanded", "false");
   clearInterval(ridingClockTimer);
-  if (ridingAcquiredWakeLock) releaseWakeLock();
+  if (ridingAcquiredWakeLock) void releaseWakeLock();
   ridingAcquiredWakeLock = false;
-  $("riding-btn").focus({ preventScroll: true });
+  ridingExitTimer = setTimeout(() => {
+    ridingScreen.classList.add("hidden");
+    ridingScreen.classList.remove("is-leaving");
+    document.body.classList.remove("riding-active");
+    mainScreen.inert = false;
+    $("riding-btn").focus({ preventScroll: true });
+  }, 260);
 }
 
 function updateRidingClock() {
-  $("r-clock").textContent = new Date().toLocaleTimeString("ja-JP", {
+  $("r-clock").textContent = new Date().toLocaleTimeString(
+    lang === "ja" ? "ja-JP" : "en-US",
+    {
     hour: "2-digit",
     minute: "2-digit",
-  });
+    }
+  );
 }
 
 // =====================================================================
 // 画面常時点灯 (Wake Lock)
 // =====================================================================
+let wakeLockReleasePromise = null;
+
 async function acquireWakeLock() {
+  if (wakeLockReleasePromise) await wakeLockReleasePromise;
   if (wakeLock) return true;
   try {
-    wakeLock = await navigator.wakeLock.request("screen");
+    const acquiredLock = await navigator.wakeLock.request("screen");
+    wakeLock = acquiredLock;
     $("wakelock-btn").classList.add("active");
     updateHeaderUI();
-    wakeLock.addEventListener("release", () => {
+    acquiredLock.addEventListener("release", () => {
+      if (wakeLock !== acquiredLock) return;
       wakeLock = null;
       $("wakelock-btn").classList.remove("active");
       updateHeaderUI();
@@ -2765,8 +2895,24 @@ async function acquireWakeLock() {
 }
 
 async function releaseWakeLock() {
-  if (wakeLock) await wakeLock.release();
-  updateHeaderUI();
+  if (wakeLockReleasePromise) {
+    await wakeLockReleasePromise;
+    return;
+  }
+  const lockToRelease = wakeLock;
+  if (!lockToRelease) {
+    updateHeaderUI();
+    return;
+  }
+  wakeLockReleasePromise = lockToRelease
+    .release()
+    .catch(() => {})
+    .finally(() => {
+      if (wakeLock === lockToRelease) wakeLock = null;
+      wakeLockReleasePromise = null;
+      updateHeaderUI();
+    });
+  await wakeLockReleasePromise;
 }
 
 async function toggleWakeLock() {

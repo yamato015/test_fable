@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#0a0b10">
+  <meta name="theme-color" content="#131517">
   <meta name="description" content="電車内で現在いる駅・最寄り駅をすぐ確認できるアプリ">
   <!-- iPhoneのホーム画面追加でアプリのように全画面起動させる -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -117,6 +117,10 @@
       <g id="s-staff" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
         <circle cx="12" cy="8" r="3.4"/><path d="M5.6 20.4a6.4 6.4 0 0 1 12.8 0"/>
       </g>
+      <g id="s-tune" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <path d="M4 7h7M15 7h5M4 17h5M13 17h7"/>
+        <circle cx="13" cy="7" r="2"/><circle cx="11" cy="17" r="2"/>
+      </g>
     </defs>
     <symbol id="i-globe" viewBox="0 0 24 24"><use href="#s-globe"/></symbol>
     <symbol id="i-moon" viewBox="0 0 24 24"><use href="#s-moon"/></symbol>
@@ -145,11 +149,16 @@
     <symbol id="i-noads" viewBox="0 0 24 24"><use href="#s-noads"/></symbol>
     <symbol id="i-close" viewBox="0 0 24 24"><use href="#s-close"/></symbol>
     <symbol id="i-staff" viewBox="0 0 24 24"><use href="#s-staff"/></symbol>
+    <symbol id="i-tune" viewBox="0 0 24 24"><use href="#s-tune"/></symbol>
   </svg>
 
   <main id="app">
     <!-- 開始画面 -->
     <section id="start-screen" class="screen">
+      <p class="start-eyebrow" aria-hidden="true">
+        <span>EKIKOKO</span>
+        <span>LOCATION INSTRUMENT</span>
+      </p>
       <!-- 立体の駅名標が線路脇に立っている場面。アプリ名そのものを駅名標に載せる -->
       <div class="hero">
         <div class="hero-stage">
@@ -179,23 +188,25 @@
     <!-- メイン画面 -->
     <section id="main-screen" class="screen hidden">
       <header class="status-bar">
-        <div class="status-meta">
-          <div class="system-readout">
-            <span class="system-code" aria-hidden="true">EK–LOC / 01</span>
-            <span id="gps-status" class="badge" data-i18n="gpsWait">GPS取得中…</span>
-          </div>
-          <button id="premium-btn" class="pass-btn" type="button" aria-haspopup="dialog" aria-controls="paywall" aria-expanded="false">
-            <span class="pass-copy">
-              <span class="pass-kicker" aria-hidden="true">EKIKOKO PASS</span>
-              <span id="premium-btn-label" data-i18n="premiumBtn">プレミアム</span>
-            </span>
-            <span class="pass-number" aria-hidden="true">P–01</span>
-          </button>
+        <div class="brand-lockup" aria-label="EkiKoko">
+          <span class="brand-mark" aria-hidden="true">EK</span>
+          <span class="brand-copy">
+            <span class="brand-name">EKIKOKO</span>
+            <span class="brand-descriptor" data-i18n="brandDescriptor">駅位置インストゥルメント</span>
+          </span>
         </div>
-        <div class="status-console">
-          <div class="console-caption" aria-hidden="true">
-            <span>DISPLAY CONTROL</span>
-            <span>EK–04</span>
+        <button id="settings-btn" class="settings-trigger" type="button"
+                aria-controls="settings-panel" aria-expanded="false">
+          <svg class="ic" aria-hidden="true"><use href="#i-tune"/></svg>
+          <span data-i18n="settingsLabel">表示設定</span>
+        </button>
+        <div id="settings-panel" class="settings-panel hidden" role="region" aria-labelledby="settings-title">
+          <div class="settings-panel-head">
+            <span id="settings-title" data-i18n="headerControls">表示と端末の設定</span>
+            <button id="settings-close" class="icon-only-btn" type="button">
+              <svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>
+              <span class="sr-only" data-i18n="close">閉じる</span>
+            </button>
           </div>
           <div id="status-actions" class="status-actions" role="group" aria-label="表示と端末の設定">
             <button id="lang-btn" class="console-key" type="button">
@@ -240,24 +251,48 @@
       </div>
 
       <div class="station-display">
-        <p id="prev-next" class="prev-next"></p>
-        <p id="status-label" class="status-label" data-i18n="nearest">最寄り駅</p>
+        <div class="station-eyebrow">
+          <p id="status-label" class="status-label" data-i18n="nearest">最寄り駅</p>
+          <span id="gps-status" class="badge" data-i18n="gpsWait">GPS取得中…</span>
+        </div>
         <h2 id="station-name" class="station-name">---</h2>
         <p id="station-kana" class="station-sub"></p>
         <div id="station-lines" class="lines"></div>
-        <p id="distance" class="distance"></p>
-        <p id="next-station" class="next-station hidden"></p>
+        <p id="prev-next" class="prev-next"></p>
+        <div class="station-readouts">
+          <p id="distance" class="distance"></p>
+          <p id="updated-at" class="updated"></p>
+          <p id="next-station" class="next-station hidden"></p>
+        </div>
+        <span class="station-axis" aria-hidden="true"></span>
       </div>
 
+      <button id="riding-btn" class="ride-mode-row" aria-controls="riding-screen" aria-expanded="false">
+        <svg class="ic" aria-hidden="true"><use href="#i-train"/></svg>
+        <span class="ride-mode-copy">
+          <span data-i18n="ridingBtn">車内モード</span>
+          <span data-i18n="ridingHint">駅名を拡大し、低照度で表示</span>
+        </span>
+        <span class="row-arrow" aria-hidden="true">→</span>
+      </button>
+
       <button id="dest-btn" class="destination-action" aria-haspopup="dialog" aria-controls="dest-modal" aria-expanded="false">
-        <svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg>
+        <span class="destination-kicker">
+          <span aria-hidden="true">DESTINATION /</span>
+          <span data-i18n="destinationLabel">降りる駅</span>
+        </span>
         <span class="action-copy">
           <span id="dest-btn-label" data-dynamic-label data-i18n="destPrompt">どこで降りますか？</span>
           <span id="dest-btn-hint" data-i18n="destPromptHint">駅名・地図・路線から選ぶ</span>
         </span>
+        <span class="destination-modes" aria-hidden="true">
+          <span data-i18n="mapTab">地図</span>
+          <span data-i18n="searchTab">検索</span>
+          <span data-i18n="linesTab">路線</span>
+        </span>
+        <span class="row-arrow" aria-hidden="true">→</span>
       </button>
       <div class="mode-row">
-        <button id="riding-btn" class="mode-btn secondary" aria-controls="riding-screen" aria-expanded="false"><svg class="ic"><use href="#i-train"/></svg><span data-i18n="ridingBtn">車内モード</span></button>
         <button id="guide-btn" class="mode-btn secondary" aria-haspopup="dialog" aria-controls="guide-modal" aria-expanded="false"><svg class="ic"><use href="#i-ticket"/></svg><span data-i18n="guideBtn">乗り方ガイド</span></button>
       </div>
 
@@ -268,13 +303,25 @@
       </div>
 
       <div class="nearby">
-        <h3><span data-i18n="nearbyTitle">周辺の駅</span></h3>
+        <h3><span class="section-index" aria-hidden="true">NEARBY / 01</span><span data-i18n="nearbyTitle">周辺の駅</span></h3>
         <ol id="nearby-list" class="nearby-list"></ol>
       </div>
 
+      <button id="premium-btn" class="pass-btn plus-row" type="button" aria-haspopup="dialog" aria-controls="paywall" aria-expanded="false">
+        <span class="plus-rule" aria-hidden="true"></span>
+        <span class="pass-copy">
+          <span class="pass-kicker">EKIKOKO Plus</span>
+          <span class="plus-description" data-i18n="plusDescription">降車前通知・次駅予測・乗車履歴</span>
+        </span>
+        <span class="plus-action">
+          <span id="premium-btn-label" data-i18n="premiumBtn">機能を見る</span>
+          <span aria-hidden="true">→</span>
+        </span>
+      </button>
+
       <!-- 乗車履歴 (プレミアム) -->
       <div id="history-section" class="history hidden">
-        <h3 data-i18n="historyTitle">乗車履歴</h3>
+        <h3><span class="section-index" aria-hidden="true">HISTORY / 02</span><span data-i18n="historyTitle">乗車履歴</span></h3>
         <ol id="history-list" class="nearby-list"></ol>
       </div>
 
@@ -283,7 +330,6 @@
       <div id="ad-slot" class="ad-slot" data-i18n="adPlaceholder">広告スペース</div>
 
       <footer class="footer">
-        <p id="updated-at" class="updated"></p>
         <p class="footer-links">
           <a href="privacy.html" data-i18n="privacyFooter">プライバシー</a>
           <a id="feedback-link" class="hidden" href="#" target="_blank" rel="noopener" data-i18n="feedback">フィードバック</a>
@@ -320,10 +366,6 @@
         <div id="dest-map-view" role="tabpanel" aria-labelledby="dest-tab-map">
           <div class="dest-map-toolbar">
             <p id="dest-map-status" data-i18n="destMapStatus">現在地周辺の駅</p>
-            <button id="dest-map-locate" class="text-btn" type="button">
-              <svg class="ic" aria-hidden="true"><use href="#i-here"/></svg>
-              <span data-i18n="destMapLocate">現在地</span>
-            </button>
           </div>
           <div id="dest-map-stage">
             <svg id="dest-map-svg" viewBox="0 0 1000 1000" role="region" aria-label="目的地の駅を選ぶ地図" aria-describedby="dest-map-hint">
@@ -339,6 +381,10 @@
                 <span class="sr-only" data-i18n="destMapZoomOut">縮小</span>
               </button>
             </div>
+            <button id="dest-map-locate" class="text-btn" type="button">
+              <svg class="ic" aria-hidden="true"><use href="#i-here"/></svg>
+              <span data-i18n="destMapLocate">現在地</span>
+            </button>
           </div>
           <p id="dest-map-hint" data-i18n="destMapHint">地図を動かして駅をタップしてください</p>
         </div>
