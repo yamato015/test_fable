@@ -1,0 +1,17 @@
+# Bubblewrap/Gradleのビルド成果物 (再生成可能なので追跡不要)
+.gradle/
+build/
+app/build/
+local.properties
+*.iml
+.idea/
+
+# 署名鍵と生成物: 紛失するとPlay Storeで同じアプリを二度と更新できなくなる
+# ため、Gitには絶対に入れない。オーナー自身で安全な場所にバックアップすること
+*.keystore
+*.jks
+key.properties
+
+# ビルド成果物 (署名済みAAB/APK)。生成のたびに差し替わるので追跡不要
+*.aab
+*.apk

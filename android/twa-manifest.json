@@ -1,0 +1,39 @@
+{
+  "packageId": "app.ekikoko.twa",
+  "host": "yamato015.github.io",
+  "name": "エキココ",
+  "launcherName": "エキココ",
+  "display": "standalone",
+  "themeColor": "#131517",
+  "navigationColor": "#131517",
+  "navigationColorDark": "#131517",
+  "navigationDividerColor": "#131517",
+  "navigationDividerColorDark": "#131517",
+  "backgroundColor": "#131517",
+  "enableNotifications": true,
+  "startUrl": "/test_fable/",
+  "iconUrl": "https://yamato015.github.io/test_fable/icon-512.png",
+  "maskableIconUrl": "https://yamato015.github.io/test_fable/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "ekikoko"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://yamato015.github.io/test_fable/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://yamato015.github.io/test_fable/",
+  "minSdkVersion": 21,
+  "orientation": "default",
+  "fingerprints": []
+}
