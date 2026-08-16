@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.ekikoko.twa",
+      "sha256_cert_fingerprints": [
+        "BE:10:17:84:11:34:2C:0C:37:F6:66:47:F4:C6:DC:B6:13:04:4E:EC:37:7E:17:8C:F3:E7:FE:7A:C6:C9:E4:B6"
+      ]
+    }
+  }
+]
