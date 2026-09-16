@@ -1,99 +1,52 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 980" role="img" aria-labelledby="title desc">
 <title id="title">エキココ PCヒーロービジュアル</title>
-<desc id="desc">電車内、スマートフォンの現在駅表示、路線図、駅案内板を組み合わせたエキココの世界観</desc>
+<desc id="desc">電車の車内、車窓、路線図、現在駅を表示するスマートフォンを一体化したブランドビジュアル</desc>
 <defs>
-  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fffefa"/><stop offset="1" stop-color="#ece7dd"/></linearGradient>
-  <linearGradient id="window" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#dfecef"/><stop offset="1" stop-color="#f7f4ed"/></linearGradient>
-  <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fdfcf8"/><stop offset="1" stop-color="#ddd5c8"/></linearGradient>
-  <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="24" stdDeviation="28" flood-color="#17191c" flood-opacity=".14"/></filter>
-  <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#17191c" flood-opacity=".09"/></filter>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fffefb"/><stop offset="1" stop-color="#ece7dc"/></linearGradient>
+  <linearGradient id="window" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#dbe9ed"/><stop offset="1" stop-color="#f8f5ef"/></linearGradient>
+  <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffffff" stop-opacity=".72"/><stop offset="1" stop-color="#ffffff" stop-opacity=".18"/></linearGradient>
+  <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="22" stdDeviation="18" flood-color="#17191c" flood-opacity=".15"/></filter>
 </defs>
 <rect width="1440" height="980" rx="42" fill="url(#bg)"/>
-<rect x="28" y="28" width="1384" height="924" rx="32" fill="none" stroke="#d2cec4"/>
-
-<!-- train shell -->
-<path d="M48 126h1344v620H48z" fill="#f8f6f0"/>
-<path d="M48 126h1344M48 746h1344" stroke="#c9c2b6" stroke-width="2"/>
-<path d="M108 126v620M1332 126v620" stroke="#d9d3c8" stroke-width="2"/>
-
-<!-- window -->
-<rect x="112" y="182" width="784" height="442" rx="30" fill="url(#window)" stroke="#c9c2b6" stroke-width="2"/>
-<g opacity=".52">
-  <rect x="146" y="394" width="66" height="128" rx="4" fill="#a9c0c9"/>
-  <rect x="228" y="342" width="92" height="180" rx="4" fill="#b9cfd6"/>
-  <rect x="340" y="302" width="76" height="220" rx="4" fill="#9eb8c2"/>
-  <rect x="438" y="366" width="52" height="156" rx="4" fill="#bdd1d7"/>
-  <rect x="508" y="278" width="112" height="244" rx="4" fill="#aec5ce"/>
-  <rect x="640" y="332" width="88" height="190" rx="4" fill="#c3d5db"/>
-  <rect x="746" y="292" width="110" height="230" rx="4" fill="#abc4cd"/>
+<path d="M0 690C260 624 444 652 676 720s486 96 764-20v280H0z" fill="#e4ddd0"/>
+<rect x="70" y="64" width="1300" height="824" rx="38" fill="#fbf9f4" stroke="#d8d1c6"/>
+<rect x="94" y="88" width="1252" height="116" rx="20" fill="#f2ede4"/>
+<text x="126" y="132" fill="#8a8f93" font-family="Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="3">TRAIN / CURRENT STATION / ROUTE</text>
+<text x="126" y="170" fill="#17191c" font-family="Arial,sans-serif" font-size="24" font-weight="700">EKIKOKO</text>
+<rect x="94" y="226" width="760" height="516" rx="30" fill="url(#window)" stroke="#d6d0c5"/>
+<g opacity=".88">
+  <rect x="138" y="470" width="66" height="146" rx="5" fill="#bfd2d9"/><rect x="224" y="402" width="86" height="214" rx="6" fill="#a8c1cb"/>
+  <rect x="328" y="446" width="58" height="170" rx="5" fill="#c7d8de"/><rect x="410" y="346" width="116" height="270" rx="8" fill="#a3bbc6"/>
+  <rect x="548" y="420" width="78" height="196" rx="6" fill="#bfd2d9"/><rect x="646" y="366" width="118" height="250" rx="7" fill="#b3c7cf"/>
 </g>
-<g opacity=".30" stroke-linecap="round">
-  <line x1="124" y1="554" x2="880" y2="554" stroke="#356e80" stroke-width="6"/>
-  <line x1="158" y1="578" x2="850" y2="578" stroke="#76552b" stroke-width="4"/>
+<g opacity=".28"><line x1="116" y1="642" x2="824" y2="642" stroke="#6f94a6" stroke-width="5"/><line x1="94" y1="668" x2="790" y2="668" stroke="#b08a52" stroke-width="4"/></g>
+<g stroke="#8e887d" stroke-width="8" fill="none">
+  <path d="M228 0v126M472 0v126M716 0v126"/>
+  <path d="M228 126c0 52 42 94 94 94s94-42 94-94M472 126c0 52 42 94 94 94s94-42 94-94M716 126c0 52 42 94 94 94s94-42 94-94"/>
 </g>
-
-<!-- handles -->
-<g fill="none" stroke="#898980" stroke-linecap="round">
-  <path d="M246 126v70" stroke-width="8"/><path d="M474 126v70" stroke-width="8"/><path d="M702 126v70" stroke-width="8"/>
-  <circle cx="246" cy="234" r="32" stroke-width="9"/><circle cx="474" cy="234" r="32" stroke-width="9"/><circle cx="702" cy="234" r="32" stroke-width="9"/>
+<rect x="112" y="764" width="720" height="88" rx="22" fill="#e8e1d4" stroke="#d2cabd"/>
+<g transform="translate(824 204) rotate(-7 190 330)" filter="url(#shadow)">
+  <rect width="386" height="674" rx="52" fill="#17191c"/>
+  <rect x="13" y="13" width="360" height="648" rx="40" fill="#fbfaf6"/>
+  <rect x="153" y="24" width="80" height="10" rx="5" fill="#cbc6bc"/>
+  <text x="42" y="90" fill="#5f6469" font-family="Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="2.4">CURRENT STATION</text>
+  <line x1="42" y1="108" x2="322" y2="108" stroke="#cbc6bc"/>
+  <text x="42" y="232" fill="#17191c" font-family="Arial,'Hiragino Sans',sans-serif" font-size="100" font-weight="700">新宿</text>
+  <text x="48" y="276" fill="#5f6469" font-family="Arial,'Hiragino Sans',sans-serif" font-size="20">しんじゅく</text>
+  <line x1="42" y1="322" x2="322" y2="322" stroke="#cbc6bc"/>
+  <circle cx="58" cy="368" r="9" fill="#356e80"/><text x="80" y="376" fill="#17191c" font-family="Arial,'Hiragino Sans',sans-serif" font-size="22">JR 山手線</text>
+  <text x="42" y="458" fill="#5f6469" font-family="Arial,'Hiragino Sans',sans-serif" font-size="16">現在地から</text><text x="236" y="458" fill="#17191c" font-family="Arial,sans-serif" font-size="38" font-weight="700">84 m</text>
+  <rect x="42" y="516" width="280" height="64" rx="12" fill="#17191c"/><text x="74" y="556" fill="#f4f2ec" font-family="Arial,'Hiragino Sans',sans-serif" font-size="18" font-weight="700">車内モード</text><text x="268" y="556" fill="#c8a16d" font-family="Arial,sans-serif" font-size="14" font-weight="700">OPEN</text>
+  <rect x="42" y="596" width="280" height="48" rx="12" fill="#f7f4ee" stroke="#8e887d"/><text x="74" y="627" fill="#17191c" font-family="Arial,'Hiragino Sans',sans-serif" font-size="16" font-weight="700">目的地を設定</text><text x="278" y="627" fill="#76552b" font-family="Arial,sans-serif" font-size="13" font-weight="700">SET</text>
 </g>
-
-<!-- seat -->
-<rect x="112" y="656" width="784" height="108" rx="22" fill="#e4ddcf" stroke="#c9c2b6"/>
-<rect x="132" y="676" width="744" height="68" rx="18" fill="#d7ccba"/>
-
-<!-- route map plate -->
-<g filter="url(#soft)" transform="translate(942 160)">
-  <rect width="404" height="286" rx="26" fill="#fffefa" stroke="#cfc7b9" stroke-width="2"/>
-  <rect x="18" y="18" width="368" height="250" rx="20" fill="#fbf8f2" stroke="#e0dbd1"/>
-  <text x="40" y="54" fill="#8b9094" font-family="Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="3">ROUTE / NETWORK</text>
-  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <polyline points="44,205 98,164 148,176 205,122 262,140 330,82" stroke="#356e80" stroke-width="7"/>
-    <polyline points="54,88 116,132 148,176 206,220 274,212 340,238" stroke="#76552b" stroke-width="7"/>
-  </g>
-  <g>
-    <circle cx="44" cy="205" r="8" fill="#356e80"/><circle cx="98" cy="164" r="8" fill="#356e80"/><circle cx="148" cy="176" r="11" fill="#17191c"/>
-    <circle cx="205" cy="122" r="8" fill="#356e80"/><circle cx="262" cy="140" r="8" fill="#356e80"/><circle cx="330" cy="82" r="9" fill="#356e80"/>
-    <circle cx="54" cy="88" r="8" fill="#76552b"/><circle cx="116" cy="132" r="8" fill="#76552b"/><circle cx="206" cy="220" r="8" fill="#76552b"/><circle cx="274" cy="212" r="8" fill="#76552b"/><circle cx="340" cy="238" r="9" fill="#76552b"/>
-  </g>
-  <rect x="176" y="34" width="150" height="34" rx="17" fill="#f0eee7" stroke="#d6d0c4"/>
-  <text x="194" y="56" fill="#17191c" font-family="Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="2">NOW / SHINJUKU</text>
+<g transform="translate(922 84)">
+  <path d="M0 18Q0 0 18 0h322q18 0 18 18v106q0 18-18 18H18Q0 142 0 124z" fill="url(#glass)" stroke="#d6cfc4"/>
+  <polyline points="30,88 88,56 144,70 210,38 270,54 328,30" fill="none" stroke="#356e80" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="30" cy="88" r="7" fill="#356e80"/><circle cx="88" cy="56" r="7" fill="#356e80"/><circle cx="144" cy="70" r="9" fill="#17191c"/><circle cx="210" cy="38" r="7" fill="#356e80"/><circle cx="270" cy="54" r="7" fill="#356e80"/><circle cx="328" cy="30" r="7" fill="#c49b62"/>
+  <text x="30" y="120" fill="#8a8f93" font-family="Arial,sans-serif" font-size="11" font-weight="700" letter-spacing="2">NOW → NEXT → DESTINATION</text>
 </g>
-
-<!-- station sign plate -->
-<g filter="url(#soft)" transform="translate(942 488)">
-  <rect width="404" height="246" rx="24" fill="url(#metal)" stroke="#c6beb0" stroke-width="2"/>
-  <rect x="16" y="16" width="372" height="214" rx="18" fill="#fffefa" stroke="#d5cec2"/>
-  <rect x="16" y="16" width="372" height="8" rx="4" fill="#356e80"/>
-  <text x="42" y="66" fill="#8b9094" font-family="Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="3">CURRENT STATION</text>
-  <text x="40" y="146" fill="#17191c" font-family="Arial, 'Hiragino Sans', sans-serif" font-size="66" font-weight="700">新宿</text>
-  <text x="42" y="178" fill="#62676b" font-family="Arial, 'Hiragino Sans', sans-serif" font-size="16">しんじゅく / Shinjuku</text>
-  <circle cx="46" cy="205" r="7" fill="#356e80"/><text x="64" y="211" fill="#17191c" font-family="Arial, 'Hiragino Sans', sans-serif" font-size="15">JR 山手線</text>
-</g>
-
-<!-- phone -->
-<g filter="url(#shadow)" transform="translate(592 350) rotate(-8)">
-  <rect width="330" height="570" rx="46" fill="#17191c"/>
-  <rect x="12" y="12" width="306" height="546" rx="37" fill="#fbfaf6"/>
-  <rect x="124" y="24" width="82" height="10" rx="5" fill="#c9c5bb"/>
-  <text x="38" y="80" fill="#8b9094" font-family="Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="2.4">CURRENT STATION</text>
-  <line x1="38" y1="98" x2="292" y2="98" stroke="#d1cbc0"/>
-  <text x="36" y="205" fill="#17191c" font-family="Arial, 'Hiragino Sans', sans-serif" font-size="84" font-weight="700">新宿</text>
-  <text x="40" y="238" fill="#62676b" font-family="Arial, 'Hiragino Sans', sans-serif" font-size="18">しんじゅく</text>
-  <circle cx="48" cy="292" r="8" fill="#356e80"/><text x="68" y="299" fill="#17191c" font-family="Arial, 'Hiragino Sans', sans-serif" font-size="18">JR 山手線</text>
-  <line x1="38" y1="330" x2="292" y2="330" stroke="#d1cbc0"/>
-  <text x="40" y="374" fill="#62676b" font-family="Arial, 'Hiragino Sans', sans-serif" font-size="14">現在地から</text>
-  <text x="204" y="378" fill="#17191c" font-family="Arial, sans-serif" font-size="34" font-weight="700">84 m</text>
-  <rect x="38" y="414" width="254" height="62" rx="14" fill="#17191c"/>
-  <text x="60" y="452" fill="#f4f1e8" font-family="Arial, 'Hiragino Sans', sans-serif" font-size="17" font-weight="700">車内モード</text>
-  <text x="236" y="452" fill="#c8a16d" font-family="Arial, sans-serif" font-size="12" font-weight="700">OPEN</text>
-  <rect x="38" y="492" width="254" height="46" rx="12" fill="#fffefa" stroke="#8f8a80"/>
-  <text x="60" y="522" fill="#17191c" font-family="Arial, 'Hiragino Sans', sans-serif" font-size="15" font-weight="700">目的地を設定</text>
-</g>
-
-<!-- labels -->
-<g font-family="Arial, sans-serif" font-weight="700" letter-spacing="3">
-  <text x="76" y="90" fill="#76552b" font-size="14">EKIKOKO / TRAIN INTERFACE</text>
-  <text x="1054" y="800" fill="#8b9094" font-size="12">NOW · NEXT · DESTINATION</text>
+<g transform="translate(902 826)">
+  <rect width="390" height="76" rx="20" fill="#fffdf8" stroke="#d6cfc4"/><rect width="390" height="8" rx="4" fill="#356e80"/>
+  <text x="30" y="48" fill="#17191c" font-family="Arial,'Hiragino Sans',sans-serif" font-size="22" font-weight="700">今、どの駅？を、迷わず。</text>
 </g>
 </svg>
