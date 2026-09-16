@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">エキココの車内モード</title>
+  <desc id="desc">黒い画面に渋谷駅が大きく表示された車内モードのイメージ</desc>
+  <rect width="1200" height="760" fill="#000"/>
+  <rect x="42" y="42" width="1116" height="676" rx="18" fill="#000" stroke="#2E3032" stroke-width="2"/>
+  <text x="82" y="105" fill="#A9A7A1" font-family="Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="4">ONBOARD MODE</text>
+  <text x="1032" y="105" fill="#A9A7A1" font-family="Arial, sans-serif" font-size="18" font-weight="700">11:42</text>
+  <text x="600" y="286" text-anchor="middle" fill="#A9A7A1" font-family="Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="4">CURRENT STATION</text>
+  <text x="600" y="484" text-anchor="middle" fill="#F4F1E8" font-family="'Hiragino Sans','Yu Gothic',sans-serif" font-size="194" font-weight="700" letter-spacing="-10">渋谷</text>
+  <rect x="481" y="607" width="238" height="58" rx="8" fill="none" stroke="#555"/>
+  <text x="600" y="644" text-anchor="middle" fill="#D0CEC8" font-family="'Hiragino Sans','Yu Gothic',sans-serif" font-size="18">タップして戻る</text>
+  <circle cx="1108" cy="644" r="7" fill="#C49B62"/>
+</svg>
