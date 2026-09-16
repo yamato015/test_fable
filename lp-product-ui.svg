@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 1180" role="img" aria-labelledby="title desc">
+  <title id="title">エキココの現在駅画面</title>
+  <desc id="desc">新宿駅、JR山手線、現在地から84メートルと表示された白基調の現在駅画面</desc>
+  <rect width="760" height="1180" rx="64" fill="#17191C"/>
+  <rect x="16" y="16" width="728" height="1148" rx="52" fill="#FBFAF6"/>
+  <rect x="298" y="34" width="164" height="12" rx="6" fill="#CBC6BC"/>
+  <text x="64" y="120" fill="#5F6469" font-family="Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="4">EKIKOKO</text>
+  <circle cx="624" cy="111" r="8" fill="#2E6A52"/>
+  <text x="646" y="118" fill="#5F6469" font-family="Arial, sans-serif" font-size="15" font-weight="700">GPS</text>
+  <line x1="64" y1="154" x2="696" y2="154" stroke="#CBC6BC"/>
+  <text x="64" y="218" fill="#76552B" font-family="Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="3">CURRENT STATION</text>
+  <text x="60" y="384" fill="#17191C" font-family="'Hiragino Sans','Yu Gothic',sans-serif" font-size="146" font-weight="700" letter-spacing="-8">新宿</text>
+  <text x="68" y="436" fill="#5F6469" font-family="'Hiragino Sans','Yu Gothic',sans-serif" font-size="28">しんじゅく</text>
+  <rect x="64" y="502" width="632" height="1" fill="#CBC6BC"/>
+  <circle cx="82" cy="565" r="12" fill="#356E80"/>
+  <text x="116" y="576" fill="#17191C" font-family="'Hiragino Sans','Yu Gothic',sans-serif" font-size="30" font-weight="600">JR 山手線</text>
+  <text x="64" y="690" fill="#5F6469" font-family="'Hiragino Sans','Yu Gothic',sans-serif" font-size="22">現在地から</text>
+  <text x="508" y="692" fill="#17191C" font-family="Arial, sans-serif" font-size="54" font-weight="700">84 m</text>
+  <rect x="64" y="748" width="632" height="1" fill="#CBC6BC"/>
+  <rect x="64" y="812" width="632" height="92" rx="12" fill="#17191C"/>
+  <text x="98" y="869" fill="#F4F2EC" font-family="'Hiragino Sans','Yu Gothic',sans-serif" font-size="27" font-weight="700">車内モード</text>
+  <text x="596" y="869" fill="#C8A16D" font-family="Arial, sans-serif" font-size="18" font-weight="700">OPEN</text>
+  <rect x="64" y="928" width="632" height="92" rx="12" fill="#FBFAF6" stroke="#8E887D" stroke-width="2"/>
+  <text x="98" y="985" fill="#17191C" font-family="'Hiragino Sans','Yu Gothic',sans-serif" font-size="27" font-weight="700">目的地を設定</text>
+  <text x="614" y="985" fill="#76552B" font-family="Arial, sans-serif" font-size="18" font-weight="700">SET</text>
+  <text x="64" y="1094" fill="#8A8F93" font-family="Arial, sans-serif" font-size="15" letter-spacing="3">A QUIET INTERFACE FOR THE TRAIN</text>
+</svg>
