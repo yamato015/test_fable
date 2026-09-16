@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">エキココを使う電車内のイメージ</title>
+  <desc id="desc">白い電車内で案内表示が人影に隠れ、手元のスマートフォンに新宿駅が大きく表示されている</desc>
+  <rect width="1200" height="900" fill="#F4F2EC"/>
+  <path d="M0 116h1200M0 734h1200" stroke="#C9C5BA" stroke-width="2"/>
+  <path d="M114 116v618M1086 116v618" stroke="#D8D4CA" stroke-width="2"/>
+  <rect x="368" y="102" width="464" height="126" rx="8" fill="#17191C"/>
+  <text x="412" y="150" fill="#9DA4A9" font-family="Arial, sans-serif" font-size="20" letter-spacing="3">NEXT / CURRENT</text>
+  <text x="412" y="198" fill="#F1EFE9" font-family="Arial, sans-serif" font-size="36" font-weight="700">新宿</text>
+  <circle cx="778" cy="164" r="11" fill="#356E80"/>
+  <path d="M164 0v196M1040 0v196" stroke="#8E887D" stroke-width="8"/>
+  <path d="M164 196c0 58 48 105 106 105s106-47 106-105" fill="none" stroke="#8E887D" stroke-width="8"/>
+  <path d="M824 196c0 58 48 105 106 105s106-47 106-105" fill="none" stroke="#8E887D" stroke-width="8"/>
+  <circle cx="270" cy="303" r="54" fill="#FBFAF6" stroke="#8E887D" stroke-width="8"/>
+  <circle cx="930" cy="303" r="54" fill="#FBFAF6" stroke="#8E887D" stroke-width="8"/>
+  <path d="M216 298h108M876 298h108" stroke="#8E887D" stroke-width="8"/>
+  <ellipse cx="610" cy="556" rx="242" ry="254" fill="#25282A" opacity=".13"/>
+  <circle cx="600" cy="382" r="116" fill="#2A2D2F"/>
+  <path d="M388 734c24-174 97-270 212-270s188 96 212 270" fill="#2A2D2F"/>
+  <g transform="translate(702 338) rotate(4)">
+    <rect width="326" height="548" rx="42" fill="#17191C"/>
+    <rect x="10" y="10" width="306" height="528" rx="34" fill="#FBFAF6"/>
+    <rect x="123" y="22" width="80" height="8" rx="4" fill="#CBC6BC"/>
+    <text x="34" y="78" fill="#5F6469" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="2">CURRENT STATION</text>
+    <line x1="34" y1="96" x2="292" y2="96" stroke="#CBC6BC"/>
+    <text x="34" y="208" fill="#17191C" font-family="'Hiragino Sans','Yu Gothic',sans-serif" font-size="88" font-weight="700">新宿</text>
+    <text x="38" y="246" fill="#5F6469" font-family="'Hiragino Sans','Yu Gothic',sans-serif" font-size="19">しんじゅく</text>
+    <rect x="34" y="286" width="258" height="1" fill="#CBC6BC"/>
+    <circle cx="48" cy="328" r="8" fill="#356E80"/>
+    <text x="68" y="336" fill="#17191C" font-family="'Hiragino Sans','Yu Gothic',sans-serif" font-size="20">JR 山手線</text>
+    <text x="34" y="405" fill="#5F6469" font-family="'Hiragino Sans','Yu Gothic',sans-serif" font-size="15">現在地から</text>
+    <text x="194" y="405" fill="#17191C" font-family="Arial, sans-serif" font-size="34" font-weight="700">84 m</text>
+    <rect x="34" y="448" width="258" height="56" rx="7" fill="#17191C"/>
+    <text x="68" y="483" fill="#F4F2EC" font-family="'Hiragino Sans','Yu Gothic',sans-serif" font-size="17" font-weight="700">車内モード</text>
+    <text x="246" y="483" fill="#C8A16D" font-family="Arial, sans-serif" font-size="14" font-weight="700">OPEN</text>
+  </g>
+  <text x="80" y="824" fill="#76552B" font-family="Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="4">EKIKOKO / ONBOARD UTILITY</text>
+</svg>
