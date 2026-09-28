@@ -14,8 +14,11 @@
   `app.ekikoko.twa`、既存のPWA (`https://yamato015.github.io/test_fable/`)
   のmanifest.jsonとアイコンを参照する内容で用意済み
 - `android.keystore` — リリース署名鍵。**Gitには含めていない**（`.gitignore`
-  参照）。オーナー宛てに直接ファイル送付済み。エイリアス `ekikoko`、
-  パスワード `ekikoko2026release`
+  参照）。オーナー宛てに直接ファイル送付済み。エイリアス `ekikoko`。
+  **パスワードはリポジトリに書かない**（パスワード管理アプリ等で保管）。
+  ⚠️ 旧鍵のパスワードは過去にこのファイルへ記載され、Git履歴に残っている。
+  **Google Playへの初回アップロード前に鍵を作り直し、`assetlinks.json` の
+  SHA256フィンガープリントも新しい鍵のものに差し替えること**
 - `assetlinks.json` — 署名鍵のSHA256フィンガープリントから生成した
   Digital Asset Links。**ドメインのルート**（`https://<domain>/.well-known/assetlinks.json`）
   に設置する必要がある。今のGitHub Pagesは `yamato015.github.io/test_fable/`
