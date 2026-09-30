@@ -109,6 +109,43 @@ const sheetCloseTimers = new Map();
 const overlayStack = [];
 const overlayFrames = new Map();
 
+// A single, illustrative journey. It never gates the location button or GPS.
+let welcomeAnimations = [];
+let welcomeFrame = null;
+function settleWelcomeMotion() {
+  cancelAnimationFrame(welcomeFrame);
+  welcomeAnimations.forEach((animation) => animation.cancel());
+  welcomeAnimations = [];
+}
+function playWelcomeMotion() {
+  welcomeFrame = requestAnimationFrame(() => {
+    if (reduceMotionQuery.matches || document.hidden || startScreen.classList.contains("hidden")) return;
+    const line = startScreen.querySelector(".route-primary");
+    const path = startScreen.querySelector(".route-travel-path");
+    const position = startScreen.querySelector(".route-position");
+    if (!line?.animate || !path || !position) return;
+    const length = path.getTotalLength();
+    const journey = Array.from({ length: 41 }, (_, index) => {
+      const point = path.getPointAtLength(length * index / 40);
+      return { transform: `translate(${point.x}px, ${point.y}px)` };
+    });
+    welcomeAnimations = [
+      line.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], {
+        duration: 1400, easing: "cubic-bezier(.4,0,.2,1)",
+      }),
+      position.animate(journey, {
+        duration: 1200, delay: 180, fill: "backwards", easing: "cubic-bezier(.45,0,.2,1)",
+      }),
+    ];
+  });
+}
+reduceMotionQuery.addEventListener("change", () => {
+  if (reduceMotionQuery.matches) settleWelcomeMotion();
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) settleWelcomeMotion();
+});
+
 function currentOpenSheet() {
   return [...overlayStack]
     .reverse()
@@ -205,6 +242,7 @@ function openSheet(id, initialFocus = null, explicitOpener = null) {
   activateOverlay(overlay);
 
   window.requestAnimationFrame(() => {
+    if (overlay.dataset.state !== "opening" || overlay.classList.contains("hidden")) return;
     overlay.dataset.state = "open";
     const target =
       initialFocus ||
@@ -290,14 +328,18 @@ document.addEventListener("keydown", (event) => {
 const STRINGS = {
   ja: {
     appName: "エキココ",
-    tagline: "混雑した車内でも、<br>いまどの駅かひと目でわかる。",
+    startEyebrow: "電車の中の、現在地。",
+    startHeadline: '<span class="headline-lead">いま、</span><span class="headline-main">どの駅。</span>',
+    startRouteLabel: "現在地から、駅がわかる。",
+    tagline: "混雑した車内でも、最寄り駅がひと目でわかる。",
     startBtn: "現在地を確認する",
-    startNote: "位置情報は端末内だけで使い、保存しません。",
+    startNote: "位置情報は端末内で処理します。圏外の駅取得には、約1km単位の座標を使います。",
     privacyLink: "プライバシーポリシー",
-    brandDescriptor: "駅位置インストゥルメント",
+    brandDescriptor: "いまいる駅を、ひと目で。",
     settingsLabel: "表示設定",
     gpsWait: "GPS取得中…",
-    gpsRequestingDetail: "現在地を確認しています。",
+    gpsRequestingTitle: "現在地を確認中",
+    gpsRequestingDetail: "位置情報を使って、最寄り駅を探しています。",
     gpsReady: "現在地を取得しました",
     gpsDenied: "位置情報がオフです",
     gpsUnavailable: "現在地を取得できません",
@@ -321,7 +363,10 @@ const STRINGS = {
     nextIs: (n, d) => `次は ${n}（${d}）`,
     nextIsShort: (n) => `次は ${n}`,
     ridingBtn: "車内モード",
-    ridingHint: "駅名を拡大し、低照度で表示",
+    ridingHint: "駅名を大きく表示",
+    guideHint: "改札の通り方を確認",
+    nearbyOrder: "近い順",
+    alertAtStation: (n) => `${n}で降車アラートを設定`,
     destBtn: "目的地",
     destinationLabel: "降りる駅",
     destSet: (n) => `目的地 ${n}`,
@@ -440,10 +485,10 @@ const STRINGS = {
       "<li><b>オレンジの乗換改札</b>ならそのまま通れる</li>",
     stationsCount: (n) => `${n}駅`,
     pwTitle: "EKIKOKO Plus",
-    pw1: "<b>降車アラート</b> — 降りる駅が近づくと通知。寝過ごし防止に",
-    pw2: "<b>次の駅予測</b> — 進行方向から次の駅を表示",
-    pw3: "<b>路線絞り込み</b> — 乗っている路線だけ表示",
-    pw4: "<b>乗車履歴</b> — 通った駅を自動で記録",
+    pw1: "<b>降車アラート</b>降りる駅が近づくと通知。寝過ごし防止に。",
+    pw2: "<b>次の駅予測</b>進行方向から次の駅を表示。",
+    pw3: "<b>路線絞り込み</b>乗っている路線の駅だけ表示。",
+    pw4: "<b>乗車履歴</b>通った駅を端末内に記録。",
     pw5: "<b>広告非表示</b>",
     price: '月額 240円 <span class="price-sub">/ 年額 1,800円（38%おトク）</span>',
     buyMonthly: "月額プランに登録する",
@@ -489,14 +534,18 @@ const STRINGS = {
   },
   en: {
     appName: "EkiKoko",
-    tagline: "Know exactly which station you're at,<br>even on a packed train.",
+    startEyebrow: "Your location, on the train.",
+    startHeadline: '<span class="headline-lead">Your station.</span><span class="headline-main">At a glance.</span>',
+    startRouteLabel: "Find the station closest to you.",
+    tagline: "See your nearest station, even on a crowded train.",
     startBtn: "Show my location",
-    startNote: "Please allow location access.<br>Your location is processed only on this device and never stored.",
+    startNote: "Location is processed on your device. Outside built-in coverage, station lookup uses coordinates rounded to about 1 km.",
     privacyLink: "Privacy Policy",
-    brandDescriptor: "Station location instrument",
+    brandDescriptor: "Your station, at a glance.",
     settingsLabel: "Display",
     gpsWait: "Getting GPS…",
-    gpsRequestingDetail: "Checking your current location.",
+    gpsRequestingTitle: "Finding your location",
+    gpsRequestingDetail: "Using your location to find the nearest station.",
     gpsReady: "Location found",
     gpsDenied: "Location is turned off",
     gpsUnavailable: "Location unavailable",
@@ -519,7 +568,10 @@ const STRINGS = {
     nextIs: (n, d) => `Next: ${n} (${d})`,
     nextIsShort: (n) => `Next: ${n}`,
     ridingBtn: "On-board",
-    ridingHint: "Enlarge the station name in low light",
+    ridingHint: "Larger station names",
+    guideHint: "How to use the ticket gates",
+    nearbyOrder: "By distance",
+    alertAtStation: (n) => `Set an arrival alert at ${n}`,
     destBtn: "Destination",
     destinationLabel: "Your stop",
     destSet: (n) => `To ${n}`,
@@ -637,10 +689,10 @@ const STRINGS = {
       "<li><b>Orange transfer gates</b> let you pass straight through</li>",
     stationsCount: (n) => `${n} stations`,
     pwTitle: "EKIKOKO Plus",
-    pw1: "<b>Get-off alert</b> — a nudge as your stop approaches",
-    pw2: "<b>Next station</b> — predicted from your direction",
-    pw3: "<b>Line filter</b> — only stations on your line",
-    pw4: "<b>Ride history</b> — logs the stations you pass",
+    pw1: "<b>Arrival alert</b>A reminder as your stop approaches.",
+    pw2: "<b>Next station</b>Predicted from your direction of travel.",
+    pw3: "<b>Line filter</b>Show only stations on your line.",
+    pw4: "<b>Ride history</b>Keep the stations you pass on your device.",
     pw5: "<b>No ads</b>",
     price: '¥240/month <span class="price-sub">or ¥1,800/year (save 38%)</span>',
     buyMonthly: "Subscribe monthly",
@@ -663,10 +715,10 @@ const STRINGS = {
     plusDemoEnabled: "Demo features are now active.",
     plusDemoEnded: "The demo has ended.",
     headerControls: "Display and device settings",
-    controlLang: "LANG",
-    controlMode: "MODE",
-    controlTheme: "COLOR",
-    controlWake: "AWAKE",
+    controlLang: "Language",
+    controlMode: "Appearance",
+    controlTheme: "Accent color",
+    controlWake: "Keep screen on",
     switchLanguage: (target) => `Switch language to ${target}`,
     switchToLight: "Switch to light display",
     switchToDark: "Switch to dark display",
@@ -698,7 +750,7 @@ function t(key, ...args) {
 
 function updateHeaderUI() {
   const mode = document.body.dataset.mode || "dark";
-  const theme = document.body.dataset.theme || "amber";
+  const theme = document.body.dataset.theme || "blue";
   const premium = isPremium();
   const wakeOn = Boolean(wakeLock);
   const themeNames = {
@@ -708,6 +760,8 @@ function updateHeaderUI() {
   };
 
   $("lang-btn-value").textContent = lang === "ja" ? "JA" : "EN";
+  $("start-lang-btn").textContent = lang === "ja" ? "English" : "日本語";
+  $("start-lang-btn").setAttribute("aria-label", t("switchLanguage", lang === "ja" ? "English" : "日本語"));
   $("mode-btn-value").textContent = mode === "light" ? "LIGHT" : "DARK";
   $("theme-btn-value").textContent = theme.toUpperCase();
   $("wake-btn-value").textContent = wakeOn ? "ON" : "OFF";
@@ -802,6 +856,10 @@ $("lang-btn").addEventListener("click", () => {
   lang = lang === "ja" ? "en" : "ja";
   applyLang();
 });
+$("start-lang-btn").addEventListener("click", () => {
+  lang = lang === "ja" ? "en" : "ja";
+  applyLang();
+});
 
 // 表示設定は常時並べず、ヘッダーの一つの操作から必要なときだけ展開する。
 const settingsPanel = $("settings-panel");
@@ -819,6 +877,7 @@ function setSettingsOpen(open, returnFocus = false) {
     document.body.classList.add("sheet-open");
     activateOverlay(settingsOverlay);
     requestAnimationFrame(() => {
+      if (settingsOverlay.dataset.state !== "opening") return;
       settingsOverlay.dataset.state = "open";
       $("settings-close").focus({ preventScroll: true });
     });
@@ -842,7 +901,7 @@ function setSettingsOpen(open, returnFocus = false) {
 }
 
 settingsButton.addEventListener("click", () => {
-  setSettingsOpen(settingsOverlay.classList.contains("hidden"));
+  setSettingsOpen(settingsOverlay.classList.contains("hidden") || settingsOverlay.dataset.state === "closing");
 });
 $("settings-close").addEventListener("click", () => setSettingsOpen(false, true));
 $("settings-scrim").addEventListener("click", () => setSettingsOpen(false, true));
@@ -1012,7 +1071,7 @@ function applyPlanUI() {
   $("premium-btn-label").textContent = premium
     ? (billing ? t("premiumMember") : t("plusDemoTitle"))
     : t("premiumBtn");
-  $("ad-slot").classList.toggle("hidden", premium);
+  $("ad-slot").classList.toggle("hidden", premium || !CONFIG.adsenseClient);
   $("plus-price").classList.toggle("hidden", !billing || premium);
   $("buy-monthly-btn").classList.toggle("hidden", !billing || premium);
   $("buy-yearly-btn").classList.toggle("hidden", !billing || premium);
@@ -1225,7 +1284,7 @@ $("restore-btn").addEventListener("click", () => {
 // =====================================================================
 // 広告 (無料プランのみ / Google AdSense)
 // =====================================================================
-// config.jsのadsenseClientが未設定の間はプレースホルダのまま表示する
+// config.jsのadsenseClientが未設定の間は空の広告枠を表示しない
 let adsInjected = false;
 
 function initAds() {
@@ -1257,6 +1316,7 @@ function initAds() {
 // 起動
 // =====================================================================
 $("start-btn").addEventListener("click", () => {
+  settleWelcomeMotion();
   startScreen.classList.add("hidden");
   mainScreen.classList.remove("hidden");
   applyPlanUI();
@@ -1295,6 +1355,7 @@ function setGpsState(state, detail = "") {
   stateEl.dataset.state = state;
   const isSuccess = state === "success";
   const isRequesting = state === "requesting";
+  stateEl.setAttribute("aria-busy", String(isRequesting));
   const isDenied = state === "permission-denied";
   const labelKeys = {
     requesting: "gpsWait",
@@ -1336,9 +1397,15 @@ function setGpsState(state, detail = "") {
     stationName.classList.add("is-state-message");
     stationKana.textContent = "";
   }
+  if (!curPos && !isSuccess) {
+    $("r-station").textContent = isRequesting ? t("gpsRequestingTitle") : gpsStatus.textContent;
+    $("r-station").classList.add("is-state-message");
+  } else {
+    $("r-station").classList.remove("is-state-message");
+  }
   if (isRequesting && !curPos) {
-    stationName.textContent = "---";
-    stationName.classList.remove("is-state-message");
+    stationName.textContent = t("gpsRequestingTitle");
+    stationName.classList.add("is-state-message");
   }
   if (isSuccess) stationName.classList.remove("is-state-message");
   if (previous !== state) {
@@ -1735,7 +1802,8 @@ function nearbyItem(s) {
   const on = alertStation?.name === s.name;
   bell.appendChild(icon(on ? "bell" : "bell-off"));
   bell.classList.toggle("on", on);
-  bell.title = "この駅で降車アラートを設定";
+  bell.title = t("alertAtStation", dispName(s));
+  bell.setAttribute("aria-label", bell.title);
   bell.addEventListener("click", (event) => setAlert(s, event.currentTarget));
   right.append(direction, dist, bell);
   li.append(rail, copy, right);
@@ -2067,6 +2135,8 @@ function renderDestList(query, fromMore = false) {
   for (const s of visibleItems) {
     const li = document.createElement("li");
     li.className = "dest-item";
+    li.dataset.destKey = mapStationKey(s);
+    li.setAttribute("aria-pressed", String(sameDestination(s, pendingDestination)));
     const name = document.createElement("span");
     if (s.recent) name.appendChild(icon("clock", "ic-sm"));
     else if (s.source === "jp") name.appendChild(icon("globe", "ic-sm"));
@@ -2343,6 +2413,8 @@ function renderRouteList(lineName) {
   listEl.innerHTML = "";
   for (const s of orderedStations(lineName)) {
     const li = document.createElement("li");
+    li.dataset.destKey = mapStationKey(s);
+    li.setAttribute("aria-pressed", String(sameDestination(s, pendingDestination)));
     const name = document.createElement("span");
     name.textContent = dispName(s);
     const kana = document.createElement("span");
@@ -2458,6 +2530,9 @@ function renderPendingDestination(source = "") {
   const tray = $("dest-selection");
   if (!tray) return;
   const hasSelection = Boolean(pendingDestination);
+  $("dest-modal").querySelectorAll("[data-dest-key]").forEach((row) => {
+    row.setAttribute("aria-pressed", String(hasSelection && row.dataset.destKey === mapStationKey(pendingDestination)));
+  });
   tray.classList.toggle("hidden", !hasSelection);
   $("dest-confirm").disabled = !hasSelection;
   if (!hasSelection) {
@@ -2801,6 +2876,7 @@ function renderDestMapStation(
   group.dataset.mapOrder = String(mapOrder);
   group.dataset.mapX = String(point.x);
   group.dataset.mapY = String(point.y);
+  if (station.lines?.[0]) group.style.setProperty("--route-color", lineColor(station.lines[0]));
   group.appendChild(
     createMapSvgElement("circle", {
       class: "dest-map-hit",
@@ -3013,12 +3089,7 @@ function renderDestMap() {
         : destMapState.zoom >= 13
           ? 4
           : 1;
-  const labelled = new Set(
-    (selectedItem ? [] : visible.slice(0, labelCount)).map(({ station }) =>
-      mapStationKey(station)
-    )
-  );
-  if (selectedItem) labelled.add(mapStationKey(selectedItem.station));
+  const labelled = destMapLabels(visible, selectedItem, labelCount);
   const visibleKeys = new Set(
     visible.map(({ station }) => mapStationKey(station))
   );
@@ -3048,13 +3119,12 @@ function renderDestMap() {
     );
   }
   renderDestMapCurrentPosition(content);
-  if (destMapKeyboardMode && destMapFocusedKey) {
-    requestAnimationFrame(() => {
-      const match = [...content.querySelectorAll(".dest-map-node")].find(
-        (node) => node.dataset.stationKey === destMapFocusedKey
-      );
-      match?.focus({ preventScroll: true });
-    });
+  if (focusedStationKey && destMapKeyboardMode && destMapFocusedKey) {
+    const match = [...content.querySelectorAll(".dest-map-node")].find(
+      (node) => node.dataset.stationKey === destMapFocusedKey
+    );
+    // Restore immediately so a quick second key never lands on the body.
+    match?.focus({ preventScroll: true });
   }
 
   if (destMapState.loading) {
@@ -3067,6 +3137,30 @@ function renderDestMap() {
     setDestMapStatus(t("mapVisible", projected.length));
   }
   if ($("dest-map-hint")) $("dest-map-hint").textContent = t("mapHint");
+}
+
+function destMapLabels(visible, selectedItem, limit) {
+  const width = $("dest-map-stage").clientWidth || 342;
+  const scale = DEST_MAP_SIZE / width;
+  const fontSize = 13 * scale;
+  $("dest-map-stage").style.setProperty("--map-label-size", `${fontSize}px`);
+  const labelled = new Set();
+  const boxes = [];
+  // Selection comes first. Other labels are admitted only when they fit.
+  const candidates = selectedItem
+    ? [selectedItem, ...visible.filter((item) => item !== selectedItem)]
+    : visible;
+  for (const { station, point } of candidates) {
+    if (labelled.size >= limit) break;
+    const units = [...dispName(station)].reduce((sum, char) => sum + (/[^\u0000-\u00ff]/.test(char) ? 1 : .62), 0);
+    const half = Math.max(1, units) * fontSize / 2 + 6 * scale;
+    const box = { left: point.x - half, right: point.x + half, top: point.y - 25 - fontSize, bottom: point.y - 25 + 5 * scale };
+    if (box.left < 10 || box.right > 990 || box.top < 50 || box.bottom > 920) continue;
+    if (boxes.some((old) => box.left < old.right && box.right > old.left && box.top < old.bottom && box.bottom > old.top)) continue;
+    boxes.push(box);
+    labelled.add(mapStationKey(station));
+  }
+  return labelled;
 }
 
 function setDestMapZoom(nextZoom, anchorX = 500, anchorY = 500) {
@@ -3268,6 +3362,15 @@ $("dest-map-locate").addEventListener("click", () => {
   renderDestMap();
 });
 
+let mapResizeFrame = null;
+window.addEventListener("resize", () => {
+  if (!isDestMapVisible()) return;
+  cancelAnimationFrame(mapResizeFrame);
+  mapResizeFrame = requestAnimationFrame(() => {
+    if (isDestMapVisible()) renderDestMap();
+  });
+});
+
 // =====================================================================
 // テーマ切り替え (アンバー / ブルー / ピンク)
 // =====================================================================
@@ -3288,13 +3391,13 @@ $("theme-btn").addEventListener("click", () => {
 applyTheme(
   THEMES.includes(localStorage.getItem("theme"))
     ? localStorage.getItem("theme")
-    : "amber"
+    : "blue"
 );
 
 // =====================================================================
 // ライト/ダークモード切り替え
 // =====================================================================
-const MODE_BG = { light: "#f4f2ec", dark: "#131517" };
+const MODE_BG = { light: "#f7f6f2", dark: "#1d201d" };
 
 function applyMode(mode) {
   document.body.dataset.mode = mode;
@@ -3310,7 +3413,7 @@ $("daynight-btn").addEventListener("click", () => {
   applyMode(document.body.dataset.mode === "light" ? "dark" : "light");
 });
 
-applyMode(localStorage.getItem("mode") === "light" ? "light" : "dark");
+applyMode(localStorage.getItem("mode") === "dark" ? "dark" : "light");
 
 // 目的地までの残り距離と駅数を表示する (路線順データがある場合のみ駅数を計算)
 function renderAlertProgress(lat, lon, nearest) {
@@ -3739,3 +3842,4 @@ if ("serviceWorker" in navigator) {
 // ---- 起動時に言語と課金状態を初期化 ----
 applyLang();
 initBilling();
+playWelcomeMotion();
