@@ -3397,7 +3397,7 @@ applyTheme(
 // =====================================================================
 // ライト/ダークモード切り替え
 // =====================================================================
-const MODE_BG = { light: "#f4f6f8", dark: "#101821" };
+const MODE_BG = { light: "#f7f6f2", dark: "#1d201d" };
 
 function applyMode(mode) {
   document.body.dataset.mode = mode;

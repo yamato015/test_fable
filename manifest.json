@@ -4,8 +4,8 @@
   "description": "電車内で現在いる駅・最寄り駅をすぐ確認できるアプリ",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#f4f6f8",
-  "theme_color": "#f4f6f8",
+  "background_color": "#f7f6f2",
+  "theme_color": "#f7f6f2",
   "lang": "ja",
   "icons": [
     {

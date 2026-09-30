@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#f4f6f8">
+  <meta name="theme-color" content="#f7f6f2">
   <script>
     try {
       const savedMode = localStorage.getItem("mode") === "dark" ? "dark" : "light";
-      const initialColor = savedMode === "light" ? "#f4f6f8" : "#101821";
+      const initialColor = savedMode === "light" ? "#f7f6f2" : "#1d201d";
       document.documentElement.dataset.mode = savedMode;
       document.documentElement.style.backgroundColor = initialColor;
       document.querySelector('meta[name="theme-color"]').content = initialColor;
