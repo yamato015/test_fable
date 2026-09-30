@@ -63,16 +63,16 @@ Stripe 初期費用なし（決済成立時のみ手数料3.6%）= **固定費0�
 
 ### 公開前（必須）
 
-- [ ] `privacy.html` の問い合わせ先・特商法表記の空欄を記入
-- [ ] mainブランチにマージし、GitHub Pagesで公開（下記手順）
+- [ ] `privacy.html` の特商法表記（販売事業者・運営責任者）を記入 ※問い合わせ先は記入済み
+- [x] GitHub Pagesで公開（作業ブランチ `claude/practical-babbage-xrtvmo` から配信中。下記手順）
 - [ ] 実機(iPhone/Android)で動作確認: 現在駅表示・車内モード・ホーム画面追加
 - [ ] Stripeをテストモードでデプロイし、テストカード(4242...)で購入→解約を一巡確認
 - [ ] Stripe本番モードに切替（本番キーで `wrangler secret put` し直す）
 
 ### 公開時
 
-- [ ] `config.js` に `cloudflareAnalyticsToken` を設定（無料・Cookie不使用の計測）
-- [ ] `config.js` に `feedbackUrl` を設定（Googleフォーム推奨・無料）
+- [x] `config.js` に `cloudflareAnalyticsToken` を設定（無料・Cookie不使用の計測）
+- [x] `config.js` に `feedbackUrl` を設定（Tallyのフォームを設定済み）
 - [ ] X(Twitter)・通勤系コミュニティ等でベータ告知
 
 ### 反応を見る指標（最初の1ヶ月）
@@ -87,9 +87,11 @@ Stripe 初期費用なし（決済成立時のみ手数料3.6%）= **固定費0�
 
 ビルド不要の静的サイトなので、GitHub Pagesでそのまま公開できます。
 
-1. GitHubのリポジトリの **Settings → Pages** を開く
-2. Source を「Deploy from a branch」、Branch を `main`（ルート）に設定
-3. 数分後に `https://<ユーザー名>.github.io/<リポジトリ名>/` で公開される
+現在は **Settings → Pages** で Source を「Deploy from a branch」、Branch を
+`claude/practical-babbage-xrtvmo`（ルート）に設定済み。このブランチへ push すると
+1〜2分で https://yamato015.github.io/test_fable/ に自動反映される。
+静的アセットを変えたときは、push前に `python3 tools/bump_cache.py` でキャッシュ版を上げる
+（忘れるとService Workerが古い版を配り続ける）。
 
 ※ Geolocation APIはHTTPSが必須です。GitHub PagesはHTTPSなので問題ありません。
 

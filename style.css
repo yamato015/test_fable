@@ -3183,6 +3183,13 @@ body {
   text-align: left;
 }
 
+/* 英語のキャッチは1行目が310pxをわずかに超え、「at,」だけが次行に落ちるため幅を広げる。
+   それでも収まらない狭い画面では行の長さを揃えて折り返す */
+html[lang="en"] #start-screen .tagline {
+  max-width: 340px;
+  text-wrap: balance;
+}
+
 #start-screen #start-btn {
   position: relative;
   width: 100%;
@@ -3473,6 +3480,9 @@ body {
 
 .station-eyebrow .badge {
   order: 1;
+  /* 縮ませない: 縮むと nowrap + overflow:hidden で「GPS ±20m」の末尾が欠ける。
+     折り返しは左の見出し側に任せる */
+  flex-shrink: 0;
 }
 
 .station-eyebrow .status-label::before {
@@ -4199,6 +4209,8 @@ html[lang="en"] .station-eyebrow .status-label::before {
 .dest-map-zoom {
   top: 12px;
   right: 12px;
+  /* 基本定義の bottom:12px を打ち消す (残すと上下に引き伸ばされ、灰色の帯が地図に被る) */
+  bottom: auto;
   gap: 1px;
   overflow: hidden;
   border: 1px solid var(--line);

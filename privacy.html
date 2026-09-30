@@ -17,6 +17,7 @@
     .doc a { color: var(--accent2); }
     .doc table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
     .doc td, .doc th { border: 1px solid #30363d; padding: 8px; text-align: left; }
+    .doc th { white-space: nowrap; vertical-align: top; }
   </style>
 </head>
 <body>
@@ -31,11 +32,9 @@
       <h2>1. 位置情報</h2>
       <ul>
         <li>位置情報は<b>利用者の端末内でのみ処理</b>され、本アプリの運営者のサーバーに送信・保存されることはありません。</li>
-        <li>首都圏では端末に内蔵した駅データを使うため、位置情報は端末の外に一切出ません。</li>
-        <li>内蔵データの圏外でのみ、駅データの取得のためOpenStreetMapのOverpass APIに
-          <b>約1km単位に丸めたおおよその座標</b>を送信します。正確な現在地は送信されません。</li>
-        <li>目的地の全国検索は<b>端末内で完結</b>します（駅データは本アプリ自身の
-          ファイルとして配信され、検索のために外部へ送信される情報はありません）。</li>
+        <li>首都圏・関西では端末に内蔵した駅データを使うため、位置情報は端末の外に一切出ません。</li>
+        <li>内蔵データの圏外でのみ、駅データの取得のためOpenStreetMapのOverpass APIに<b>約1km単位に丸めたおおよその座標</b>を送信します。正確な現在地は送信されません。</li>
+        <li>目的地の全国検索は<b>端末内で完結</b>します（駅データは本アプリ自身のファイルとして配信され、検索のために外部へ送信される情報はありません）。</li>
       </ul>
 
       <h2>2. 端末内に保存されるデータ</h2>
@@ -58,8 +57,7 @@
 
       <h2>5. 広告</h2>
       <ul>
-        <li>無料プランではGoogle AdSenseによる広告を表示する場合があります。広告配信に伴うCookie等の取り扱いは
-          <a href="https://policies.google.com/technologies/ads?hl=ja" target="_blank" rel="noopener">Googleのポリシー</a>に従います。</li>
+        <li>無料プランではGoogle AdSenseによる広告を表示する場合があります。広告配信に伴うCookie等の取り扱いは<a href="https://policies.google.com/technologies/ads?hl=ja" target="_blank" rel="noopener">Googleのポリシー</a>に従います。</li>
         <li>プレミアムプランでは広告および広告関連の第三者スクリプトは一切読み込まれません。</li>
       </ul>
 
