@@ -4,7 +4,15 @@
 
 Rebuild the hierarchy around the actual task: identify the current station at a glance, choose a stop, or switch to a readable on-board display. The request explicitly permits departing from the previous instrument-panel and 3D signboard design.
 
-The new interface uses a light blue-gray canvas, dark typography, flat blue actions, restrained outlines, and consistent 6–8px control corners. Welcome copy precedes the location request. The static route illustration is native SVG; no images, external fonts, or UI dependencies are introduced.
+The new interface uses a light blue-gray canvas, dark typography, restrained outlines, and task-specific layouts rather than repeated rounded cards. Welcome copy precedes the location request. The route illustration is native SVG; no images, external fonts, or UI dependencies are introduced.
+
+## Typography and welcome motion refinement
+
+- Japanese welcome headings use installed Yu Mincho / Hiragino Mincho fonts; English uses Georgia. The first line is 78% of the main line, and the second line is indented by 0.42em (0.32em in English). Main station names retain a bold Gothic/sans face for scanning, with less compressed tracking. UI labels use lighter weights rather than making every level bold.
+- At 390px, the welcome main line is about 66px and the lead is about 52px. Supporting copy has an 18em measure and 1.95 line height. Existing native font fallbacks remain in place; there are no font downloads.
+- Destination is a full-width ruled action, with a small accent-colored arrow, instead of a filled rounded card. On-board and guide controls are unboxed and have different visual weight. At narrow widths and enlarged text they stack.
+- The welcome route draws over 1400ms with `cubic-bezier(.4,0,.2,1)`. The position marker travels along the actual SVG curve for 1200ms, after a 180ms delay, with `cubic-bezier(.45,0,.2,1)`. Both play once per document load, without bounce, glow, or repeating pulses. Text and controls stay fully visible throughout.
+- Final state is a complete route with the marker at SVG `(152,70)`. Start click / keyboard Enter cancels the illustration immediately and begins normal location acquisition without waiting. Language changes do not restart it. Backgrounding or changing to reduced motion immediately restores the final static state; returning does not replay it. Initial reduced motion and unsupported animation APIs display the static illustration.
 
 ## Changes
 
@@ -20,7 +28,7 @@ The new interface uses a light blue-gray canvas, dark typography, flat blue acti
 - Added descriptive GPS loading and on-board GPS failure text.
 - Hid unconfigured advertising placeholders. Configured advertisements remain supported.
 - Updated the app, manifest, and privacy-page initial surface colors. Fresh installations default to light/blue; saved preferences remain unchanged.
-- Updated the service worker to `ekikoko-v37` using the repository cache tool.
+- Updated the service worker to `ekikoko-v38` using the repository cache tool.
 
 ## Preserved behavior
 
@@ -34,6 +42,7 @@ Chrome/Playwright, 390×844px, 320×740px, 1280×900px, and a short 390×520px v
 
 - 28 principal-flow checks: welcome, location, settings, all accents, light/dark, on-board, Plus demo, map/search/lines, selection/confirmation, zero results, guide, keyboard focus, rapid reversal, persistence, and GPS denial.
 - 16 additional checks: ID preservation, both translation dictionaries, 200% text enlargement across six surfaces, short-viewport confirmation, pointer map operations, privacy page, GPS requesting/timeout, on-board error text, and a real service-worker offline reload.
+- 13 welcome checks: one-shot timing, marker trajectory, exact final state, no language-change replay, immediate start, keyboard Enter, initial and mid-animation reduced motion, background/return lifecycle, dark welcome, Japanese/English at 320px/390px and 200% text, desktop layout, and no font downloads.
 - No JavaScript runtime errors in these checks.
 - JavaScript syntax and whitespace checks pass.
 

@@ -175,17 +175,20 @@
       </header>
       <div class="start-intro">
         <p class="start-eyebrow" data-i18n="startEyebrow">電車の中の、現在地。</p>
-        <h1 class="start-headline" data-i18n-html="startHeadline">いま、<br>どの駅。</h1>
+        <h1 class="start-headline" data-i18n-html="startHeadline"><span class="headline-lead">いま、</span><span class="headline-main">どの駅。</span></h1>
         <p class="tagline" data-i18n="tagline">混雑した車内でも、最寄り駅がひと目でわかる。</p>
       </div>
       <div class="start-route" aria-hidden="true">
         <svg viewBox="0 0 350 140" fill="none">
           <path class="route-secondary" d="M-10 122H98C126 122 126 46 154 46H360"/>
-          <path class="route-primary" d="M-10 96H76C114 96 114 70 152 70H360"/>
+          <path class="route-primary" pathLength="1" d="M-10 96H76C114 96 114 70 152 70H360"/>
+          <path class="route-travel-path" d="M50 96H76C114 96 114 70 152 70"/>
           <circle class="route-stop" cx="50" cy="96" r="7"/>
           <circle class="route-stop" cx="236" cy="70" r="7"/>
-          <circle class="route-focus" cx="150" cy="70" r="15"/>
-          <circle class="route-center" cx="150" cy="70" r="5"/>
+          <g class="route-position" transform="translate(152 70)">
+            <circle class="route-focus" r="13"/>
+            <circle class="route-center" r="4"/>
+          </g>
         </svg>
         <span class="start-route-label" data-i18n="startRouteLabel">現在地から、駅がわかる。</span>
       </div>

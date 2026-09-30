@@ -109,6 +109,43 @@ const sheetCloseTimers = new Map();
 const overlayStack = [];
 const overlayFrames = new Map();
 
+// A single, illustrative journey. It never gates the location button or GPS.
+let welcomeAnimations = [];
+let welcomeFrame = null;
+function settleWelcomeMotion() {
+  cancelAnimationFrame(welcomeFrame);
+  welcomeAnimations.forEach((animation) => animation.cancel());
+  welcomeAnimations = [];
+}
+function playWelcomeMotion() {
+  welcomeFrame = requestAnimationFrame(() => {
+    if (reduceMotionQuery.matches || document.hidden || startScreen.classList.contains("hidden")) return;
+    const line = startScreen.querySelector(".route-primary");
+    const path = startScreen.querySelector(".route-travel-path");
+    const position = startScreen.querySelector(".route-position");
+    if (!line?.animate || !path || !position) return;
+    const length = path.getTotalLength();
+    const journey = Array.from({ length: 41 }, (_, index) => {
+      const point = path.getPointAtLength(length * index / 40);
+      return { transform: `translate(${point.x}px, ${point.y}px)` };
+    });
+    welcomeAnimations = [
+      line.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], {
+        duration: 1400, easing: "cubic-bezier(.4,0,.2,1)",
+      }),
+      position.animate(journey, {
+        duration: 1200, delay: 180, fill: "backwards", easing: "cubic-bezier(.45,0,.2,1)",
+      }),
+    ];
+  });
+}
+reduceMotionQuery.addEventListener("change", () => {
+  if (reduceMotionQuery.matches) settleWelcomeMotion();
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) settleWelcomeMotion();
+});
+
 function currentOpenSheet() {
   return [...overlayStack]
     .reverse()
@@ -292,7 +329,7 @@ const STRINGS = {
   ja: {
     appName: "エキココ",
     startEyebrow: "電車の中の、現在地。",
-    startHeadline: "いま、<br>どの駅。",
+    startHeadline: '<span class="headline-lead">いま、</span><span class="headline-main">どの駅。</span>',
     startRouteLabel: "現在地から、駅がわかる。",
     tagline: "混雑した車内でも、最寄り駅がひと目でわかる。",
     startBtn: "現在地を確認する",
@@ -498,7 +535,7 @@ const STRINGS = {
   en: {
     appName: "EkiKoko",
     startEyebrow: "Your location, on the train.",
-    startHeadline: "Your station.<br>At a glance.",
+    startHeadline: '<span class="headline-lead">Your station.</span><span class="headline-main">At a glance.</span>',
     startRouteLabel: "Find the station closest to you.",
     tagline: "See your nearest station, even on a crowded train.",
     startBtn: "Show my location",
@@ -1279,6 +1316,7 @@ function initAds() {
 // 起動
 // =====================================================================
 $("start-btn").addEventListener("click", () => {
+  settleWelcomeMotion();
   startScreen.classList.add("hidden");
   mainScreen.classList.remove("hidden");
   applyPlanUI();
@@ -3804,3 +3842,4 @@ if ("serviceWorker" in navigator) {
 // ---- 起動時に言語と課金状態を初期化 ----
 applyLang();
 initBilling();
+playWelcomeMotion();
