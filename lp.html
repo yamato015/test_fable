@@ -4,197 +4,143 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0e171c">
-<meta name="description" content="席に座って電光掲示板が見えなくても、今どの駅かすぐわかる。現在駅の確認に特化したWebアプリ、エキココ。">
+<meta name="description" content="席に座って扉上の表示が見えなくても、今どの駅かすぐわかる。現在駅の確認に特化したWebアプリ、エキココ。">
 <title>エキココ｜席に座っても、今どの駅かすぐわかる。</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <style>
 :root{
-  --ink:#10202a;--muted:#657078;--paper:#fbfbf8;--surface:#f2f3f0;--line:#d9dcd9;
-  --deep:#0e171c;--green:#4e9c4a;--blue:#315f78;--warm:#76552b;--white:#fff;
-  --max:1240px;--ease:cubic-bezier(.16,1,.3,1);
+  --ink:#10202a;--muted:#69757b;--paper:#fbfbf8;--surface:#f1f3f0;--line:#d9ddda;
+  --deep:#0c151a;--green:#4e9c4a;--blue:#315f78;--warm:#76552b;--white:#fff;
+  --max:1280px;--ease:cubic-bezier(.16,1,.3,1);
   --font:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif;
 }
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow-x:hidden}
-img,svg{display:block;max-width:100%}
-a{color:inherit;text-decoration:none}
-button{font:inherit}
-.wrap{width:min(calc(100% - 48px),var(--max));margin:auto}
-.header{
-  position:absolute;inset:0 0 auto;z-index:20;color:#fff
-}
-.header .inner{
-  width:min(calc(100% - 48px),var(--max));height:74px;margin:auto;
-  display:flex;align-items:center;gap:24px
-}
-.brand{display:flex;align-items:center;gap:10px;font-weight:850;letter-spacing:.05em}
-.brand img{width:28px;height:28px;filter:brightness(0) invert(1)}
-.nav{margin-left:auto;display:flex;gap:28px;font-size:13px;font-weight:700}
-.nav a{opacity:.82}.nav a:hover{opacity:1}
-.header-cta{
-  display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 20px;border-radius:999px;
-  background:#103440;color:#fff;font-weight:800;font-size:14px;border:1px solid rgba(255,255,255,.22)
-}
-.hero{
-  min-height:720px;position:relative;display:flex;align-items:center;color:#fff;overflow:hidden;
-  background:#111
-}
-.hero-media{position:absolute;inset:0}
-.hero-media picture,.hero-media img{width:100%;height:100%}
-.hero-media img{object-fit:cover;object-position:center}
-.hero::before{
-  content:"";position:absolute;inset:0;z-index:1;
-  background:
-    linear-gradient(90deg,rgba(7,13,17,.86) 0%,rgba(7,13,17,.72) 36%,rgba(7,13,17,.24) 66%,rgba(7,13,17,.12) 100%),
-    linear-gradient(180deg,rgba(7,13,17,.08),rgba(7,13,17,.34));
-}
-.hero .wrap{position:relative;z-index:2;padding-top:74px}
-.hero-copy{max-width:650px;padding:64px 0 56px}
-.kicker{font-size:11px;font-weight:850;letter-spacing:.14em;text-transform:uppercase;color:#dce9e2}
-.hero h1{margin:18px 0 0;font-size:clamp(58px,7vw,104px);line-height:.95;letter-spacing:-.065em;font-weight:900}
-.hero p{margin:24px 0 0;max-width:560px;font-size:17px;line-height:1.9;color:rgba(255,255,255,.86)}
+img,svg{display:block;max-width:100%}a{color:inherit;text-decoration:none}.wrap{width:min(calc(100% - 48px),var(--max));margin:auto}
+.header{position:absolute;inset:0 0 auto;z-index:30;color:#fff}.header-inner{width:min(calc(100% - 48px),var(--max));height:72px;margin:auto;display:flex;align-items:center;gap:26px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:850;letter-spacing:.04em}.brand img{width:28px;height:28px;filter:brightness(0) invert(1)}
+.nav{margin-left:auto;display:flex;gap:28px;font-size:13px;font-weight:750}.nav a{opacity:.82}.nav a:hover{opacity:1}
+.header-cta{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 19px;border-radius:999px;background:#113440;border:1px solid rgba(255,255,255,.22);font-size:13px;font-weight:850}
+
+.hero{background:var(--deep);color:#fff}
+.hero-grid{min-height:760px;display:grid;grid-template-columns:1.04fr .96fr}
+.hero-main{position:relative;overflow:hidden;min-width:0}
+.hero-main>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 48%}
+.hero-main::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(7,13,17,.82),rgba(7,13,17,.55) 58%,rgba(7,13,17,.16)),linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.36))}
+.hero-copy{position:relative;z-index:2;min-height:760px;padding:132px clamp(34px,5vw,78px) 64px;display:flex;flex-direction:column;justify-content:center;max-width:720px}
+.kicker{font:850 11px/1.4 ui-monospace,SFMono-Regular,monospace;letter-spacing:.14em;text-transform:uppercase;color:#dce9e2}
+.hero h1{margin:18px 0 0;font-size:clamp(56px,6.3vw,94px);line-height:.95;letter-spacing:-.065em;font-weight:920}
+.hero p{margin:24px 0 0;max-width:570px;color:rgba(255,255,255,.88);font-size:16px;line-height:1.9}
 .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
-.primary,.ghost{
-  min-height:52px;padding:0 28px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;
-  font-weight:800;font-size:15px
-}
-.primary{background:#fff;color:var(--ink)}
-.ghost{border:1px solid rgba(255,255,255,.45);color:#fff;background:rgba(255,255,255,.06);backdrop-filter:blur(8px)}
-.hero-points{display:flex;gap:28px;flex-wrap:wrap;margin-top:26px;font-size:12px;font-weight:700;color:rgba(255,255,255,.88)}
-.hero-points span{display:flex;align-items:center;gap:8px}
-.dot{width:7px;height:7px;border-radius:50%;background:#fff;opacity:.8}
+.primary,.ghost{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 27px;border-radius:999px;font-weight:850;font-size:14px}
+.primary{background:#fff;color:var(--ink)}.ghost{border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.06);backdrop-filter:blur(8px)}
+.hero-points{display:flex;gap:24px;flex-wrap:wrap;margin-top:26px;font-size:11px;font-weight:700;color:rgba(255,255,255,.86)}
+.hero-points span{display:flex;align-items:center;gap:7px}.dot{width:6px;height:6px;border-radius:50%;background:#fff}
 
-.usecases{padding:72px 0 84px;background:#fff}
-.section-title{font-size:clamp(34px,4.2vw,54px);line-height:1.08;letter-spacing:-.045em;margin:0}
-.section-lead{margin:16px 0 0;color:var(--muted);line-height:1.9;max-width:760px}
-.scene-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:34px}
-.scene-card{background:#f5f5f2;border-radius:18px;overflow:hidden;border:1px solid var(--line)}
-.scene-thumb{height:180px;overflow:hidden;background:#dcdedb}
-.scene-thumb img{width:100%;height:100%;object-fit:cover}
-.scene-card:nth-child(1) .scene-thumb img{object-position:center 38%}
-.scene-card:nth-child(2) .scene-thumb img{object-position:58% 52%}
-.scene-card:nth-child(3) .scene-thumb img{object-position:70% 60%}
-.scene-body{padding:18px 18px 20px}
-.scene-body strong{display:block;font-size:16px;line-height:1.5}
-.scene-body p{margin:8px 0 0;color:var(--muted);font-size:13px;line-height:1.75}
+.hero-mosaic{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1.08fr .92fr .92fr;gap:4px;background:#fff;min-width:0}
+.mosaic{position:relative;overflow:hidden;background:#1b2226}
+.mosaic.wide{grid-column:1/3}
+.mosaic img{width:100%;height:100%;object-fit:cover;transition:transform .8s var(--ease)}
+.mosaic:hover img{transform:scale(1.018)}
+.mosaic-display img{object-position:center 18%}
+.mosaic-scene img{object-position:center 48%}
+.mosaic-phone img{object-fit:contain;background:linear-gradient(145deg,#edf0ed,#dce2df);padding:28px}
+.mosaic-map img{object-fit:contain;background:#f1f3f0;padding:26px}
+.mosaic-onboard img{object-fit:cover;object-position:center}
+.mosaic::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(5,10,13,.62))}
+.mosaic-label{position:absolute;z-index:2;left:24px;right:20px;bottom:20px;font-weight:850;font-size:clamp(15px,1.5vw,21px);line-height:1.45;color:#fff;text-shadow:0 1px 12px rgba(0,0,0,.36)}
+.mosaic-phone::after,.mosaic-map::after{background:none}.mosaic-phone .mosaic-label,.mosaic-map .mosaic-label{display:none}
 
-.features{padding:96px 0 108px;background:#f7f8f6}
-.feature-layout{display:grid;grid-template-columns:1fr .88fr;gap:76px;align-items:center}
-.feature-copy h2{font-size:clamp(42px,5vw,72px);line-height:1.02;letter-spacing:-.055em;margin:0}
-.feature-copy>p{margin:20px 0 0;color:var(--muted);line-height:1.9;max-width:650px}
-.feature-list{margin-top:38px;border-top:1px solid var(--line)}
-.feature-row{display:grid;grid-template-columns:72px 1fr;gap:18px;padding:24px 0;border-bottom:1px solid var(--line)}
-.feature-no{font:800 11px/1.6 ui-monospace,SFMono-Regular,monospace;color:var(--green);letter-spacing:.1em}
-.feature-row h3{margin:0;font-size:21px;letter-spacing:-.02em}
-.feature-row p{margin:8px 0 0;color:var(--muted);line-height:1.8;font-size:14px}
-.phone-stage{position:relative;max-width:430px;margin:auto}
-.phone-stage::before{content:"";position:absolute;inset:10% -10% 7% 12%;background:#e5eee4;border-radius:46% 54% 40% 60%/44% 38% 62% 56%}
-.phone-stage img{position:relative;width:100%;filter:drop-shadow(0 28px 36px rgba(16,32,42,.18))}
+.usecases{padding:84px 0 96px;background:#fff}.section-title{margin:0;font-size:clamp(36px,4.3vw,56px);line-height:1.07;letter-spacing:-.045em}
+.section-lead{margin:16px 0 0;max-width:760px;color:var(--muted);line-height:1.9}
+.scene-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:38px}
+.scene-card{overflow:hidden;background:#f5f6f3;border:1px solid var(--line);border-radius:18px}
+.scene-thumb{height:190px;overflow:hidden}.scene-thumb img{width:100%;height:100%;object-fit:cover}
+.scene-card:nth-child(1) img{object-position:center 17%}.scene-card:nth-child(2) img{object-position:center 50%}.scene-card:nth-child(3) img{object-fit:contain;background:#e9eeea;padding:12px}
+.scene-body{padding:18px 18px 21px}.scene-body strong{display:block;font-size:16px;line-height:1.5}.scene-body p{margin:8px 0 0;color:var(--muted);font-size:13px;line-height:1.75}
 
-.onboard{padding:96px 0;background:#0e171c;color:#fff}
-.onboard-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:38px;align-items:stretch}
-.onboard-media{border-radius:28px;overflow:hidden;background:#000}
-.onboard-media img{width:100%;height:100%;object-fit:cover}
-.onboard-copy{display:flex;flex-direction:column;justify-content:center;padding:24px 20px 24px 30px}
-.onboard-copy small{font:800 11px/1.5 ui-monospace,SFMono-Regular,monospace;letter-spacing:.12em;color:#a9c6ae}
-.onboard-copy h2{margin:14px 0 0;font-size:clamp(40px,4.8vw,68px);line-height:1.03;letter-spacing:-.05em}
-.onboard-copy p{margin:18px 0 0;color:#b9c2c6;line-height:1.9}
+.features{padding:104px 0;background:#f4f6f3}.feature-layout{display:grid;grid-template-columns:1fr .94fr;gap:74px;align-items:center}
+.feature-copy h2{margin:0;font-size:clamp(44px,5vw,72px);line-height:1.02;letter-spacing:-.055em}.feature-copy>p{margin:20px 0 0;max-width:650px;color:var(--muted);line-height:1.9}
+.feature-list{margin-top:38px;border-top:1px solid var(--line)}.feature-row{display:grid;grid-template-columns:74px 1fr;gap:18px;padding:24px 0;border-bottom:1px solid var(--line)}
+.feature-no{font:850 11px/1.6 ui-monospace,SFMono-Regular,monospace;color:var(--green);letter-spacing:.1em}.feature-row h3{margin:0;font-size:21px}.feature-row p{margin:8px 0 0;color:var(--muted);line-height:1.8;font-size:14px}
+.product-stack{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:end}
+.product-shot{overflow:hidden;border-radius:30px 30px 9px 30px;background:#fff;box-shadow:0 24px 48px rgba(17,31,39,.12)}
+.product-shot:first-child{transform:translateY(-24px)}.product-shot img{width:100%;height:100%;object-fit:contain}.product-shot.dark{background:#111}.product-shot.dark img{object-fit:cover}
 
-.steps{padding:96px 0 108px;background:#fff}
-.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:34px;margin-top:44px}
-.step{padding-top:24px;border-top:4px solid var(--ink)}
-.step:nth-child(2){border-color:var(--green)}
-.step:nth-child(3){border-color:var(--blue)}
-.step small{font:800 11px/1.5 ui-monospace,SFMono-Regular,monospace;color:#7b858a}
-.step h3{margin:22px 0 10px;font-size:24px}
-.step p{margin:0;color:var(--muted);line-height:1.8}
+.onboard{padding:100px 0;background:#0d161b;color:#fff}.onboard-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:44px;align-items:center}
+.onboard-media{overflow:hidden;border-radius:30px 30px 9px 30px}.onboard-media img{width:100%;height:100%;object-fit:cover}
+.onboard-copy small{font:850 11px/1.5 ui-monospace,SFMono-Regular,monospace;color:#a8c7ae;letter-spacing:.12em}.onboard-copy h2{margin:14px 0 0;font-size:clamp(42px,4.8vw,68px);line-height:1.03;letter-spacing:-.05em}.onboard-copy p{margin:18px 0 0;color:#b9c3c7;line-height:1.9}
 
-.final{padding:112px 0 120px;background:#f2f3f0;text-align:center}
-.final h2{font-size:clamp(44px,5.5vw,76px);line-height:1.02;letter-spacing:-.055em;margin:0 auto;max-width:900px}
-.final p{margin:20px auto 0;max-width:640px;color:var(--muted);line-height:1.9}
-.final .hero-actions{justify-content:center}
-.final .primary{background:var(--ink);color:#fff}
+.steps{padding:98px 0 108px;background:#fff}.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:34px;margin-top:44px}
+.step{padding-top:24px;border-top:4px solid var(--ink)}.step:nth-child(2){border-color:var(--green)}.step:nth-child(3){border-color:var(--blue)}
+.step small{font:850 11px/1.5 ui-monospace,SFMono-Regular,monospace;color:#788287}.step h3{margin:22px 0 10px;font-size:24px}.step p{margin:0;color:var(--muted);line-height:1.8}
 
-footer{padding:28px 0;background:#fff;color:#7b8488;font-size:12px}
-.footer-row{display:flex;justify-content:space-between;gap:20px}
+.final{padding:112px 0 120px;background:#eef1ee;text-align:center}.final h2{margin:0 auto;max-width:900px;font-size:clamp(44px,5.5vw,76px);line-height:1.02;letter-spacing:-.055em}.final p{margin:20px auto 0;max-width:640px;color:var(--muted);line-height:1.9}.final .hero-actions{justify-content:center}.final .primary{background:var(--ink);color:#fff}
+footer{padding:28px 0;background:#fff;color:#7a8488;font-size:12px}.footer-row{display:flex;justify-content:space-between;gap:20px}
 
-[data-reveal]{opacity:0;transform:translateY(24px);filter:blur(6px);transition:opacity .75s var(--ease),transform .75s var(--ease),filter .75s var(--ease)}
+[data-reveal]{opacity:0;transform:translateY(22px);filter:blur(5px);transition:opacity .75s var(--ease),transform .75s var(--ease),filter .75s var(--ease)}
 [data-reveal].is-visible{opacity:1;transform:none;filter:none}
 
-@media(max-width:900px){
-  .nav{display:none}
-  .feature-layout,.onboard-grid{grid-template-columns:1fr}
-  .scene-grid{grid-template-columns:1fr 1fr}
-  .phone-stage{max-width:380px}
+@media(max-width:980px){
+  .nav{display:none}.hero-grid{grid-template-columns:1fr}.hero-main,.hero-copy{min-height:680px}.hero-mosaic{grid-template-rows:280px 260px}.mosaic.wide{grid-column:1/3}.mosaic-map,.mosaic-onboard{display:none}
+  .feature-layout,.onboard-grid{grid-template-columns:1fr}.product-stack{max-width:680px;margin:auto}
 }
 @media(max-width:700px){
-  .wrap,.header .inner{width:min(calc(100% - 30px),var(--max))}
-  .header .inner{height:62px}
-  .header-cta{padding:0 15px;min-height:40px;font-size:12px}
-  .hero{min-height:760px;align-items:flex-end}
-  .hero::before{
-    background:linear-gradient(180deg,rgba(7,13,17,.20) 0%,rgba(7,13,17,.42) 44%,rgba(7,13,17,.92) 78%,rgba(7,13,17,.98) 100%)
-  }
-  .hero-media img{object-position:center 36%}
-  .hero .wrap{padding-top:62px}
-  .hero-copy{padding:310px 0 52px}
-  .hero h1{font-size:clamp(48px,14vw,70px)}
-  .hero p{font-size:15px;line-height:1.85}
-  .hero-actions{display:grid}
-  .primary,.ghost{width:100%}
-  .hero-points{gap:14px 20px;font-size:11px}
-  .usecases,.features,.onboard,.steps{padding:76px 0}
-  .scene-grid{grid-template-columns:1fr}
-  .scene-thumb{height:220px}
-  .feature-layout{gap:46px}
-  .phone-stage{max-width:330px}
-  .onboard-copy{padding:18px 0 0}
-  .steps-grid{grid-template-columns:1fr;gap:30px}
-  .final{padding:82px 0 92px}
-  .footer-row{flex-direction:column}
+  .header-inner,.wrap{width:min(calc(100% - 30px),var(--max))}.header-inner{height:62px}.header-cta{min-height:40px;padding:0 15px;font-size:12px}
+  .hero-main,.hero-copy{min-height:760px}.hero-main>img{object-position:center 42%}.hero-main::after{background:linear-gradient(180deg,rgba(7,13,17,.14),rgba(7,13,17,.34) 45%,rgba(7,13,17,.92) 76%,rgba(7,13,17,.98))}
+  .hero-copy{padding:350px 24px 46px;justify-content:flex-end}.hero h1{font-size:clamp(48px,14vw,70px)}.hero p{font-size:15px}.hero-actions{display:grid}.primary,.ghost{width:100%}
+  .hero-mosaic{grid-template-columns:1fr 1fr;grid-template-rows:210px 230px}.mosaic-label{left:16px;bottom:14px;font-size:14px}.mosaic-phone img{padding:15px}
+  .usecases,.features,.onboard,.steps{padding:76px 0}.scene-grid{grid-template-columns:1fr}.scene-thumb{height:220px}
+  .feature-layout{gap:48px}.product-stack{grid-template-columns:1fr 1fr;gap:10px}.product-shot:first-child{transform:translateY(-12px)}
+  .steps-grid{grid-template-columns:1fr;gap:30px}.final{padding:84px 0 92px}.footer-row{flex-direction:column}
 }
-@media(prefers-reduced-motion:reduce){
-  html{scroll-behavior:auto}
-  [data-reveal]{opacity:1;transform:none;filter:none;transition:none}
-}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}[data-reveal]{opacity:1;transform:none;filter:none;transition:none}.mosaic img{transition:none}}
 </style>
 </head>
 <body>
 <header class="header">
-  <div class="inner">
+  <div class="header-inner">
     <a class="brand" href="./"><img src="icon.svg" alt=""><span>エキココ</span></a>
-    <nav class="nav">
-      <a href="#usecases">できること</a>
-      <a href="#features">利用シーン</a>
-      <a href="privacy.html">よくある質問</a>
-    </nav>
+    <nav class="nav"><a href="#usecases">できること</a><a href="#features">利用シーン</a><a href="privacy.html">よくある質問</a></nav>
     <a class="header-cta" href="./">アプリを開く</a>
   </div>
 </header>
 
 <main>
 <section class="hero">
-  <div class="hero-media" aria-hidden="true">
-    <picture>
-      <source media="(max-width:700px)" srcset="lp-seated-mobile.svg">
-      <img src="lp-seated-hero.svg" alt="">
-    </picture>
-  </div>
-  <div class="wrap">
-    <div class="hero-copy" data-reveal>
-      <div class="kicker">CURRENT STATION UTILITY</div>
-      <h1>席に座っても、<br>今どの駅かすぐわかる。</h1>
-      <p>エキココは、電車の中で現在駅をすばやく確認するためのシンプルなWebアプリです。乗換案内ではなく、移動中の「今ここ」に特化しています。</p>
-      <div class="hero-actions">
-        <a class="primary" href="./">エキココを開く →</a>
-        <a class="ghost" href="#usecases">できることを見る</a>
+  <div class="hero-grid">
+    <div class="hero-main">
+      <img src="lp-seated-hero.svg" alt="ロングシートに座ると、向かい側の扉上にある案内表示が立客で見えにくい車内">
+      <div class="hero-copy" data-reveal>
+        <div class="kicker">CURRENT STATION UTILITY</div>
+        <h1>席に座っても、<br>今どの駅かすぐわかる。</h1>
+        <p>エキココは、電車の中で現在駅をすばやく確認するためのシンプルなWebアプリです。乗換案内ではなく、移動中の「今ここ」に特化しています。</p>
+        <div class="hero-actions"><a class="primary" href="./">エキココを開く →</a><a class="ghost" href="#usecases">できることを見る</a></div>
+        <div class="hero-points"><span><i class="dot"></i>アカウント登録不要</span><span><i class="dot"></i>ブラウザですぐ使える</span><span><i class="dot"></i>PWA対応</span></div>
       </div>
-      <div class="hero-points">
-        <span><i class="dot"></i>アカウント登録不要</span>
-        <span><i class="dot"></i>ブラウザですぐ使える</span>
-        <span><i class="dot"></i>PWA対応</span>
-      </div>
+    </div>
+
+    <div class="hero-mosaic" aria-label="エキココの利用シーン">
+      <figure class="mosaic wide mosaic-display">
+        <img src="lp-seated-hero.svg" alt="扉上の案内表示">
+        <figcaption class="mosaic-label">席に座ると、扉上の表示が見えない。<br>そんなときに、手元ですぐ確認。</figcaption>
+      </figure>
+      <figure class="mosaic mosaic-scene">
+        <img src="lp-seated-mobile.svg" alt="車内でスマートフォンを確認する利用シーン">
+        <figcaption class="mosaic-label">アナウンスを聞き逃しても、<br>手元で今の駅がわかる。</figcaption>
+      </figure>
+      <figure class="mosaic mosaic-phone">
+        <img src="lp-product-ui.svg" alt="現在駅を大きく表示するエキココ">
+        <figcaption class="mosaic-label">現在駅</figcaption>
+      </figure>
+      <figure class="mosaic mosaic-onboard">
+        <img src="lp-onboard-ui.svg" alt="車内モード">
+        <figcaption class="mosaic-label">暗い車内でも、見やすい。</figcaption>
+      </figure>
+      <figure class="mosaic mosaic-map">
+        <img src="lp-product-ui.svg" alt="駅情報と目的地設定">
+        <figcaption class="mosaic-label">駅情報</figcaption>
+      </figure>
     </div>
   </div>
 </section>
@@ -202,20 +148,11 @@ footer{padding:28px 0;background:#fff;color:#7b8488;font-size:12px}
 <section class="usecases" id="usecases">
   <div class="wrap">
     <h2 class="section-title" data-reveal>こんな場面で役立ちます</h2>
-    <p class="section-lead" data-reveal>「今どこ？」と思うのは、たいてい短い瞬間。だから、確認までの操作も短くしました。</p>
+    <p class="section-lead" data-reveal>さっきのイメージ画像で固めた「座席からの見え方」を、そのまま利用シーンとしてLPに落とし込みました。</p>
     <div class="scene-grid">
-      <article class="scene-card" data-reveal>
-        <div class="scene-thumb"><img src="lp-seated-hero.svg" alt="扉上の案内表示が人で見えにくい車内"></div>
-        <div class="scene-body"><strong>席に座ると、扉上の表示が見えない</strong><p>立っている人や座る位置で、現在駅の表示が視界から外れる。</p></div>
-      </article>
-      <article class="scene-card" data-reveal>
-        <div class="scene-thumb"><img src="lp-seated-mobile.svg" alt="車内でスマートフォンを確認する場面"></div>
-        <div class="scene-body"><strong>アナウンスを聞き逃してしまう</strong><p>イヤホンや会話中でも、手元を見れば現在駅を確認できます。</p></div>
-      </article>
-      <article class="scene-card" data-reveal>
-        <div class="scene-thumb"><img src="lp-product-ui.svg" alt="現在駅を表示するエキココの画面"></div>
-        <div class="scene-body"><strong>乗換案内を開くほどでもない</strong><p>知りたいのは経路ではなく、ただ「今の駅」だけ。</p></div>
-      </article>
+      <article class="scene-card" data-reveal><div class="scene-thumb"><img src="lp-seated-hero.svg" alt="扉上の表示が人で隠れる車内"></div><div class="scene-body"><strong>席に座ると、扉上の表示が見えない</strong><p>立っている人や座る位置で、現在駅の表示が視界から外れる。</p></div></article>
+      <article class="scene-card" data-reveal><div class="scene-thumb"><img src="lp-seated-mobile.svg" alt="車内でスマートフォンを確認する場面"></div><div class="scene-body"><strong>アナウンスを聞き逃してしまう</strong><p>イヤホンや会話中でも、手元を見れば現在駅を確認できます。</p></div></article>
+      <article class="scene-card" data-reveal><div class="scene-thumb"><img src="lp-product-ui.svg" alt="エキココの現在駅画面"></div><div class="scene-body"><strong>乗換案内を開くほどでもない</strong><p>知りたいのは経路ではなく、ただ「今の駅」だけ。</p></div></article>
     </div>
   </div>
 </section>
@@ -224,7 +161,7 @@ footer{padding:28px 0;background:#fff;color:#7b8488;font-size:12px}
   <div class="wrap feature-layout">
     <div class="feature-copy" data-reveal>
       <h2>現在駅を、<br>大きく、迷わず。</h2>
-      <p>エキココの中心は現在駅表示です。必要な情報だけを、その場で読み取りやすい順番に並べています。</p>
+      <p>移動中に必要な情報だけを、読み取りやすい順番に。画像内で決めた白基調のアプリUIをLP側にも合わせています。</p>
       <div class="feature-list">
         <div class="feature-row"><div class="feature-no">01 / NOW</div><div><h3>現在駅を大きく表示</h3><p>駅名・路線・距離を、短時間で確認しやすい構成に整理します。</p></div></div>
         <div class="feature-row"><div class="feature-no">02 / RIDE</div><div><h3>車内モード</h3><p>駅名を特大表示。膝上や手元で一瞬見る使い方を想定しています。</p></div></div>
@@ -232,8 +169,9 @@ footer{padding:28px 0;background:#fff;color:#7b8488;font-size:12px}
         <div class="feature-row"><div class="feature-no">04 / GUIDE</div><div><h3>駅で迷う場面にも</h3><p>IC・QR・きっぷ・乗り換えなどの補助情報へすぐアクセスできます。</p></div></div>
       </div>
     </div>
-    <div class="phone-stage" data-reveal>
-      <img src="lp-product-ui.svg" alt="エキココの現在駅表示画面">
+    <div class="product-stack" data-reveal>
+      <div class="product-shot"><img src="lp-product-ui.svg" alt="現在駅画面"></div>
+      <div class="product-shot dark"><img src="lp-onboard-ui.svg" alt="車内モード画面"></div>
     </div>
   </div>
 </section>
@@ -241,11 +179,7 @@ footer{padding:28px 0;background:#fff;color:#7b8488;font-size:12px}
 <section class="onboard">
   <div class="wrap onboard-grid">
     <div class="onboard-media" data-reveal><img src="lp-onboard-ui.svg" alt="黒背景で駅名を大きく表示する車内モード"></div>
-    <div class="onboard-copy" data-reveal>
-      <small>ONBOARD MODE</small>
-      <h2>暗い車内でも、<br>一秒で読める。</h2>
-      <p>情報を減らし、駅名を主役にした確認専用画面。混雑時でも、スマートフォンに視線を落とすだけで現在地が分かります。</p>
-    </div>
+    <div class="onboard-copy" data-reveal><small>ONBOARD MODE</small><h2>暗い車内でも、<br>一秒で読める。</h2><p>情報を減らし、駅名を主役にした確認専用画面。混雑時でも、スマートフォンに視線を落とすだけで現在地が分かります。</p></div>
   </div>
 </section>
 
@@ -261,28 +195,20 @@ footer{padding:28px 0;background:#fff;color:#7b8488;font-size:12px}
 </section>
 
 <section class="final">
-  <div class="wrap" data-reveal>
-    <h2>「今どこだっけ」を、<br>もっと小さなストレスに。</h2>
-    <p>電車の中で現在地を確かめるための、シンプルな移動ツールです。</p>
-    <div class="hero-actions"><a class="primary" href="./">エキココを開く →</a></div>
-  </div>
+  <div class="wrap" data-reveal><h2>「今どこだっけ」を、<br>もっと小さなストレスに。</h2><p>電車の中で現在地を確かめるための、シンプルな移動ツールです。</p><div class="hero-actions"><a class="primary" href="./">エキココを開く →</a></div></div>
 </section>
 </main>
 
-<footer>
-  <div class="wrap footer-row"><span>© EKIKOKO</span><span><a href="privacy.html">プライバシー・利用情報</a></span></div>
-</footer>
+<footer><div class="wrap footer-row"><span>© EKIKOKO</span><span><a href="privacy.html">プライバシー・利用情報</a></span></div></footer>
 
 <script>
 (() => {
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const io = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      entry.target.classList.add("is-visible");
-      io.unobserve(entry.target);
-    });
-  }, { threshold: .14, rootMargin: "0px 0px -8% 0px" });
+  const io = new IntersectionObserver(entries => entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    entry.target.classList.add("is-visible");
+    io.unobserve(entry.target);
+  }), { threshold:.14, rootMargin:"0px 0px -8% 0px" });
   document.querySelectorAll("[data-reveal]").forEach(el => io.observe(el));
 })();
 </script>
