@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#131517">
   <script>
     try {
-      const savedMode = localStorage.getItem("mode") === "light" ? "light" : "dark";
-      const initialColor = savedMode === "light" ? "#f4f2ec" : "#131517";
+      const savedMode = localStorage.getItem("mode") === "dark" ? "dark" : "light";
+      const initialColor = savedMode === "dark" ? "#131517" : "#f4f2ec";
       document.documentElement.dataset.mode = savedMode;
       document.documentElement.style.backgroundColor = initialColor;
       document.querySelector('meta[name="theme-color"]').content = initialColor;
@@ -170,27 +170,14 @@
         <span>EKIKOKO</span>
         <span>LOCATION INSTRUMENT</span>
       </p>
-      <!-- 立体の駅名標が線路脇に立っている場面。アプリ名そのものを駅名標に載せる -->
-      <div class="hero">
-        <div class="hero-stage">
-          <!-- 奥へ伸びる線路 (地面をrotateXで倒して遠近を作る) -->
-          <div class="hero-ground"></div>
-          <div class="hero-sign">
-            <div class="hero-sign-face">
-              <span class="hero-stripe"></span>
-              <svg class="hero-mark" viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".45"/>
-                <line x1="4" y1="15" x2="20" y2="15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".5"/>
-                <circle cx="12" cy="15" r="4.2" fill="var(--accent)"/>
-              </svg>
-              <h1 class="logo"><span data-i18n="appName">エキココ</span><span class="beta">β</span></h1>
-              <p class="wordmark-en">EKIKOKO</p>
-            </div>
-          </div>
-          <div class="hero-pole"></div>
-        </div>
+      <div class="app-intro-copy">
+        <p class="app-intro-kicker">CURRENT STATION UTILITY</p>
+        <h1 class="app-intro-title"><span data-i18n="appName">エキココ</span><span class="beta">β</span></h1>
+        <p class="tagline" data-i18n-html="tagline">席に座って掲示板が見えなくても、<br>いまどの駅かひと目でわかる。</p>
       </div>
-      <p class="tagline" data-i18n-html="tagline">混雑した車内でも、<br>いまどの駅かひと目でわかる。</p>
+      <div class="app-intro-visual">
+        <img src="app-start-scene.svg" alt="座席から電光掲示板が見えにくく、スマートフォンで現在駅を確認する場面">
+      </div>
       <button id="start-btn" class="big-btn" data-i18n="startBtn">現在地を確認する</button>
       <p class="note"><span data-i18n-html="startNote">位置情報は端末内だけで使い、保存しません。</span><br>
         <a class="policy-link" href="privacy.html" data-i18n="privacyLink">プライバシーポリシー</a></p>
