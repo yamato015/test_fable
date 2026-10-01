@@ -1,39 +1,290 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f8f7f3">
-<meta name="description" content="席に座ると、向かい側の扉上にある案内表示が人で見えない。そんなとき、手元で現在駅を確認できるエキココ。">
-<title>エキココ｜席から、今いる駅がわかる。</title>
+<meta name="theme-color" content="#0e171c">
+<meta name="description" content="席に座って電光掲示板が見えなくても、今どの駅かすぐわかる。現在駅の確認に特化したWebアプリ、エキココ。">
+<title>エキココ｜席に座っても、今どの駅かすぐわかる。</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <style>
-:root{--bg:#f8f7f3;--paper:#fff;--ink:#10202a;--sub:#657078;--line:#d9d8d2;--green:#4e9c4a;--blue:#315f78;--warm:#76552b;--max:1240px;--ease:cubic-bezier(.16,1,.3,1)}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI",sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}img,svg{display:block;max-width:100%}a{color:inherit;text-decoration:none}.shell{width:min(calc(100% - 52px),var(--max));margin:auto}
-header{position:sticky;top:0;z-index:30;background:rgba(248,247,243,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(217,216,210,.8)}header .shell{height:70px;display:flex;align-items:center;gap:24px}.brand{display:flex;align-items:center;gap:10px;font-weight:850;letter-spacing:.08em}.brand img{width:28px;height:28px}.nav{margin-left:auto;display:flex;gap:24px;color:var(--sub);font-size:13px}.cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 20px;border-radius:999px;background:var(--ink);color:#fff;font-weight:760;font-size:14px}
-.hero{padding:54px 0 88px}.hero-grid{display:grid;grid-template-columns:minmax(340px,.74fr) minmax(620px,1.26fr);gap:62px;align-items:center}.kicker{font:800 11px/1.4 ui-monospace,SFMono-Regular,monospace;letter-spacing:.13em;color:var(--green);text-transform:uppercase}.hero h1{margin:18px 0 0;font-size:clamp(54px,6.8vw,98px);line-height:.94;letter-spacing:-.065em;font-weight:820}.hero p{margin:26px 0 0;max-width:610px;color:var(--sub);font-size:18px;line-height:1.9}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}.secondary{background:transparent;color:var(--ink);border:1px solid #9da3a6}.hero-visual{position:relative}.hero-visual:before{content:"";position:absolute;inset:11% -4% -4% 14%;background:linear-gradient(145deg,rgba(49,95,120,.10),rgba(78,156,74,.06));border-radius:48% 52% 44% 56%/45% 42% 58% 55%;filter:blur(10px)}.hero-visual picture{position:relative;display:block}.hero-visual img{width:100%;border-radius:34px 34px 10px 34px;box-shadow:0 28px 74px rgba(16,32,42,.14)}.caption{margin-top:12px;display:flex;gap:12px;align-items:center;color:#7b8388;font-size:11px;letter-spacing:.1em}.caption:before{content:"";width:54px;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--green) 0 55%,var(--blue) 55%)}
-.problem{padding:120px 0;background:#101b22;color:#f7f7f3}.problem-grid{display:grid;grid-template-columns:.74fr 1.26fr;gap:74px;align-items:end}.problem h2,.product h2,.how h2,.final h2{margin:0;font-size:clamp(40px,5.5vw,74px);line-height:1.02;letter-spacing:-.05em}.problem p{margin:26px 0 0;color:#b6c0c5;font-size:17px;line-height:1.95}.route-logic{display:grid;gap:0}.logic-row{display:grid;grid-template-columns:92px 1fr;gap:24px;padding:24px 0;border-top:1px solid #33434c}.logic-row:last-child{border-bottom:1px solid #33434c}.logic-no{font:800 11px/1.5 ui-monospace,SFMono-Regular,monospace;color:#79b674;letter-spacing:.12em}.logic-row strong{display:block;font-size:24px;letter-spacing:-.02em}.logic-row span{display:block;margin-top:8px;color:#aeb8bd;line-height:1.8}
-.product{padding:124px 0}.section-head{display:grid;grid-template-columns:180px 1fr;gap:42px;margin-bottom:72px}.section-index{font:800 11px/1.5 ui-monospace,SFMono-Regular,monospace;color:#80888d;letter-spacing:.12em}.lead{margin:22px 0 0;max-width:760px;color:var(--sub);font-size:16px;line-height:1.95}.product-grid{display:grid;grid-template-columns:.82fr 1.18fr;gap:88px;align-items:center}.product-phone{position:relative;max-width:430px;margin:auto}.product-phone:before{content:"";position:absolute;inset:9% -8% 6% 10%;border-radius:48% 52% 46% 54%;background:#e4eee3}.product-phone img{position:relative;width:100%;filter:drop-shadow(0 26px 35px rgba(16,32,42,.16))}.feature-list{display:grid}.feature{display:grid;grid-template-columns:76px 1fr;gap:20px;padding:26px 0;border-top:1px solid var(--line)}.feature:last-child{border-bottom:1px solid var(--line)}.feature em{font:800 11px/1.5 ui-monospace,SFMono-Regular,monospace;color:var(--warm);font-style:normal;letter-spacing:.1em}.feature h3{margin:0;font-size:23px;letter-spacing:-.025em}.feature p{margin:9px 0 0;color:var(--sub);line-height:1.85}
-.scene{padding:0 0 124px}.scene-wrap{display:grid;grid-template-columns:1.15fr .85fr;background:#e9e7e0;border-radius:38px 38px 12px 38px;overflow:hidden}.scene-media{padding:22px}.scene-media img{width:100%;border-radius:25px;box-shadow:0 18px 44px rgba(10,20,26,.18)}.scene-copy{padding:64px;display:flex;flex-direction:column;justify-content:center}.scene-copy h3{font-size:clamp(34px,4vw,54px);line-height:1.08;letter-spacing:-.04em;margin:14px 0}.scene-copy p{color:var(--sub);line-height:1.9}
-.how{padding:120px 0;border-top:1px solid var(--line)}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:42px;margin-top:64px}.step{position:relative;padding-top:26px;border-top:4px solid var(--ink)}.step:nth-child(2){border-color:var(--green)}.step:nth-child(3){border-color:var(--blue)}.step small{font:800 11px/1.5 ui-monospace,SFMono-Regular,monospace;color:#7d858a}.step h3{font-size:24px;margin:26px 0 10px}.step p{color:var(--sub);line-height:1.85}
-.final{padding:128px 0;text-align:center;background:#fff}.final h2{max-width:900px;margin:auto}.final p{max-width:650px;margin:24px auto 0;color:var(--sub);line-height:1.9}.final .actions{justify-content:center}
-footer{padding:28px 0;color:#7b8286;font-size:12px}.footer-row{display:flex;justify-content:space-between;gap:20px}
-[data-reveal]{opacity:0;transform:translateY(24px);filter:blur(7px);transition:opacity .8s var(--ease),transform .8s var(--ease),filter .8s var(--ease)}[data-reveal].is-visible{opacity:1;transform:none;filter:none}
-@media(max-width:900px){.nav{display:none}.hero-grid,.problem-grid,.product-grid,.scene-wrap{grid-template-columns:1fr}.hero-grid{gap:40px}.section-head{grid-template-columns:1fr;gap:16px}.product-grid{gap:52px}.scene-copy{order:-1}.steps{grid-template-columns:1fr;gap:34px}}
-@media(max-width:700px){.shell{width:min(calc(100% - 30px),var(--max))}header .shell{height:62px}.hero{padding:38px 0 64px}.hero h1{font-size:clamp(44px,14vw,67px)}.hero p{font-size:16px}.actions{display:grid}.actions .cta{width:100%}.hero-visual img{border-radius:26px 26px 8px 26px}.problem,.product,.how{padding:84px 0}.scene{padding-bottom:84px}.scene-media{padding:14px}.scene-copy{padding:34px 24px}.footer-row{flex-direction:column}}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}[data-reveal]{opacity:1;transform:none;filter:none;transition:none}}
+:root{
+  --ink:#10202a;--muted:#657078;--paper:#fbfbf8;--surface:#f2f3f0;--line:#d9dcd9;
+  --deep:#0e171c;--green:#4e9c4a;--blue:#315f78;--warm:#76552b;--white:#fff;
+  --max:1240px;--ease:cubic-bezier(.16,1,.3,1);
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img,svg{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font:inherit}
+.wrap{width:min(calc(100% - 48px),var(--max));margin:auto}
+.header{
+  position:absolute;inset:0 0 auto;z-index:20;color:#fff
+}
+.header .inner{
+  width:min(calc(100% - 48px),var(--max));height:74px;margin:auto;
+  display:flex;align-items:center;gap:24px
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:850;letter-spacing:.05em}
+.brand img{width:28px;height:28px;filter:brightness(0) invert(1)}
+.nav{margin-left:auto;display:flex;gap:28px;font-size:13px;font-weight:700}
+.nav a{opacity:.82}.nav a:hover{opacity:1}
+.header-cta{
+  display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 20px;border-radius:999px;
+  background:#103440;color:#fff;font-weight:800;font-size:14px;border:1px solid rgba(255,255,255,.22)
+}
+.hero{
+  min-height:720px;position:relative;display:flex;align-items:center;color:#fff;overflow:hidden;
+  background:#111
+}
+.hero-media{position:absolute;inset:0}
+.hero-media picture,.hero-media img{width:100%;height:100%}
+.hero-media img{object-fit:cover;object-position:center}
+.hero::before{
+  content:"";position:absolute;inset:0;z-index:1;
+  background:
+    linear-gradient(90deg,rgba(7,13,17,.86) 0%,rgba(7,13,17,.72) 36%,rgba(7,13,17,.24) 66%,rgba(7,13,17,.12) 100%),
+    linear-gradient(180deg,rgba(7,13,17,.08),rgba(7,13,17,.34));
+}
+.hero .wrap{position:relative;z-index:2;padding-top:74px}
+.hero-copy{max-width:650px;padding:64px 0 56px}
+.kicker{font-size:11px;font-weight:850;letter-spacing:.14em;text-transform:uppercase;color:#dce9e2}
+.hero h1{margin:18px 0 0;font-size:clamp(58px,7vw,104px);line-height:.95;letter-spacing:-.065em;font-weight:900}
+.hero p{margin:24px 0 0;max-width:560px;font-size:17px;line-height:1.9;color:rgba(255,255,255,.86)}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.primary,.ghost{
+  min-height:52px;padding:0 28px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:15px
+}
+.primary{background:#fff;color:var(--ink)}
+.ghost{border:1px solid rgba(255,255,255,.45);color:#fff;background:rgba(255,255,255,.06);backdrop-filter:blur(8px)}
+.hero-points{display:flex;gap:28px;flex-wrap:wrap;margin-top:26px;font-size:12px;font-weight:700;color:rgba(255,255,255,.88)}
+.hero-points span{display:flex;align-items:center;gap:8px}
+.dot{width:7px;height:7px;border-radius:50%;background:#fff;opacity:.8}
+
+.usecases{padding:72px 0 84px;background:#fff}
+.section-title{font-size:clamp(34px,4.2vw,54px);line-height:1.08;letter-spacing:-.045em;margin:0}
+.section-lead{margin:16px 0 0;color:var(--muted);line-height:1.9;max-width:760px}
+.scene-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:34px}
+.scene-card{background:#f5f5f2;border-radius:18px;overflow:hidden;border:1px solid var(--line)}
+.scene-thumb{height:180px;overflow:hidden;background:#dcdedb}
+.scene-thumb img{width:100%;height:100%;object-fit:cover}
+.scene-card:nth-child(1) .scene-thumb img{object-position:center 38%}
+.scene-card:nth-child(2) .scene-thumb img{object-position:58% 52%}
+.scene-card:nth-child(3) .scene-thumb img{object-position:70% 60%}
+.scene-body{padding:18px 18px 20px}
+.scene-body strong{display:block;font-size:16px;line-height:1.5}
+.scene-body p{margin:8px 0 0;color:var(--muted);font-size:13px;line-height:1.75}
+
+.features{padding:96px 0 108px;background:#f7f8f6}
+.feature-layout{display:grid;grid-template-columns:1fr .88fr;gap:76px;align-items:center}
+.feature-copy h2{font-size:clamp(42px,5vw,72px);line-height:1.02;letter-spacing:-.055em;margin:0}
+.feature-copy>p{margin:20px 0 0;color:var(--muted);line-height:1.9;max-width:650px}
+.feature-list{margin-top:38px;border-top:1px solid var(--line)}
+.feature-row{display:grid;grid-template-columns:72px 1fr;gap:18px;padding:24px 0;border-bottom:1px solid var(--line)}
+.feature-no{font:800 11px/1.6 ui-monospace,SFMono-Regular,monospace;color:var(--green);letter-spacing:.1em}
+.feature-row h3{margin:0;font-size:21px;letter-spacing:-.02em}
+.feature-row p{margin:8px 0 0;color:var(--muted);line-height:1.8;font-size:14px}
+.phone-stage{position:relative;max-width:430px;margin:auto}
+.phone-stage::before{content:"";position:absolute;inset:10% -10% 7% 12%;background:#e5eee4;border-radius:46% 54% 40% 60%/44% 38% 62% 56%}
+.phone-stage img{position:relative;width:100%;filter:drop-shadow(0 28px 36px rgba(16,32,42,.18))}
+
+.onboard{padding:96px 0;background:#0e171c;color:#fff}
+.onboard-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:38px;align-items:stretch}
+.onboard-media{border-radius:28px;overflow:hidden;background:#000}
+.onboard-media img{width:100%;height:100%;object-fit:cover}
+.onboard-copy{display:flex;flex-direction:column;justify-content:center;padding:24px 20px 24px 30px}
+.onboard-copy small{font:800 11px/1.5 ui-monospace,SFMono-Regular,monospace;letter-spacing:.12em;color:#a9c6ae}
+.onboard-copy h2{margin:14px 0 0;font-size:clamp(40px,4.8vw,68px);line-height:1.03;letter-spacing:-.05em}
+.onboard-copy p{margin:18px 0 0;color:#b9c2c6;line-height:1.9}
+
+.steps{padding:96px 0 108px;background:#fff}
+.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:34px;margin-top:44px}
+.step{padding-top:24px;border-top:4px solid var(--ink)}
+.step:nth-child(2){border-color:var(--green)}
+.step:nth-child(3){border-color:var(--blue)}
+.step small{font:800 11px/1.5 ui-monospace,SFMono-Regular,monospace;color:#7b858a}
+.step h3{margin:22px 0 10px;font-size:24px}
+.step p{margin:0;color:var(--muted);line-height:1.8}
+
+.final{padding:112px 0 120px;background:#f2f3f0;text-align:center}
+.final h2{font-size:clamp(44px,5.5vw,76px);line-height:1.02;letter-spacing:-.055em;margin:0 auto;max-width:900px}
+.final p{margin:20px auto 0;max-width:640px;color:var(--muted);line-height:1.9}
+.final .hero-actions{justify-content:center}
+.final .primary{background:var(--ink);color:#fff}
+
+footer{padding:28px 0;background:#fff;color:#7b8488;font-size:12px}
+.footer-row{display:flex;justify-content:space-between;gap:20px}
+
+[data-reveal]{opacity:0;transform:translateY(24px);filter:blur(6px);transition:opacity .75s var(--ease),transform .75s var(--ease),filter .75s var(--ease)}
+[data-reveal].is-visible{opacity:1;transform:none;filter:none}
+
+@media(max-width:900px){
+  .nav{display:none}
+  .feature-layout,.onboard-grid{grid-template-columns:1fr}
+  .scene-grid{grid-template-columns:1fr 1fr}
+  .phone-stage{max-width:380px}
+}
+@media(max-width:700px){
+  .wrap,.header .inner{width:min(calc(100% - 30px),var(--max))}
+  .header .inner{height:62px}
+  .header-cta{padding:0 15px;min-height:40px;font-size:12px}
+  .hero{min-height:760px;align-items:flex-end}
+  .hero::before{
+    background:linear-gradient(180deg,rgba(7,13,17,.20) 0%,rgba(7,13,17,.42) 44%,rgba(7,13,17,.92) 78%,rgba(7,13,17,.98) 100%)
+  }
+  .hero-media img{object-position:center 36%}
+  .hero .wrap{padding-top:62px}
+  .hero-copy{padding:310px 0 52px}
+  .hero h1{font-size:clamp(48px,14vw,70px)}
+  .hero p{font-size:15px;line-height:1.85}
+  .hero-actions{display:grid}
+  .primary,.ghost{width:100%}
+  .hero-points{gap:14px 20px;font-size:11px}
+  .usecases,.features,.onboard,.steps{padding:76px 0}
+  .scene-grid{grid-template-columns:1fr}
+  .scene-thumb{height:220px}
+  .feature-layout{gap:46px}
+  .phone-stage{max-width:330px}
+  .onboard-copy{padding:18px 0 0}
+  .steps-grid{grid-template-columns:1fr;gap:30px}
+  .final{padding:82px 0 92px}
+  .footer-row{flex-direction:column}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  [data-reveal]{opacity:1;transform:none;filter:none;transition:none}
+}
 </style>
 </head>
 <body>
-<header><div class="shell"><a class="brand" href="./"><img src="icon.svg" alt=""><span>EKIKOKO</span></a><nav class="nav"><a href="#problem">できること</a><a href="#product">使い方</a><a href="privacy.html">利用について</a></nav><a class="cta" href="./">アプリを開く</a></div></header>
+<header class="header">
+  <div class="inner">
+    <a class="brand" href="./"><img src="icon.svg" alt=""><span>エキココ</span></a>
+    <nav class="nav">
+      <a href="#usecases">できること</a>
+      <a href="#features">利用シーン</a>
+      <a href="privacy.html">よくある質問</a>
+    </nav>
+    <a class="header-cta" href="./">アプリを開く</a>
+  </div>
+</header>
+
 <main>
-<section class="hero"><div class="shell hero-grid"><div data-reveal><p class="kicker">Current station, at a glance.</p><h1>席に座ると、<br>扉上の表示が見えない。</h1><p>そんなとき、エキココ。電車内で「今どの駅？」と思った瞬間に、現在駅を手元で大きく確認するためのWebアプリです。</p><div class="actions"><a class="cta" href="./">エキココを開く</a><a class="cta secondary" href="#product">できることを見る</a></div></div><div class="hero-visual" data-reveal><picture><source media="(max-width:700px)" srcset="lp-seated-mobile.svg"><img src="lp-seated-hero.svg" alt="ロングシートから向かい側の扉を見ると、扉上の案内表示が立客で隠れ、手元のスマートフォンで現在駅を確認している場面"></picture><div class="caption">SEATED VIEW / DISPLAY BLOCKED / EKIKOKO</div></div></div></section>
-<section class="problem" id="problem"><div class="shell problem-grid"><div data-reveal><p class="kicker">Why EKIKOKO</p><h2>必要なのは、<br>乗換検索ではなく<br>「いまここ」。</h2><p>車内では、扉上の案内表示が立っている人で隠れる。アナウンスを聞き逃す。わざわざ経路検索するほどでもない。エキココは、その短い不便だけを解きます。</p></div><div class="route-logic" data-reveal><div class="logic-row"><div class="logic-no">01 / SEE</div><div><strong>扉上の表示が見えない</strong><span>座席や混雑位置によって、案内表示が視界から消える。</span></div></div><div class="logic-row"><div class="logic-no">02 / HEAR</div><div><strong>放送を聞き逃す</strong><span>イヤホンや会話中でも、手元を見れば現在地を確認できる。</span></div></div><div class="logic-row"><div class="logic-no">03 / CHECK</div><div><strong>駅名だけ、すぐ知りたい</strong><span>経路検索を挟まず、現在駅を大きく表示する。</span></div></div></div></div></section>
-<section class="product" id="product"><div class="shell"><div class="section-head" data-reveal><div class="section-index">02 / PRODUCT</div><div><h2>開いた瞬間、<br>現在駅が主役。</h2><p class="lead">情報を詰め込むのではなく、移動中に必要なものを順番に。現在駅、次駅、目的地、車内モードをひとつの流れにまとめます。</p></div></div><div class="product-grid"><div class="product-phone" data-reveal><img src="lp-product-ui.svg" alt="エキココの現在駅画面"></div><div class="feature-list" data-reveal><div class="feature"><em>NOW</em><div><h3>現在駅を大きく</h3><p>GPSから近い駅を判定し、駅名・路線・距離を読み取りやすく表示。</p></div></div><div class="feature"><em>RIDE</em><div><h3>車内モード</h3><p>駅名だけを特大表示。膝上や手元で一瞬見る使い方を想定しています。</p></div></div><div class="feature"><em>DEST.</em><div><h3>降りる駅を設定</h3><p>目的地を選び、降車前に気づけるようにサポートします。</p></div></div><div class="feature"><em>GUIDE</em><div><h3>駅で迷う場面にも</h3><p>きっぷ、IC、QR、乗り換えなどの補助情報へすぐアクセス。</p></div></div></div></div></div></section>
-<section class="scene"><div class="shell"><div class="scene-wrap" data-reveal><div class="scene-media"><img src="lp-onboard-ui.svg" alt="黒背景で駅名を大きく表示する車内モード"></div><div class="scene-copy"><p class="kicker">Onboard mode</p><h3>画面を見た<br>その一秒で分かる。</h3><p>暗い車内でも眩しすぎず、混雑時でも読み取りやすい。駅名を主役にした確認専用画面です。</p></div></div></div></section>
-<section class="how"><div class="shell"><p class="section-index">03 / HOW TO USE</p><h2 data-reveal>使い方は、<br>3つだけ。</h2><div class="steps" data-reveal><div class="step"><small>STEP 01</small><h3>開く</h3><p>ブラウザまたはホーム画面からエキココを起動。</p></div><div class="step"><small>STEP 02</small><h3>位置情報を許可</h3><p>現在地から近い駅を判定するために位置情報を利用します。</p></div><div class="step"><small>STEP 03</small><h3>見る</h3><p>現在駅が大きく表示されます。必要なときだけ目的地を設定。</p></div></div></div></section>
-<section class="final"><div class="shell" data-reveal><p class="kicker">EKIKOKO</p><h2>「今どこだっけ」を、<br>もっと小さなストレスに。</h2><p>電車の中で現在地を確かめるための、シンプルな移動ツールです。</p><div class="actions"><a class="cta" href="./">エキココを開く</a></div></div></section>
+<section class="hero">
+  <div class="hero-media" aria-hidden="true">
+    <picture>
+      <source media="(max-width:700px)" srcset="lp-seated-mobile.svg">
+      <img src="lp-seated-hero.svg" alt="">
+    </picture>
+  </div>
+  <div class="wrap">
+    <div class="hero-copy" data-reveal>
+      <div class="kicker">CURRENT STATION UTILITY</div>
+      <h1>席に座っても、<br>今どの駅かすぐわかる。</h1>
+      <p>エキココは、電車の中で現在駅をすばやく確認するためのシンプルなWebアプリです。乗換案内ではなく、移動中の「今ここ」に特化しています。</p>
+      <div class="hero-actions">
+        <a class="primary" href="./">エキココを開く →</a>
+        <a class="ghost" href="#usecases">できることを見る</a>
+      </div>
+      <div class="hero-points">
+        <span><i class="dot"></i>アカウント登録不要</span>
+        <span><i class="dot"></i>ブラウザですぐ使える</span>
+        <span><i class="dot"></i>PWA対応</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="usecases" id="usecases">
+  <div class="wrap">
+    <h2 class="section-title" data-reveal>こんな場面で役立ちます</h2>
+    <p class="section-lead" data-reveal>「今どこ？」と思うのは、たいてい短い瞬間。だから、確認までの操作も短くしました。</p>
+    <div class="scene-grid">
+      <article class="scene-card" data-reveal>
+        <div class="scene-thumb"><img src="lp-seated-hero.svg" alt="扉上の案内表示が人で見えにくい車内"></div>
+        <div class="scene-body"><strong>席に座ると、扉上の表示が見えない</strong><p>立っている人や座る位置で、現在駅の表示が視界から外れる。</p></div>
+      </article>
+      <article class="scene-card" data-reveal>
+        <div class="scene-thumb"><img src="lp-seated-mobile.svg" alt="車内でスマートフォンを確認する場面"></div>
+        <div class="scene-body"><strong>アナウンスを聞き逃してしまう</strong><p>イヤホンや会話中でも、手元を見れば現在駅を確認できます。</p></div>
+      </article>
+      <article class="scene-card" data-reveal>
+        <div class="scene-thumb"><img src="lp-product-ui.svg" alt="現在駅を表示するエキココの画面"></div>
+        <div class="scene-body"><strong>乗換案内を開くほどでもない</strong><p>知りたいのは経路ではなく、ただ「今の駅」だけ。</p></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="features" id="features">
+  <div class="wrap feature-layout">
+    <div class="feature-copy" data-reveal>
+      <h2>現在駅を、<br>大きく、迷わず。</h2>
+      <p>エキココの中心は現在駅表示です。必要な情報だけを、その場で読み取りやすい順番に並べています。</p>
+      <div class="feature-list">
+        <div class="feature-row"><div class="feature-no">01 / NOW</div><div><h3>現在駅を大きく表示</h3><p>駅名・路線・距離を、短時間で確認しやすい構成に整理します。</p></div></div>
+        <div class="feature-row"><div class="feature-no">02 / RIDE</div><div><h3>車内モード</h3><p>駅名を特大表示。膝上や手元で一瞬見る使い方を想定しています。</p></div></div>
+        <div class="feature-row"><div class="feature-no">03 / DEST.</div><div><h3>目的地を設定</h3><p>降りる駅を設定して、到着前に気づきやすくします。</p></div></div>
+        <div class="feature-row"><div class="feature-no">04 / GUIDE</div><div><h3>駅で迷う場面にも</h3><p>IC・QR・きっぷ・乗り換えなどの補助情報へすぐアクセスできます。</p></div></div>
+      </div>
+    </div>
+    <div class="phone-stage" data-reveal>
+      <img src="lp-product-ui.svg" alt="エキココの現在駅表示画面">
+    </div>
+  </div>
+</section>
+
+<section class="onboard">
+  <div class="wrap onboard-grid">
+    <div class="onboard-media" data-reveal><img src="lp-onboard-ui.svg" alt="黒背景で駅名を大きく表示する車内モード"></div>
+    <div class="onboard-copy" data-reveal>
+      <small>ONBOARD MODE</small>
+      <h2>暗い車内でも、<br>一秒で読める。</h2>
+      <p>情報を減らし、駅名を主役にした確認専用画面。混雑時でも、スマートフォンに視線を落とすだけで現在地が分かります。</p>
+    </div>
+  </div>
+</section>
+
+<section class="steps">
+  <div class="wrap">
+    <h2 class="section-title" data-reveal>使い方は、3ステップ。</h2>
+    <div class="steps-grid">
+      <div class="step" data-reveal><small>STEP 01</small><h3>開く</h3><p>ブラウザまたはホーム画面からエキココを起動します。</p></div>
+      <div class="step" data-reveal><small>STEP 02</small><h3>位置情報を許可</h3><p>現在地から近い駅を判定するため、位置情報を利用します。</p></div>
+      <div class="step" data-reveal><small>STEP 03</small><h3>見る</h3><p>現在駅が大きく表示されます。必要なときだけ目的地を設定します。</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap" data-reveal>
+    <h2>「今どこだっけ」を、<br>もっと小さなストレスに。</h2>
+    <p>電車の中で現在地を確かめるための、シンプルな移動ツールです。</p>
+    <div class="hero-actions"><a class="primary" href="./">エキココを開く →</a></div>
+  </div>
+</section>
 </main>
-<footer><div class="shell footer-row"><span>© EKIKOKO</span><span><a href="privacy.html">プライバシー・利用情報</a></span></div></footer>
-<script>(()=>{const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;if(reduce)return;const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;e.target.classList.add("is-visible");io.unobserve(e.target)}),{threshold:.14,rootMargin:"0px 0px -8%"});document.querySelectorAll("[data-reveal]").forEach(el=>io.observe(el))})();</script>
-</body></html>
+
+<footer>
+  <div class="wrap footer-row"><span>© EKIKOKO</span><span><a href="privacy.html">プライバシー・利用情報</a></span></div>
+</footer>
+
+<script>
+(() => {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add("is-visible");
+      io.unobserve(entry.target);
+    });
+  }, { threshold: .14, rootMargin: "0px 0px -8% 0px" });
+  document.querySelectorAll("[data-reveal]").forEach(el => io.observe(el));
+})();
+</script>
+</body>
+</html>
