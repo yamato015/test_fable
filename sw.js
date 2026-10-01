@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "ekikoko-v36";
+const CACHE_NAME = "ekikoko-v37";
 const ASSETS = [
   "./",
   "index.html",
@@ -13,6 +13,12 @@ const ASSETS = [
   "icon.svg",
   "icon-512.png",
   "apple-touch-icon.png",
+  "lp.html",
+  "lp-seated-hero.svg",
+  "lp-seated-mobile.svg",
+  "app-start-scene.svg",
+  "lp-product-ui.svg",
+  "lp-onboard-ui.svg",
 ];
 
 self.addEventListener("install", (event) => {
