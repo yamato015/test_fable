@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "ekikoko-v38";
+const CACHE_NAME = "ekikoko-v39";
 const ASSETS = [
   "./",
   "index.html",
@@ -37,9 +37,6 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// アプリ本体はキャッシュ優先、Overpass APIなど外部リクエストは常にネットワークへ。
-// 遅延ロードする stations_jp.js などは初回取得時に実行時キャッシュする
-// (プリキャッシュに入れないことで初回ロードを軽く保つ)。
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
