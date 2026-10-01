@@ -3310,7 +3310,7 @@ $("daynight-btn").addEventListener("click", () => {
   applyMode(document.body.dataset.mode === "light" ? "dark" : "light");
 });
 
-applyMode(localStorage.getItem("mode") === "light" ? "light" : "dark");
+applyMode(localStorage.getItem("mode") === "dark" ? "dark" : "light");
 
 // 目的地までの残り距離と駅数を表示する (路線順データがある場合のみ駅数を計算)
 function renderAlertProgress(lat, lon, nearest) {
