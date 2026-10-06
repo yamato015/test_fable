@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0e171c">
+<meta name="theme-color" content="#ffffff">
 <meta name="description" content="席に座って扉上の表示が見えなくても、今どの駅かすぐわかる。現在駅の確認に特化したWebアプリ、エキココ。">
 <title>エキココ｜席に座っても、今どの駅かすぐわかる。</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -17,16 +17,16 @@
 *{box-sizing:border-box}html{scroll-behavior:smooth}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 img,svg{display:block;max-width:100%}a{color:inherit;text-decoration:none}.wrap{width:min(calc(100% - 48px),var(--max));margin:auto}
-.header{position:absolute;inset:0 0 auto;z-index:30;color:#fff}.header-inner{width:min(calc(100% - 48px),var(--max));height:72px;margin:auto;display:flex;align-items:center;gap:26px}
-.brand{display:flex;align-items:center;gap:10px;font-weight:850;letter-spacing:.04em}.brand img{width:28px;height:28px;filter:brightness(0) invert(1)}
+.header{position:relative;z-index:30;color:var(--ink);background:#fff;border-bottom:1px solid #e8ebe8}.header-inner{width:min(calc(100% - 48px),var(--max));height:72px;margin:auto;display:flex;align-items:center;gap:26px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:850;letter-spacing:.04em}.brand img{width:28px;height:28px}
 .nav{margin-left:auto;display:flex;gap:28px;font-size:13px;font-weight:750}.nav a{opacity:.82}.nav a:hover{opacity:1}
-.header-cta{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 19px;border-radius:999px;background:#113440;border:1px solid rgba(255,255,255,.22);font-size:13px;font-weight:850}
+.header-cta{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 19px;border-radius:999px;background:#113440;color:#fff;font-size:13px;font-weight:850}
 
 .hero{background:var(--deep);color:#fff}
 .hero-grid{min-height:760px;display:grid;grid-template-columns:1.04fr .96fr}
-.hero-main{position:relative;overflow:hidden;min-width:0}
-.hero-main>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 48%}
-.hero-main::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(7,13,17,.82),rgba(7,13,17,.55) 58%,rgba(7,13,17,.16)),linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.36))}
+.hero-main{position:relative;overflow:hidden;min-width:0;background:radial-gradient(circle at 85% 15%,#29424d 0,transparent 38%),var(--deep)}
+.hero-main>img{display:none}
+.hero-main::after{content:"";position:absolute;inset:auto -12% -30% auto;width:70%;aspect-ratio:1;border:1px solid rgba(255,255,255,.09);border-radius:50%}
 .hero-copy{position:relative;z-index:2;min-height:760px;padding:132px clamp(34px,5vw,78px) 64px;display:flex;flex-direction:column;justify-content:center;max-width:720px}
 .kicker{font:850 11px/1.4 ui-monospace,SFMono-Regular,monospace;letter-spacing:.14em;text-transform:uppercase;color:#dce9e2}
 .hero h1{margin:18px 0 0;font-size:clamp(56px,6.3vw,94px);line-height:.95;letter-spacing:-.065em;font-weight:920}
@@ -87,8 +87,8 @@ footer{padding:28px 0;background:#fff;color:#7a8488;font-size:12px}.footer-row{d
 }
 @media(max-width:700px){
   .header-inner,.wrap{width:min(calc(100% - 30px),var(--max))}.header-inner{height:62px}.header-cta{min-height:40px;padding:0 15px;font-size:12px}
-  .hero-main,.hero-copy{min-height:760px}.hero-main>img{object-position:center 42%}.hero-main::after{background:linear-gradient(180deg,rgba(7,13,17,.14),rgba(7,13,17,.34) 45%,rgba(7,13,17,.92) 76%,rgba(7,13,17,.98))}
-  .hero-copy{padding:350px 24px 46px;justify-content:flex-end}.hero h1{font-size:clamp(48px,14vw,70px)}.hero p{font-size:15px}.hero-actions{display:grid}.primary,.ghost{width:100%}
+  .hero-grid,.hero-main,.hero-copy{min-height:0}.hero-main::after{background:none}
+  .hero-copy{padding:52px 24px 40px;justify-content:center}.hero h1{font-size:clamp(38px,10.5vw,48px)}.hero p{font-size:15px}.hero-actions{display:grid}.primary,.ghost{width:100%}
   .hero-mosaic{grid-template-columns:1fr 1fr;grid-template-rows:210px 230px}.mosaic-label{left:16px;bottom:14px;font-size:14px}.mosaic-phone img{padding:15px}
   .usecases,.features,.onboard,.steps{padding:76px 0}.scene-grid{grid-template-columns:1fr}.scene-thumb{height:220px}
   .feature-layout{gap:48px}.product-stack{grid-template-columns:1fr 1fr;gap:10px}.product-shot:first-child{transform:translateY(-12px)}
@@ -101,7 +101,7 @@ footer{padding:28px 0;background:#fff;color:#7a8488;font-size:12px}.footer-row{d
 <header class="header">
   <div class="header-inner">
     <a class="brand" href="./"><img src="icon.svg" alt=""><span>エキココ</span></a>
-    <nav class="nav"><a href="#usecases">できること</a><a href="#features">利用シーン</a><a href="privacy.html">よくある質問</a></nav>
+    <nav class="nav" aria-label="ページ内ナビゲーション"><a href="#features">できること</a><a href="#usecases">利用シーン</a><a href="privacy.html">プライバシー</a></nav>
     <a class="header-cta" href="./">アプリを開く</a>
   </div>
 </header>
@@ -110,7 +110,7 @@ footer{padding:28px 0;background:#fff;color:#7a8488;font-size:12px}.footer-row{d
 <section class="hero">
   <div class="hero-grid">
     <div class="hero-main">
-      <img src="lp-seated-hero.svg" alt="ロングシートに座ると、向かい側の扉上にある案内表示が立客で見えにくい車内">
+
       <div class="hero-copy" data-reveal>
         <div class="kicker">CURRENT STATION UTILITY</div>
         <h1>席に座っても、<br>今どの駅かすぐわかる。</h1>
@@ -122,23 +122,23 @@ footer{padding:28px 0;background:#fff;color:#7a8488;font-size:12px}.footer-row{d
 
     <div class="hero-mosaic" aria-label="エキココの利用シーン">
       <figure class="mosaic wide mosaic-display">
-        <img src="lp-seated-hero.svg" alt="扉上の案内表示">
+        <img src="assets/lp/train-display.png" alt="ロングシートの座席から見た、乗客に一部隠れた扉上の案内表示">
         <figcaption class="mosaic-label">席に座ると、扉上の表示が見えない。<br>そんなときに、手元ですぐ確認。</figcaption>
       </figure>
       <figure class="mosaic mosaic-scene">
-        <img src="lp-seated-mobile.svg" alt="車内でスマートフォンを確認する利用シーン">
+        <img src="assets/lp/passenger-phone.png" alt="ロングシートでスマートフォンを確認する乗客">
         <figcaption class="mosaic-label">アナウンスを聞き逃しても、<br>手元で今の駅がわかる。</figcaption>
       </figure>
       <figure class="mosaic mosaic-phone">
-        <img src="lp-product-ui.svg" alt="現在駅を大きく表示するエキココ">
+        <img src="assets/lp/app-in-hand.png" alt="手元のスマートフォンで現在駅を確認する様子">
         <figcaption class="mosaic-label">現在駅</figcaption>
       </figure>
       <figure class="mosaic mosaic-onboard">
-        <img src="lp-onboard-ui.svg" alt="車内モード">
+        <img src="assets/lp/seated-passenger.png" alt="ロングシートで現在駅を確認する乗客">
         <figcaption class="mosaic-label">暗い車内でも、見やすい。</figcaption>
       </figure>
       <figure class="mosaic mosaic-map">
-        <img src="lp-product-ui.svg" alt="駅情報と目的地設定">
+        <img src="lp-product-ui.svg" alt="現在駅、駅情報、目的地を確認できるエキココの画面">
         <figcaption class="mosaic-label">駅情報</figcaption>
       </figure>
     </div>
@@ -148,10 +148,10 @@ footer{padding:28px 0;background:#fff;color:#7a8488;font-size:12px}.footer-row{d
 <section class="usecases" id="usecases">
   <div class="wrap">
     <h2 class="section-title" data-reveal>こんな場面で役立ちます</h2>
-    <p class="section-lead" data-reveal>さっきのイメージ画像で固めた「座席からの見え方」を、そのまま利用シーンとしてLPに落とし込みました。</p>
+    <p class="section-lead" data-reveal>移動中にふと現在地が気になったとき、経路を検索し直さず、必要な情報だけをすぐに確認できます。</p>
     <div class="scene-grid">
-      <article class="scene-card" data-reveal><div class="scene-thumb"><img src="lp-seated-hero.svg" alt="扉上の表示が人で隠れる車内"></div><div class="scene-body"><strong>席に座ると、扉上の表示が見えない</strong><p>立っている人や座る位置で、現在駅の表示が視界から外れる。</p></div></article>
-      <article class="scene-card" data-reveal><div class="scene-thumb"><img src="lp-seated-mobile.svg" alt="車内でスマートフォンを確認する場面"></div><div class="scene-body"><strong>アナウンスを聞き逃してしまう</strong><p>イヤホンや会話中でも、手元を見れば現在駅を確認できます。</p></div></article>
+      <article class="scene-card" data-reveal><div class="scene-thumb"><img src="assets/lp/train-display.png" alt="乗客で扉上の表示が見えにくい車内"></div><div class="scene-body"><strong>席に座ると、扉上の表示が見えない</strong><p>立っている人や座る位置で、現在駅の表示が視界から外れる。</p></div></article>
+      <article class="scene-card" data-reveal><div class="scene-thumb"><img src="assets/lp/passenger-phone.png" alt="車内でスマートフォンを確認する乗客"></div><div class="scene-body"><strong>アナウンスを聞き逃してしまう</strong><p>イヤホンや会話中でも、手元を見れば現在駅を確認できます。</p></div></article>
       <article class="scene-card" data-reveal><div class="scene-thumb"><img src="lp-product-ui.svg" alt="エキココの現在駅画面"></div><div class="scene-body"><strong>乗換案内を開くほどでもない</strong><p>知りたいのは経路ではなく、ただ「今の駅」だけ。</p></div></article>
     </div>
   </div>
@@ -161,7 +161,7 @@ footer{padding:28px 0;background:#fff;color:#7a8488;font-size:12px}.footer-row{d
   <div class="wrap feature-layout">
     <div class="feature-copy" data-reveal>
       <h2>現在駅を、<br>大きく、迷わず。</h2>
-      <p>移動中に必要な情報だけを、読み取りやすい順番に。画像内で決めた白基調のアプリUIをLP側にも合わせています。</p>
+      <p>移動中に必要な情報だけを、読み取りやすい順番に。現在駅、次の駅、路線など、移動中に必要な情報をひと目で読み取れるように整理しています。</p>
       <div class="feature-list">
         <div class="feature-row"><div class="feature-no">01 / NOW</div><div><h3>現在駅を大きく表示</h3><p>駅名・路線・距離を、短時間で確認しやすい構成に整理します。</p></div></div>
         <div class="feature-row"><div class="feature-no">02 / RIDE</div><div><h3>車内モード</h3><p>駅名を特大表示。膝上や手元で一瞬見る使い方を想定しています。</p></div></div>
@@ -199,7 +199,7 @@ footer{padding:28px 0;background:#fff;color:#7a8488;font-size:12px}.footer-row{d
 </section>
 </main>
 
-<footer><div class="wrap footer-row"><span>© EKIKOKO</span><span><a href="privacy.html">プライバシー・利用情報</a></span></div></footer>
+<footer><div class="wrap footer-row"><span>© EKIKOKO</span><span>ビジュアル: 承認済みデザインより · <a href="privacy.html">プライバシー・利用情報</a></span></div></footer>
 
 <script>
 (() => {
