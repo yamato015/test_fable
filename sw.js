@@ -1,11 +1,13 @@
 "use strict";
 
-const CACHE_NAME = "ekikoko-v40";
+const CACHE_NAME = "ekikoko-v41";
 const ASSETS = [
   "./","index.html","privacy.html","style.css","app.js","config.js","stations.js",
   "manifest.json","icon.svg","icon-512.png","apple-touch-icon.png","lp.html",
   "lp-seated-hero.svg","lp-seated-mobile.svg","app-start-scene.svg",
-  "lp-product-ui.svg","lp-onboard-ui.svg"
+  "lp-product-ui.svg","lp-onboard-ui.svg",
+  "assets/lp/train-display.png","assets/lp/passenger-phone.png",
+  "assets/lp/app-in-hand.png","assets/lp/seated-passenger.png"
 ];
 
 self.addEventListener("install", (event) => {
