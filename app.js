@@ -293,6 +293,7 @@ const STRINGS = {
     tagline: "混雑した車内でも、<br>いまどの駅かひと目でわかる。",
     startBtn: "現在地を確認する",
     startNote: "位置情報は端末内だけで使い、保存しません。",
+    startPhotoAlt: "乗客の向こうに見える、電車の扉上の案内表示",
     privacyLink: "プライバシーポリシー",
     brandDescriptor: "駅位置インストゥルメント",
     settingsLabel: "表示設定",
@@ -492,6 +493,7 @@ const STRINGS = {
     tagline: "Know exactly which station you're at,<br>even on a packed train.",
     startBtn: "Show my location",
     startNote: "Please allow location access.<br>Your location is processed only on this device and never stored.",
+    startPhotoAlt: "A train's overhead station display seen beyond standing passengers",
     privacyLink: "Privacy Policy",
     brandDescriptor: "Station location instrument",
     settingsLabel: "Display",
@@ -763,6 +765,9 @@ function applyLang() {
   });
   document.querySelectorAll("[data-i18n-ph]").forEach((el) => {
     el.placeholder = t(el.dataset.i18nPh);
+  });
+  document.querySelectorAll("[data-i18n-alt]").forEach((el) => {
+    el.alt = t(el.dataset.i18nAlt);
   });
   for (const id of ["dest-close", "guide-close", "paywall-close"]) {
     const closeButton = $(id);
@@ -1261,6 +1266,8 @@ $("start-btn").addEventListener("click", () => {
   mainScreen.classList.remove("hidden");
   applyPlanUI();
   requestAnimationFrame(() => {
+    // 起動画面の下部で押しても、現在駅を先頭から読める位置へ戻す。
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     document.querySelector(".station-display")?.focus?.({ preventScroll: true });
   });
   startLocationWatch();

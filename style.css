@@ -5312,9 +5312,11 @@ body.riding-active #main-screen {
 .brand-lockup{min-width:0}
 .settings-trigger{border-radius:999px!important}
 .station-display{position:relative;padding:30px 0 28px!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important}
-.station-display:before{content:"CURRENT STATION";display:block;margin-bottom:16px;font-size:.56rem;font-weight:900;letter-spacing:.16em;color:var(--panel-engraved)}
+.station-display:before{display:none}
 .station-eyebrow{margin-bottom:8px}
-.station-name{font-size:clamp(4.4rem,20vw,7rem)!important;line-height:.9!important;letter-spacing:-.08em!important;font-weight:920!important}
+.station-name{font-size:clamp(4.4rem,20vw,7rem);line-height:1.08;letter-spacing:-.055em;font-weight:800;overflow-wrap:anywhere}
+.station-name.is-long{font-size:clamp(3rem,12.5vw,4.2rem);letter-spacing:-.035em}
+.station-name.is-state-message{font-size:clamp(2rem,10vw,2.7rem);line-height:1.25;letter-spacing:-.025em}
 .station-sub{margin-top:10px!important;font-size:1rem!important}
 .lines{margin-top:22px!important}
 .prev-next{margin-top:24px!important}
@@ -5341,4 +5343,65 @@ body.riding-active #main-screen {
   body{background:linear-gradient(90deg,color-mix(in srgb,var(--bg) 94%,#fff),var(--bg),color-mix(in srgb,var(--bg) 94%,#fff))}
   #app{box-shadow:0 0 0 1px var(--line);background:var(--bg)}
   #start-screen{min-height:100vh}
+}
+
+/* アプリ全体を案内板の輪郭と、読み取りやすい操作面で揃える。 */
+#start-screen {
+  background: var(--bg);
+  gap: 20px;
+}
+.app-intro-visual::before { display: none; }
+.app-intro-visual img {
+  display: block;
+  height: auto;
+  border: 1px solid var(--control-border);
+  border-radius: 12px;
+  box-shadow: 0 3px 0 var(--plate-shadow);
+}
+#start-screen .big-btn {
+  border-radius: 12px;
+  box-shadow: 0 3px 0 var(--btn-edge);
+}
+.status-bar {
+  background: var(--bg);
+  backdrop-filter: none;
+}
+.station-display { scroll-margin-top: 88px; }
+.station-eyebrow {
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+.station-readouts { min-width: 0; }
+.station-readouts > * { min-width: 0; }
+.ride-mode-row,
+.destination-action,
+.plus-row {
+  border-radius: 12px !important;
+  background: var(--card) !important;
+  box-shadow: 0 3px 0 var(--plate-shadow) !important;
+}
+.mode-btn.secondary { border-radius: 12px !important; }
+.nearby-list li { padding-block: 16px; }
+.nearby-list .name,
+.dest-list .name { overflow-wrap: anywhere; }
+.dest-list .dest-item { min-height: 64px; }
+.search-input { font-size: 1rem; }
+.guide-sec { padding-block: 18px; }
+.guide-sec h3 { margin-top: 0; }
+.settings-trigger,
+.icon-only-btn,
+.modal-header-row .close-btn { min-width: 44px; min-height: 44px; }
+.r-station {
+  line-height: 1.1 !important;
+  letter-spacing: -.045em !important;
+  overflow-wrap: anywhere;
+}
+.r-station.is-long { font-size: min(19vw, 6rem) !important; }
+@media (max-width: 380px) {
+  #main-screen { padding-inline: 16px; }
+  .status-bar { margin-inline: -16px; padding-inline: 16px; }
+  .brand-descriptor { font-size: .625rem; }
+  .station-name { font-size: clamp(3.5rem, 20vw, 7rem); }
+  .station-name.is-long { font-size: clamp(2.5rem, 12.5vw, 4.2rem); }
+  .station-name.is-state-message { font-size: clamp(1.8rem, 9vw, 2.7rem); }
 }
