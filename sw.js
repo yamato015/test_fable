@@ -1,11 +1,10 @@
 "use strict";
 
-const CACHE_NAME = "ekikoko-v42";
+const CACHE_NAME = "ekikoko-v43";
 const ASSETS = [
-  "./","index.html","privacy.html","style.css","app.js","config.js","stations.js",
+  "./","index.html","privacy.html","style.css","app-design.css","app.js","config.js","stations.js",
   "manifest.json","icon.svg","icon-512.png","apple-touch-icon.png","lp.html",
-  "lp-seated-hero.svg","lp-seated-mobile.svg","app-start-scene.svg",
-  "lp-product-ui.svg","lp-onboard-ui.svg",
+  "lp-product-ui.svg","lp-onboard-ui.svg","assets/lp/station-gates-photo.jpg",
   "assets/lp/train-display.png","assets/lp/passenger-phone.png",
   "assets/lp/app-in-hand.png","assets/lp/seated-passenger.png"
 ];
