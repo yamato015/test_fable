@@ -224,6 +224,7 @@ function closeSheet(id) {
     return;
   }
 
+  if (id === "guide-modal") stopGuideAnimation();
   overlay.classList.add("is-closing");
   overlay.dataset.state = "closing";
   const controlledOpener =
@@ -293,7 +294,7 @@ const STRINGS = {
     startBtn: "現在地を確認する",
     startNote: "位置情報は端末内だけで使い、保存しません。",
     startPhotoAlt: "乗客の向こうに見える、電車の扉上の案内表示",
-    guidePhotoAlt: "ステンレスの改札機と青いICカード読み取り面",
+    guideReplay: "もう一度見る",
     privacyLink: "プライバシーポリシー",
     brandDescriptor: "駅位置インストゥルメント",
     settingsLabel: "表示設定",
@@ -494,7 +495,7 @@ const STRINGS = {
     startBtn: "Show my location",
     startNote: "Please allow location access.<br>Your location is processed only on this device and never stored.",
     startPhotoAlt: "A train's overhead station display seen beyond standing passengers",
-    guidePhotoAlt: "Stainless steel ticket gates with blue IC card readers",
+    guideReplay: "Replay",
     privacyLink: "Privacy Policy",
     brandDescriptor: "Station location instrument",
     settingsLabel: "Display",
@@ -1077,7 +1078,74 @@ function getTicketType() {
   return ["qr", "ic", "paper", "jrpass"].includes(v) ? v : "all";
 }
 
-function renderGuide() {
+const GUIDE_OPEN_SETTLE_MS = 280;
+const GUIDE_ANIMATION_CLEANUP_MS = 1980;
+let guideAnimationStartTimer = null;
+let guideAnimationTimer = null;
+let guideAnimationFrame = null;
+let guideAnimationRunId = 0;
+let guideReadyAt = 0;
+
+function clearGuideAnimationRun() {
+  const body = $("guide-body");
+  guideAnimationRunId += 1;
+  window.clearTimeout(guideAnimationStartTimer);
+  window.clearTimeout(guideAnimationTimer);
+  window.cancelAnimationFrame(guideAnimationFrame);
+  guideAnimationStartTimer = null;
+  guideAnimationTimer = null;
+  guideAnimationFrame = null;
+  body.querySelectorAll(".scene.guide-animating").forEach((scene) => {
+    scene.classList.remove("guide-animating");
+  });
+}
+
+function stopGuideAnimation() {
+  clearGuideAnimationRun();
+  guideReadyAt = 0;
+}
+
+function playGuideAnimation(scene = null) {
+  clearGuideAnimationRun();
+  if (reduceMotionQuery.matches) return;
+  const body = $("guide-body");
+  const runId = guideAnimationRunId;
+  const selected = getTicketType();
+  const animationTarget = scene || body.querySelector(
+    `.guide-sec[data-sec="${selected === "all" ? "qr" : selected}"] .scene`
+  );
+  if (!animationTarget) return;
+  const begin = () => {
+    guideAnimationStartTimer = null;
+    if (
+      runId !== guideAnimationRunId ||
+      reduceMotionQuery.matches ||
+      $("guide-modal").classList.contains("hidden") ||
+      $("guide-modal").classList.contains("is-closing")
+    ) {
+      return;
+    }
+    guideAnimationFrame = window.requestAnimationFrame(() => {
+      guideAnimationFrame = null;
+      if (runId !== guideAnimationRunId) return;
+      animationTarget.classList.add("guide-animating");
+      // 1600ms本編 + ICの追加280ms + 100ms余白。
+      guideAnimationTimer = window.setTimeout(() => {
+        if (runId !== guideAnimationRunId) return;
+        animationTarget.classList.remove("guide-animating");
+        guideAnimationTimer = null;
+      }, GUIDE_ANIMATION_CLEANUP_MS);
+    });
+  };
+  const delay = Math.max(0, guideReadyAt - performance.now());
+  if (delay > 0) {
+    guideAnimationStartTimer = window.setTimeout(begin, delay);
+  } else {
+    begin();
+  }
+}
+
+function renderGuide(animate = false) {
   const sel = getTicketType();
   const buttons = [...document.querySelectorAll("#guide-modal .chip-btn")];
   buttons.forEach((b) => {
@@ -1095,11 +1163,14 @@ function renderGuide() {
     $("guide-status").textContent =
       selectedButton?.textContent.trim() || t("ticketAll");
   }
+  if (animate) playGuideAnimation();
 }
 
 $("guide-btn").addEventListener("click", (event) => {
   renderGuide();
   openSheet("guide-modal", $("guide-close"), event.currentTarget);
+  guideReadyAt = performance.now() + motionMs(GUIDE_OPEN_SETTLE_MS);
+  playGuideAnimation();
 });
 $("guide-close").addEventListener("click", () => closeSheet("guide-modal"));
 const guideTicketButtons = [...document.querySelectorAll(
@@ -1113,7 +1184,7 @@ guideTicketButtons.forEach((b) => {
     } else {
       localStorage.setItem("ticketType", b.dataset.ticket);
     }
-    renderGuide();
+    renderGuide(true);
   });
   b.addEventListener("keydown", (event) => {
     if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) {
@@ -1133,6 +1204,12 @@ guideTicketButtons.forEach((b) => {
     guideTicketButtons[next].click();
     guideTicketButtons[next].focus();
   });
+});
+document.querySelectorAll("#guide-body .guide-replay").forEach((button) => {
+  button.addEventListener("click", () => playGuideAnimation(button.closest(".scene")));
+});
+reduceMotionQuery.addEventListener("change", (event) => {
+  if (event.matches) stopGuideAnimation();
 });
 $("buy-monthly-btn").addEventListener("click", () => startCheckout("monthly"));
 $("buy-yearly-btn").addEventListener("click", () => startCheckout("yearly"));

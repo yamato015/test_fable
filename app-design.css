@@ -235,19 +235,43 @@ html[lang="en"] .station-eyebrow .status-label::before { content: ""; }
 .dest-list .dest-item { min-height: 66px; }
 .dest-list .dest-name { font-weight: 650; }
 #dest-map-stage { border: 3px solid var(--surface-edge); box-shadow: 0 3px 8px var(--surface-shadow) inset; }
-.guide-photo {
-  position: relative; margin: 16px 0 24px; padding: 5px;
-  border: 1px solid var(--surface-edge); border-radius: 12px;
+/* The guide uses object diagrams; no human silhouettes. */
+.scene {
+  padding: 12px; margin: 0 0 16px; overflow: hidden;
+  background: radial-gradient(ellipse at 50% 15%,var(--surface-top),var(--inset));
+  border: 1px solid var(--surface-edge); border-radius: 10px;
+  box-shadow: 0 2px 6px var(--surface-shadow) inset,0 1px 0 var(--surface-light);
+}
+.scene .sc-body { fill: var(--guide-metal); stroke: var(--surface-edge); stroke-width: 1.5; }
+.scene .sc-dev { fill: var(--guide-device); }
+.scene .sc-window { fill: var(--guide-glass); }
+.sc-metal-light { stop-color: #a5b3b8; }
+.sc-metal-mid { stop-color: #687d85; }
+.sc-metal-dark { stop-color: #34484f; }
+.sc-device-light { stop-color: var(--surface-top); }
+.sc-device-dark { stop-color: var(--surface-bottom); }
+.sc-ground { fill: var(--surface-shadow); }
+.sc-confirm { fill: none; stroke: #6bc69f; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+body[data-mode="light"] .sc-metal-light { stop-color: #f3f5f4; }
+body[data-mode="light"] .sc-metal-mid { stop-color: #bdc9cd; }
+body[data-mode="light"] .sc-metal-dark { stop-color: #81949d; }
+/* Move the card/phone onto the reader before the success ring and gate opening. */
+.scene.guide-animating .sc-phone,
+.scene.guide-animating .sc-card { animation-name: guideTapReader; }
+@keyframes guideTapReader {
+  0% { transform: translateY(-8px); }
+  30%,65% { transform: translateY(10px); }
+  90%,100% { transform: translateY(-8px); }
+}
+.guide-replay {
+  display: block; margin: 8px 0 0 auto; min-height: 40px; padding: 8px 13px;
+  border: 1px solid var(--surface-edge); border-radius: 8px;
   background: linear-gradient(var(--surface-top),var(--surface-bottom));
-  box-shadow: 0 4px 0 var(--surface-edge),0 12px 22px -12px var(--surface-shadow);
+  box-shadow: 0 1px 0 var(--surface-light) inset,0 2px 0 var(--surface-edge);
+  color: var(--fg); font: inherit; font-size: .8rem; cursor: pointer;
 }
-.guide-photo img { display: block; width: 100%; height: auto; aspect-ratio: 2.1; object-fit: cover; border-radius: 7px; }
-.guide-photo figcaption {
-  position: absolute; bottom: 5px; left: 5px; right: 5px; display: flex; justify-content: space-between;
-  padding: 20px 14px 12px; border-radius: 0 0 7px 7px;
-  background: linear-gradient(transparent,rgba(0,0,0,.8)); color: #fff;
-  font-size: .65rem; font-weight: 750; letter-spacing: .14em;
-}
+.guide-replay:active { transform: translateY(1px); box-shadow: 0 1px 0 var(--surface-edge); }
+@media (prefers-reduced-motion: reduce) { .guide-replay { display: none; } }
 .guide-chips { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; padding-bottom: 22px; }
 .chip-btn { background: linear-gradient(var(--surface-top),var(--surface-bottom)); box-shadow: 0 3px 0 var(--surface-edge); }
 .chip-btn[aria-checked="true"] { background: var(--inset); box-shadow: 0 2px 4px var(--surface-shadow) inset; }
