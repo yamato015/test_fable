@@ -296,8 +296,9 @@ const STRINGS = {
     startPhotoAlt: "乗客の向こうに見える、電車の扉上の案内表示",
     guideReplay: "もう一度見る",
     privacyLink: "プライバシーポリシー",
-    brandDescriptor: "駅位置インストゥルメント",
     settingsLabel: "表示設定",
+    displayLight: "ライト",
+    displayDark: "ダーク",
     gpsWait: "GPS取得中…",
     gpsRequestingDetail: "現在地を確認しています。",
     gpsReady: "現在地を取得しました",
@@ -323,7 +324,7 @@ const STRINGS = {
     nextIs: (n, d) => `次は ${n}（${d}）`,
     nextIsShort: (n) => `次は ${n}`,
     ridingBtn: "車内モード",
-    ridingHint: "駅名を拡大し、低照度で表示",
+    ridingHint: "駅名だけを大きく表示",
     destBtn: "目的地",
     destinationLabel: "降りる駅",
     destSet: (n) => `目的地 ${n}`,
@@ -497,8 +498,9 @@ const STRINGS = {
     startPhotoAlt: "A train's overhead station display seen beyond standing passengers",
     guideReplay: "Replay",
     privacyLink: "Privacy Policy",
-    brandDescriptor: "Station location instrument",
     settingsLabel: "Display",
+    displayLight: "Light",
+    displayDark: "Dark",
     gpsWait: "Getting GPS…",
     gpsRequestingDetail: "Checking your current location.",
     gpsReady: "Location found",
@@ -523,7 +525,7 @@ const STRINGS = {
     nextIs: (n, d) => `Next: ${n} (${d})`,
     nextIsShort: (n) => `Next: ${n}`,
     ridingBtn: "On-board",
-    ridingHint: "Enlarge the station name in low light",
+    ridingHint: "See just the station, in large type",
     destBtn: "Destination",
     destinationLabel: "Your stop",
     destSet: (n) => `To ${n}`,
@@ -711,9 +713,9 @@ function updateHeaderUI() {
     pink: t("themePink"),
   };
 
-  $("lang-btn-value").textContent = lang === "ja" ? "JA" : "EN";
-  $("mode-btn-value").textContent = mode === "light" ? "LIGHT" : "DARK";
-  $("theme-btn-value").textContent = theme.toUpperCase();
+  $("lang-btn-value").textContent = lang === "ja" ? "日本語" : "English";
+  $("mode-btn-value").textContent = t(mode === "light" ? "displayLight" : "displayDark");
+  $("theme-btn-value").textContent = themeNames[theme] || theme;
   $("wake-btn-value").textContent = wakeOn ? "ON" : "OFF";
 
   $("status-actions").setAttribute("aria-label", t("headerControls"));
@@ -3309,7 +3311,7 @@ applyTheme(
 // =====================================================================
 // ライト/ダークモード切り替え
 // =====================================================================
-const MODE_BG = { light: "#f4f2ec", dark: "#131517" };
+const MODE_BG = { light: "#f3f6f5", dark: "#10181d" };
 
 function applyMode(mode) {
   document.body.dataset.mode = mode;

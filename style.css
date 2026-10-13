@@ -4153,7 +4153,7 @@ html[lang="en"] .station-eyebrow .status-label::before {
 
 .tab-btn.active,
 .tab-btn[aria-selected="true"] {
-  background: transparent !important;
+  background: transparent;
   color: var(--fg);
 }
 

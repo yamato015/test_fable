@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#131517">
+  <meta name="theme-color" content="#10181d">
   <script>
     try {
       const savedMode = localStorage.getItem("mode") === "dark" ? "dark" : "light";
-      const initialColor = savedMode === "dark" ? "#131517" : "#f4f2ec";
+      const initialColor = savedMode === "dark" ? "#10181d" : "#f3f6f5";
       document.documentElement.dataset.mode = savedMode;
       document.documentElement.style.backgroundColor = initialColor;
       document.querySelector('meta[name="theme-color"]').content = initialColor;
@@ -172,7 +172,7 @@
         <span>LOCATION INSTRUMENT</span>
       </p>
       <div class="app-intro-copy">
-        <p class="app-intro-kicker">CURRENT STATION UTILITY</p>
+
         <h1 class="app-intro-title"><span data-i18n="appName">エキココ</span><span class="beta">β</span></h1>
         <p class="tagline" data-i18n-html="tagline">席に座って掲示板が見えなくても、<br>いまどの駅かひと目でわかる。</p>
       </div>
@@ -188,10 +188,9 @@
     <section id="main-screen" class="screen hidden">
       <header class="status-bar">
         <div class="brand-lockup" aria-label="EkiKoko">
-          <span class="brand-mark" aria-hidden="true">EK</span>
+          <span class="brand-mark" aria-hidden="true"><svg class="ic"><use href="#i-train"/></svg></span>
           <span class="brand-copy">
-            <span class="brand-name">EKIKOKO</span>
-            <span class="brand-descriptor" data-i18n="brandDescriptor">駅位置インストゥルメント</span>
+            <span class="brand-name" data-i18n="appName">エキココ</span>
           </span>
         </div>
         <button id="settings-btn" class="settings-trigger" type="button"
@@ -243,29 +242,22 @@
         <svg class="ic" aria-hidden="true"><use href="#i-train"/></svg>
         <span class="ride-mode-copy">
           <span data-i18n="ridingBtn">車内モード</span>
-          <span data-i18n="ridingHint">駅名を拡大し、低照度で表示</span>
+          <span data-i18n="ridingHint">駅名だけを大きく表示</span>
         </span>
         <span class="row-arrow" aria-hidden="true">→</span>
       </button>
 
       <button id="dest-btn" class="destination-action" aria-haspopup="dialog" aria-controls="dest-modal" aria-expanded="false">
-        <span class="destination-kicker">
-          <span aria-hidden="true">DESTINATION /</span>
-          <span data-i18n="destinationLabel">降りる駅</span>
-        </span>
+        <span class="destination-icon" aria-hidden="true"><svg class="ic"><use href="#i-pin"/></svg></span>
         <span class="action-copy">
           <span id="dest-btn-label" data-dynamic-label data-i18n="destPrompt">どこで降りますか？</span>
           <span id="dest-btn-hint" data-i18n="destPromptHint">駅名・地図・路線から選ぶ</span>
         </span>
-        <span class="destination-modes" aria-hidden="true">
-          <span data-i18n="mapTab">地図</span>
-          <span data-i18n="searchTab">検索</span>
-          <span data-i18n="linesTab">路線</span>
-        </span>
+
         <span class="row-arrow" aria-hidden="true">→</span>
       </button>
       <div class="mode-row">
-        <button id="guide-btn" class="mode-btn secondary" aria-haspopup="dialog" aria-controls="guide-modal" aria-expanded="false"><svg class="ic"><use href="#i-ticket"/></svg><span data-i18n="guideBtn">乗り方ガイド</span></button>
+        <button id="guide-btn" class="mode-btn secondary" aria-haspopup="dialog" aria-controls="guide-modal" aria-expanded="false"><svg class="ic"><use href="#i-ticket"/></svg><span data-i18n="guideBtn">乗り方ガイド</span><span class="guide-arrow" aria-hidden="true">→</span></button>
       </div>
 
       <!-- 降車アラート設定状態 -->
@@ -275,7 +267,7 @@
       </div>
 
       <div class="nearby">
-        <h3><span class="section-index" aria-hidden="true">NEARBY / 01</span><span data-i18n="nearbyTitle">周辺の駅</span></h3>
+        <h3><span data-i18n="nearbyTitle">周辺の駅</span></h3>
         <ol id="nearby-list" class="nearby-list"></ol>
       </div>
 
@@ -293,7 +285,7 @@
 
       <!-- 乗車履歴 (プレミアム) -->
       <div id="history-section" class="history hidden">
-        <h3><span class="section-index" aria-hidden="true">HISTORY / 02</span><span data-i18n="historyTitle">乗車履歴</span></h3>
+        <h3><span data-i18n="historyTitle">乗車履歴</span></h3>
         <p id="history-empty" class="empty-state hidden" data-i18n="historyEmpty">乗車履歴はまだありません。</p>
         <ol id="history-list" class="nearby-list"></ol>
       </div>
@@ -325,23 +317,19 @@
         </div>
         <div id="status-actions" class="status-actions" role="group" aria-label="表示と端末の設定">
           <button id="lang-btn" class="console-key" type="button">
-            <span class="control-index" aria-hidden="true">01</span>
             <span id="lang-btn-value" class="control-value">JA</span>
             <span class="control-label" data-i18n="controlLang">言語</span>
           </button>
           <button id="daynight-btn" class="console-key" type="button">
-            <span class="control-index" aria-hidden="true">02</span>
             <span id="mode-btn-value" class="control-value">DARK</span>
             <span class="control-label" data-i18n="controlMode">明暗</span>
           </button>
           <button id="theme-btn" class="console-key" type="button">
-            <span class="control-index" aria-hidden="true">03</span>
             <span class="theme-swatch" aria-hidden="true"></span>
             <span id="theme-btn-value" class="control-value">AMBER</span>
             <span class="control-label" data-i18n="controlTheme">配色</span>
           </button>
           <button id="wakelock-btn" class="console-key" type="button" aria-pressed="false">
-            <span class="control-index" aria-hidden="true">04</span>
             <span class="pilot-lamp" aria-hidden="true"></span>
             <span id="wake-btn-value" class="control-value">OFF</span>
             <span class="control-label" data-i18n="controlWake">点灯</span>
@@ -460,38 +448,35 @@
           <section class="guide-sec" data-sec="qr">
             <h3><svg class="ic"><use href="#i-qr"/></svg><span data-i18n="gQrTitle">QRをかざす</span></h3>
             <div class="scene" data-anim="qr">
-              <svg style="--guide-metal:url(#qr-metal);--guide-device:url(#qr-device);--guide-glass:url(#qr-glass)" viewBox="0 0 240 116" role="img" aria-labelledby="qr-scene-t">
-                <defs>
-                  <linearGradient id="qr-metal" x1="0" y1="0" x2="1" y2="1">
-                    <stop class="sc-metal-light" offset="0"/><stop class="sc-metal-mid" offset=".35"/><stop class="sc-metal-dark" offset="1"/>
-                  </linearGradient>
-                  <linearGradient id="qr-device" x1="0" y1="0" x2="0" y2="1">
-                    <stop class="sc-device-light" offset="0"/><stop class="sc-device-dark" offset="1"/>
-                  </linearGradient>
-                  <linearGradient id="qr-glass" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stop-color="#516772"/><stop offset="1" stop-color="#101b22"/>
-                  </linearGradient>
-                </defs>
-                <ellipse class="sc-ground" cx="120" cy="111" rx="102" ry="5"/>
+              <svg style="--guide-metal:url(#qr-metal);--guide-device:url(#qr-device);--guide-glass:url(#qr-glass)" viewBox="0 0 280 164" role="img" aria-labelledby="qr-scene-t">
                 <title id="qr-scene-t" data-i18n="gQrTitle">QRをかざす</title>
-                <!-- 改札機の躯体 (通路をはさんで左右) -->
-                <rect class="sc-body" x="20" y="52" width="60" height="56" rx="5"/>
-                <rect class="sc-body" x="160" y="52" width="60" height="56" rx="5"/>
-                <!-- 上面のQR読み取り面 -->
-                <rect class="sc-reader" x="30" y="46" width="40" height="8" rx="4"/>
-                <!-- 通路をふさぐ扉 (中央で突き合わせ、開くと躯体に引っ込む) -->
-                <g class="sc-flap-l"><rect class="sc-flap" x="80" y="70" width="40" height="26"/></g>
-                <g class="sc-flap-r"><rect class="sc-flap" x="120" y="70" width="40" height="26"/></g>
-                <!-- かざすスマホ -->
+                <defs>
+                  <linearGradient id="qr-metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f4f8f8"/><stop offset=".28" stop-color="#d6e2e6"/><stop offset="1" stop-color="#8da4ae"/></linearGradient>
+                  <linearGradient id="qr-device" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#314854"/><stop offset="1" stop-color="#172b36"/></linearGradient>
+                  <linearGradient id="qr-glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#496c7e"/><stop offset="1" stop-color="#152b39"/></linearGradient>
+                </defs>
+                <ellipse class="sc-ground" cx="140" cy="153" rx="124" ry="7"/>
+                <path class="sc-side" d="M90 80l16-20v67l-16 18z"/>
+                <path class="sc-top" d="M22 80l20-20h64l-16 20z"/>
+                <rect class="sc-body" x="22" y="78" width="68" height="68" rx="8"/>
+                <path class="sc-highlight" d="M30 82h52"/>
+                <rect class="sc-front-panel" x="32" y="108" width="48" height="28" rx="4"/>
+                <rect class="sc-indicator" x="33" y="90" width="24" height="11" rx="4"/>
+                <path class="sc-allow" d="M40 95.5h10m-3-3 3 3-3 3"/><path class="sc-side" d="M244 80l16-20v67l-16 18z"/>
+                <path class="sc-top" d="M176 80l20-20h64l-16 20z"/>
+                <rect class="sc-body" x="176" y="78" width="68" height="68" rx="8"/>
+                <path class="sc-highlight" d="M184 82h52"/>
+                <rect class="sc-front-panel" x="186" y="108" width="48" height="28" rx="4"/>
+                <rect class="sc-indicator" x="187" y="90" width="24" height="11" rx="4"/>
+                <path class="sc-allow" d="M194 95.5h10m-3-3 3 3-3 3"/><g class="sc-flap-l"><path class="sc-flap" d="M90 108h43v27H90z"/></g>
+                <g class="sc-flap-r"><path class="sc-flap" d="M133 108h43v27h-43z"/></g><rect class="sc-reader" x="43" y="62" width="38" height="9" rx="4"/>
                 <g class="sc-phone">
-                  <rect class="sc-dev" x="33" y="4" width="34" height="38" rx="5"/>
-                  <g class="sc-qr" transform="translate(40 12)">
-                    <rect width="20" height="20" rx="2"/>
-                    <g class="sc-qr-dots"><rect x="3" y="3" width="5" height="5"/><rect x="12" y="3" width="5" height="5"/><rect x="3" y="12" width="5" height="5"/><rect x="12" y="12" width="5" height="5"/></g>
-                  </g>
+                  <rect class="sc-dev" x="45" y="14" width="34" height="43" rx="7"/>
+                  <rect x="49" y="19" width="26" height="30" rx="3" fill="#f7faf9"/>
+                  <path d="M56 17h12M57 53h10" stroke="#a8c0cb" stroke-width="1.5" stroke-linecap="round"/>
+                  <g class="sc-code" fill="#19313e"><path d="M52 23h8v8h-8zm10 0h8v8h-8zm-10 10h8v8h-8zm10 0h4v4h-4zm5 5h4v5h-4zm-5 2h3v3h-3z"/><path d="M54 25h4v4h-4zm10 0h4v4h-4zm-10 10h4v4h-4z" fill="#f7faf9"/></g>
                 </g>
-                <!-- 読み取り成功の光 -->
-                <circle class="sc-ping" cx="50" cy="50" r="11"/>
+                <circle class="sc-ping" cx="62" cy="67" r="12"/>
               </svg>
               <button type="button" class="guide-replay" data-i18n="guideReplay">もう一度見る</button>
             </div>
@@ -502,32 +487,39 @@
           <section class="guide-sec" data-sec="ic">
             <h3><svg class="ic"><use href="#i-card"/></svg><span data-i18n="gIcTitle">ICカードをタッチ</span></h3>
             <div class="scene" data-anim="ic">
-              <svg style="--guide-metal:url(#ic-metal);--guide-device:url(#ic-device);--guide-glass:url(#ic-glass)" viewBox="0 0 240 116" role="img" aria-labelledby="ic-scene-t">
-                <defs>
-                  <linearGradient id="ic-metal" x1="0" y1="0" x2="1" y2="1">
-                    <stop class="sc-metal-light" offset="0"/><stop class="sc-metal-mid" offset=".35"/><stop class="sc-metal-dark" offset="1"/>
-                  </linearGradient>
-                  <linearGradient id="ic-device" x1="0" y1="0" x2="0" y2="1">
-                    <stop class="sc-device-light" offset="0"/><stop class="sc-device-dark" offset="1"/>
-                  </linearGradient>
-                  <linearGradient id="ic-glass" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stop-color="#516772"/><stop offset="1" stop-color="#101b22"/>
-                  </linearGradient>
-                </defs>
-                <ellipse class="sc-ground" cx="120" cy="111" rx="102" ry="5"/>
+              <svg style="--guide-metal:url(#ic-metal);--guide-device:url(#ic-device);--guide-glass:url(#ic-glass)" viewBox="0 0 280 164" role="img" aria-labelledby="ic-scene-t">
                 <title id="ic-scene-t" data-i18n="gIcTitle">ICカードをタッチ</title>
-                <rect class="sc-body" x="20" y="52" width="60" height="56" rx="5"/>
-                <rect class="sc-body" x="160" y="52" width="60" height="56" rx="5"/>
-                <!-- 青く光る読み取り部 (上面) -->
-                <ellipse class="sc-pad" cx="50" cy="50" rx="20" ry="7"/>
-                <g class="sc-flap-l"><rect class="sc-flap" x="80" y="70" width="40" height="26"/></g>
-                <g class="sc-flap-r"><rect class="sc-flap" x="120" y="70" width="40" height="26"/></g>
+                <defs>
+                  <linearGradient id="ic-metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f4f8f8"/><stop offset=".28" stop-color="#d6e2e6"/><stop offset="1" stop-color="#8da4ae"/></linearGradient>
+                  <linearGradient id="ic-device" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#314854"/><stop offset="1" stop-color="#172b36"/></linearGradient>
+                  <linearGradient id="ic-glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#496c7e"/><stop offset="1" stop-color="#152b39"/></linearGradient>
+                </defs>
+                <ellipse class="sc-ground" cx="140" cy="153" rx="124" ry="7"/>
+                <path class="sc-side" d="M90 80l16-20v67l-16 18z"/>
+                <path class="sc-top" d="M22 80l20-20h64l-16 20z"/>
+                <rect class="sc-body" x="22" y="78" width="68" height="68" rx="8"/>
+                <path class="sc-highlight" d="M30 82h52"/>
+                <rect class="sc-front-panel" x="32" y="108" width="48" height="28" rx="4"/>
+                <rect class="sc-indicator" x="33" y="90" width="24" height="11" rx="4"/>
+                <path class="sc-allow" d="M40 95.5h10m-3-3 3 3-3 3"/><path class="sc-side" d="M244 80l16-20v67l-16 18z"/>
+                <path class="sc-top" d="M176 80l20-20h64l-16 20z"/>
+                <rect class="sc-body" x="176" y="78" width="68" height="68" rx="8"/>
+                <path class="sc-highlight" d="M184 82h52"/>
+                <rect class="sc-front-panel" x="186" y="108" width="48" height="28" rx="4"/>
+                <rect class="sc-indicator" x="187" y="90" width="24" height="11" rx="4"/>
+                <path class="sc-allow" d="M194 95.5h10m-3-3 3 3-3 3"/><g class="sc-flap-l"><path class="sc-flap" d="M90 108h43v27H90z"/></g>
+                <g class="sc-flap-r"><path class="sc-flap" d="M133 108h43v27h-43z"/></g><ellipse class="sc-reader-rim" cx="62" cy="67" rx="22" ry="8"/>
+                <ellipse class="sc-pad" cx="62" cy="66" rx="18" ry="6"/>
+                <path d="M53 66h18" stroke="#d9efff" stroke-width="1" opacity=".8"/>
                 <g class="sc-card">
-                  <rect class="sc-dev" x="26" y="8" width="48" height="32" rx="4"/>
-                  <rect class="sc-chip" x="32" y="16" width="11" height="9" rx="2"/>
+                  <rect class="sc-ic-face" x="37" y="25" width="50" height="32" rx="6"/>
+                  <path d="M41 29h42" stroke="#fff" opacity=".8"/>
+                  <rect class="sc-chip" x="44" y="35" width="10" height="8" rx="2"/>
+                  <path d="M49 35v8m-5-4h10" stroke="#a88140" stroke-width=".8"/>
+                  <path d="M63 37q7 4 0 8m4-11q11 7 0 14" fill="none" stroke="#286661" stroke-width="1.3" stroke-linecap="round"/>
+                  <path d="M44 50h19" stroke="#60978c" stroke-width="2" stroke-linecap="round"/>
                 </g>
-                <circle class="sc-ping" cx="50" cy="50" r="13"/>
-                <circle class="sc-ping sc-ping2" cx="50" cy="50" r="13"/>
+                <circle class="sc-ping" cx="62" cy="67" r="14"/><circle class="sc-ping sc-ping2" cx="62" cy="67" r="14"/>
               </svg>
               <button type="button" class="guide-replay" data-i18n="guideReplay">もう一度見る</button>
             </div>
@@ -538,31 +530,21 @@
           <section class="guide-sec" data-sec="paper">
             <h3><svg class="ic"><use href="#i-ticket"/></svg><span data-i18n="gPaperTitle">きっぷを入れて取る</span></h3>
             <div class="scene" data-anim="paper">
-              <svg style="--guide-metal:url(#paper-metal);--guide-device:url(#paper-device);--guide-glass:url(#paper-glass)" viewBox="0 0 240 116" role="img" aria-labelledby="paper-scene-t">
-                <defs>
-                  <linearGradient id="paper-metal" x1="0" y1="0" x2="1" y2="1">
-                    <stop class="sc-metal-light" offset="0"/><stop class="sc-metal-mid" offset=".35"/><stop class="sc-metal-dark" offset="1"/>
-                  </linearGradient>
-                  <linearGradient id="paper-device" x1="0" y1="0" x2="0" y2="1">
-                    <stop class="sc-device-light" offset="0"/><stop class="sc-device-dark" offset="1"/>
-                  </linearGradient>
-                  <linearGradient id="paper-glass" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stop-color="#516772"/><stop offset="1" stop-color="#101b22"/>
-                  </linearGradient>
-                </defs>
-                <ellipse class="sc-ground" cx="120" cy="111" rx="102" ry="5"/>
+              <svg style="--guide-metal:url(#paper-metal);--guide-device:url(#paper-device);--guide-glass:url(#paper-glass)" viewBox="0 0 280 164" role="img" aria-labelledby="paper-scene-t">
                 <title id="paper-scene-t" data-i18n="gPaperTitle">きっぷを入れて取る</title>
-                <rect class="sc-body" x="20" y="52" width="60" height="56" rx="5"/>
-                <rect class="sc-body" x="160" y="52" width="60" height="56" rx="5"/>
-                <!-- 手前の投入口 / 奥の取り出し口 -->
-                <rect class="sc-slot" x="34" y="48" width="32" height="6" rx="3"/>
-                <rect class="sc-slot" x="174" y="48" width="32" height="6" rx="3"/>
-                <g class="sc-flap-l"><rect class="sc-flap" x="80" y="70" width="40" height="26"/></g>
-                <g class="sc-flap-r"><rect class="sc-flap" x="120" y="70" width="40" height="26"/></g>
-                <!-- 投入されるきっぷ -->
-                <g class="sc-tk-in"><rect class="sc-dev" x="40" y="8" width="20" height="34" rx="2"/></g>
-                <!-- 反対側から出てくるきっぷ -->
-                <g class="sc-tk-out"><rect class="sc-dev" x="180" y="8" width="20" height="34" rx="2"/></g>
+                <defs>
+                  <linearGradient id="paper-metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f4f8f8"/><stop offset=".28" stop-color="#d6e2e6"/><stop offset="1" stop-color="#8da4ae"/></linearGradient>
+                  <linearGradient id="paper-device" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#314854"/><stop offset="1" stop-color="#172b36"/></linearGradient>
+                  <linearGradient id="paper-glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#496c7e"/><stop offset="1" stop-color="#152b39"/></linearGradient>
+                </defs>
+                <ellipse class="sc-ground" cx="140" cy="153" rx="124" ry="7"/>
+                <path class="sc-side" d="M242 80l18-21v65l-18 21z"/><path class="sc-top" d="M24 80l18-21h218l-18 21z"/>
+                <rect class="sc-body" x="24" y="78" width="218" height="68" rx="9"/>
+                <path class="sc-highlight" d="M34 82h196"/><path class="sc-seam" d="M99 85v53m91-53v53"/>
+                <rect class="sc-front-panel" x="38" y="95" width="45" height="34" rx="5"/>
+                <path class="sc-flow" d="M104 111h72m-7-6 7 6-7 6"/>
+                <rect class="sc-slot" x="47" y="70" width="33" height="7" rx="3"/><rect class="sc-slot" x="204" y="70" width="33" height="7" rx="3"/>
+                <g class="sc-tk-in"><rect class="sc-ticket" x="52" y="29" width="24" height="31" rx="3"/><path d="M53 36h22" stroke="#d89e53" stroke-width="4"/><path d="M57 44h14m-14 5h10" stroke="#847b68" stroke-width="1.5"/><path d="M57 54h14" stroke="#b8af9e" stroke-dasharray="1 1" stroke-width="3"/></g><g class="sc-tk-out"><rect class="sc-ticket" x="209" y="29" width="24" height="31" rx="3"/><path d="M210 36h22" stroke="#d89e53" stroke-width="4"/><path d="M214 44h14m-14 5h10" stroke="#847b68" stroke-width="1.5"/><path d="M214 54h14" stroke="#b8af9e" stroke-dasharray="1 1" stroke-width="3"/></g>
               </svg>
               <button type="button" class="guide-replay" data-i18n="guideReplay">もう一度見る</button>
             </div>
@@ -573,31 +555,23 @@
           <section class="guide-sec" data-sec="jrpass">
             <h3><svg class="ic"><use href="#i-shinkansen"/></svg><span data-i18n="gJrTitle">有人改札で見せる</span></h3>
             <div class="scene" data-anim="jrpass">
-              <svg style="--guide-metal:url(#jrpass-metal);--guide-device:url(#jrpass-device);--guide-glass:url(#jrpass-glass)" viewBox="0 0 240 132" role="img" aria-labelledby="jr-scene-t">
-                <defs>
-                  <linearGradient id="jrpass-metal" x1="0" y1="0" x2="1" y2="1">
-                    <stop class="sc-metal-light" offset="0"/><stop class="sc-metal-mid" offset=".35"/><stop class="sc-metal-dark" offset="1"/>
-                  </linearGradient>
-                  <linearGradient id="jrpass-device" x1="0" y1="0" x2="0" y2="1">
-                    <stop class="sc-device-light" offset="0"/><stop class="sc-device-dark" offset="1"/>
-                  </linearGradient>
-                  <linearGradient id="jrpass-glass" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stop-color="#516772"/><stop offset="1" stop-color="#101b22"/>
-                  </linearGradient>
-                </defs>
-                <ellipse class="sc-ground" cx="120" cy="127" rx="102" ry="5"/>
+              <svg style="--guide-metal:url(#jrpass-metal);--guide-device:url(#jrpass-device);--guide-glass:url(#jrpass-glass)" viewBox="0 0 280 164" role="img" aria-labelledby="jr-scene-t">
                 <title id="jr-scene-t" data-i18n="gJrTitle">有人改札で見せる</title>
-                <!-- 有人窓口のカウンター -->
-                <rect class="sc-body" x="128" y="30" width="98" height="88" rx="5"/>
-                <rect class="sc-window" x="140" y="42" width="74" height="42" rx="3"/>
-                <!-- 人物を描かず、窓口の確認表示で案内 -->
-                <path class="sc-confirm" d="M164 63l9 9 18-19"/>
-                <!-- 通路 -->
-                <rect class="sc-body" x="14" y="86" width="100" height="32" rx="4"/>
-                <!-- 見せるパス -->
-                <g class="sc-pass">
-                  <rect class="sc-dev" x="74" y="52" width="46" height="28" rx="3"/>
-                  <path class="sc-passline" d="M82 62h30M82 70h18"/>
+                <defs>
+                  <linearGradient id="jrpass-metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f4f8f8"/><stop offset=".28" stop-color="#d6e2e6"/><stop offset="1" stop-color="#8da4ae"/></linearGradient>
+                  <linearGradient id="jrpass-device" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#314854"/><stop offset="1" stop-color="#172b36"/></linearGradient>
+                  <linearGradient id="jrpass-glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#496c7e"/><stop offset="1" stop-color="#152b39"/></linearGradient>
+                </defs>
+                <ellipse class="sc-ground" cx="140" cy="153" rx="124" ry="7"/>
+                <path class="sc-side" d="M242 42l14-14v108l-14 12z"/><path class="sc-top" d="M142 42l14-14h100l-14 14z"/>
+                <rect class="sc-body" x="142" y="40" width="100" height="106" rx="8"/>
+                <rect class="sc-window" x="154" y="52" width="76" height="53" rx="5"/>
+                <path d="M161 57h28" stroke="#b0d7e6" opacity=".55" stroke-linecap="round"/>
+                <path class="sc-confirm" d="M179 79l9 9 18-19"/>
+                <path class="sc-seam" d="M194 113h31m-31 5h31m-31 5h31"/>
+                <rect class="sc-counter" x="116" y="131" width="129" height="10" rx="4"/>
+                <g class="sc-pass"><rect class="sc-ticket" x="56" y="89" width="66" height="42" rx="5"/>
+                  <path d="M57 98h64" stroke="#6f9a7f" stroke-width="9"/><path d="M64 110h48m-48 7h31m-31 6h40" stroke="#78827d" stroke-width="2" stroke-linecap="round"/>
                 </g>
               </svg>
               <button type="button" class="guide-replay" data-i18n="guideReplay">もう一度見る</button>
@@ -609,34 +583,23 @@
           <section class="guide-sec" data-sec="common">
             <h3><svg class="ic"><use href="#i-yen"/></svg><span data-i18n="gFareTitle">閉まったら精算機へ</span></h3>
             <div class="scene" data-anim="fare">
-              <svg style="--guide-metal:url(#fare-metal);--guide-device:url(#fare-device);--guide-glass:url(#fare-glass)" viewBox="0 0 240 132" role="img" aria-labelledby="fare-scene-t">
-                <defs>
-                  <linearGradient id="fare-metal" x1="0" y1="0" x2="1" y2="1">
-                    <stop class="sc-metal-light" offset="0"/><stop class="sc-metal-mid" offset=".35"/><stop class="sc-metal-dark" offset="1"/>
-                  </linearGradient>
-                  <linearGradient id="fare-device" x1="0" y1="0" x2="0" y2="1">
-                    <stop class="sc-device-light" offset="0"/><stop class="sc-device-dark" offset="1"/>
-                  </linearGradient>
-                  <linearGradient id="fare-glass" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stop-color="#516772"/><stop offset="1" stop-color="#101b22"/>
-                  </linearGradient>
-                </defs>
-                <ellipse class="sc-ground" cx="120" cy="127" rx="102" ry="5"/>
+              <svg style="--guide-metal:url(#fare-metal);--guide-device:url(#fare-device);--guide-glass:url(#fare-glass)" viewBox="0 0 280 164" role="img" aria-labelledby="fare-scene-t">
                 <title id="fare-scene-t" data-i18n="gFareTitle">閉まったら精算機へ</title>
-                <!-- 精算機 -->
-                <rect class="sc-body" x="66" y="18" width="108" height="100" rx="6"/>
-                <rect class="sc-window" x="80" y="30" width="80" height="34" rx="3"/>
-                <!-- 投入口 -->
-                <rect class="sc-slot" x="86" y="76" width="30" height="5" rx="2.5"/>
-                <!-- 出口 -->
-                <rect class="sc-slot" x="128" y="76" width="30" height="5" rx="2.5"/>
-                <!-- 不足額の表示 -->
-                <g class="sc-amount" transform="translate(92 38)">
-                  <path class="sc-passline" d="M4 4l8 10 8-10M6 16h20M6 22h20M14 14v10"/>
-                </g>
-                <!-- 入れるきっぷ → 出てくる精算券 -->
-                <g class="sc-fare-in"><rect class="sc-dev" x="92" y="88" width="18" height="30" rx="2"/></g>
-                <g class="sc-fare-out"><rect class="sc-dev" x="134" y="88" width="18" height="30" rx="2"/></g>
+                <defs>
+                  <linearGradient id="fare-metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f4f8f8"/><stop offset=".28" stop-color="#d6e2e6"/><stop offset="1" stop-color="#8da4ae"/></linearGradient>
+                  <linearGradient id="fare-device" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#314854"/><stop offset="1" stop-color="#172b36"/></linearGradient>
+                  <linearGradient id="fare-glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#496c7e"/><stop offset="1" stop-color="#152b39"/></linearGradient>
+                </defs>
+                <ellipse class="sc-ground" cx="140" cy="153" rx="124" ry="7"/>
+                <path class="sc-side" d="M195 34l15-13v117l-15 10z"/><path class="sc-top" d="M82 34l15-13h113l-15 13z"/>
+                <rect class="sc-body" x="82" y="32" width="113" height="116" rx="9"/>
+                <rect class="sc-window" x="94" y="44" width="88" height="42" rx="5"/>
+                <path d="M104 55h26m-26 6h17" stroke="#cbe1e9" stroke-width="2" opacity=".7"/>
+                <path d="M148 53l7 10 7-10m-13 12h13m-13 5h13m-7-8v13" stroke="#bce2d1" stroke-width="2" fill="none"/>
+                <rect class="sc-slot" x="99" y="100" width="28" height="6" rx="3"/><rect class="sc-slot" x="149" y="100" width="28" height="6" rx="3"/>
+                <circle cx="103" cy="93" r="2" fill="#78bca8"/><circle cx="153" cy="93" r="2" fill="#78bca8"/>
+                <g class="sc-fare-in"><rect class="sc-ticket" x="103" y="114" width="19" height="28" rx="2"/><path d="M106 119h13" stroke="#d89e53" stroke-width="3"/></g>
+                <g class="sc-fare-out"><rect class="sc-ticket" x="153" y="114" width="19" height="28" rx="2"/><path d="M156 119h13" stroke="#6f9a7f" stroke-width="3"/></g>
               </svg>
               <button type="button" class="guide-replay" data-i18n="guideReplay">もう一度見る</button>
             </div>
@@ -647,30 +610,22 @@
           <section class="guide-sec" data-sec="common2">
             <h3><svg class="ic"><use href="#i-transfer"/></svg><span data-i18n="gTransferTitle">会社が変わる乗り換え</span></h3>
             <div class="scene" data-anim="transfer">
-              <svg style="--guide-metal:url(#transfer-metal);--guide-device:url(#transfer-device);--guide-glass:url(#transfer-glass)" viewBox="0 0 240 132" role="img" aria-labelledby="tr-scene-t">
-                <defs>
-                  <linearGradient id="transfer-metal" x1="0" y1="0" x2="1" y2="1">
-                    <stop class="sc-metal-light" offset="0"/><stop class="sc-metal-mid" offset=".35"/><stop class="sc-metal-dark" offset="1"/>
-                  </linearGradient>
-                  <linearGradient id="transfer-device" x1="0" y1="0" x2="0" y2="1">
-                    <stop class="sc-device-light" offset="0"/><stop class="sc-device-dark" offset="1"/>
-                  </linearGradient>
-                  <linearGradient id="transfer-glass" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stop-color="#516772"/><stop offset="1" stop-color="#101b22"/>
-                  </linearGradient>
-                </defs>
-                <ellipse class="sc-ground" cx="120" cy="127" rx="102" ry="5"/>
+              <svg style="--guide-metal:url(#transfer-metal);--guide-device:url(#transfer-device);--guide-glass:url(#transfer-glass)" viewBox="0 0 280 164" role="img" aria-labelledby="tr-scene-t">
                 <title id="tr-scene-t" data-i18n="gTransferTitle">会社が変わる乗り換え</title>
-                <!-- 2つの会社の路線 -->
-                <path class="sc-lineA" d="M10 40h86"/>
-                <path class="sc-lineB" d="M144 92h86"/>
-                <circle class="sc-dotA" cx="96" cy="40" r="7"/>
-                <circle class="sc-dotB" cx="144" cy="92" r="7"/>
-                <!-- 間の改札 -->
-                <rect class="sc-body" x="104" y="52" width="32" height="28" rx="4"/>
-                <rect class="sc-slot" x="110" y="60" width="20" height="4" rx="2"/>
-                <!-- 一度出て入り直す動き -->
-                <circle class="sc-mover" cx="96" cy="40" r="5"/>
+                <defs>
+                  <linearGradient id="transfer-metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f4f8f8"/><stop offset=".28" stop-color="#d6e2e6"/><stop offset="1" stop-color="#8da4ae"/></linearGradient>
+                  <linearGradient id="transfer-device" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#314854"/><stop offset="1" stop-color="#172b36"/></linearGradient>
+                  <linearGradient id="transfer-glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#496c7e"/><stop offset="1" stop-color="#152b39"/></linearGradient>
+                </defs>
+                <ellipse class="sc-ground" cx="140" cy="153" rx="124" ry="7"/>
+                <path class="sc-route-track" d="M24 47h83q23 0 23 29v27q0 18 23 18h103"/>
+                <path class="sc-lineA" d="M24 47h78"/><path class="sc-lineB" d="M177 121h79"/>
+                <circle class="sc-dotA" cx="102" cy="47" r="9"/><circle class="sc-dotB" cx="177" cy="121" r="9"/>
+                <rect class="sc-route-label" x="23" y="21" width="29" height="18" rx="6"/><text class="sc-route-letter" x="37.5" y="34" text-anchor="middle">A</text>
+                <rect class="sc-route-label" x="226" y="131" width="29" height="18" rx="6"/><text class="sc-route-letter" x="240.5" y="144" text-anchor="middle">B</text>
+                <path class="sc-side" d="M146 76l9-8v39l-9 8z"/><path class="sc-top" d="M117 76l9-8h29l-9 8z"/>
+                <rect class="sc-body" x="117" y="75" width="29" height="40" rx="5"/><rect class="sc-reader" x="122" y="74" width="17" height="5" rx="2"/>
+                <circle class="sc-mover" cx="102" cy="47" r="5"/>
               </svg>
               <button type="button" class="guide-replay" data-i18n="guideReplay">もう一度見る</button>
             </div>

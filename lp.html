@@ -18,9 +18,9 @@
 body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 img,svg{display:block;max-width:100%}a{color:inherit;text-decoration:none}.wrap{width:min(calc(100% - 48px),var(--max));margin:auto}
 .header{position:relative;z-index:30;color:var(--ink);background:#fff;border-bottom:1px solid #e8ebe8}.header-inner{width:min(calc(100% - 48px),var(--max));height:72px;margin:auto;display:flex;align-items:center;gap:26px}
-.brand{display:flex;align-items:center;gap:10px;font-weight:850;letter-spacing:.04em}.brand img{width:28px;height:28px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.04em}.brand img{width:28px;height:28px}
 .nav{margin-left:auto;display:flex;gap:28px;font-size:13px;font-weight:750}.nav a{opacity:.82}.nav a:hover{opacity:1}
-.header-cta{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 19px;border-radius:999px;background:#113440;color:#fff;font-size:13px;font-weight:850}
+.header-cta{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 19px;border-radius:999px;background:#113440;color:#fff;font-size:13px;font-weight:700}
 
 .hero{background:var(--deep);color:#fff}
 .hero-grid{min-height:760px;display:grid;grid-template-columns:1.04fr .96fr}
@@ -29,18 +29,18 @@ img,svg{display:block;max-width:100%}a{color:inherit;text-decoration:none}.wrap{
 .hero-main::after{content:"";position:absolute;inset:auto -12% -30% auto;width:70%;aspect-ratio:1;border:1px solid rgba(255,255,255,.09);border-radius:50%}
 .hero-copy{position:relative;z-index:2;min-height:760px;padding:132px clamp(34px,5vw,78px) 64px;display:flex;flex-direction:column;justify-content:center;max-width:720px}
 .kicker{font:850 11px/1.4 ui-monospace,SFMono-Regular,monospace;letter-spacing:.14em;text-transform:uppercase;color:#dce9e2}
-.hero h1{margin:18px 0 0;font-size:clamp(56px,6.3vw,94px);line-height:.95;letter-spacing:-.065em;font-weight:920}
+.hero h1{margin:18px 0 0;font-size:clamp(48px,5.3vw,76px);line-height:1.18;letter-spacing:-.065em;font-weight:800}
 .hero p{margin:24px 0 0;max-width:570px;color:rgba(255,255,255,.88);font-size:16px;line-height:1.9}
 .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
-.primary,.ghost{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 27px;border-radius:999px;font-weight:850;font-size:14px}
+.primary,.ghost{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 27px;border-radius:999px;font-weight:700;font-size:14px}
 .primary{background:#fff;color:var(--ink)}.ghost{border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.06);backdrop-filter:blur(8px)}
 .hero-points{display:flex;gap:24px;flex-wrap:wrap;margin-top:26px;font-size:11px;font-weight:700;color:rgba(255,255,255,.86)}
 .hero-points span{display:flex;align-items:center;gap:7px}.dot{width:6px;height:6px;border-radius:50%;background:#fff}
 
 .hero-mosaic{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1.08fr .92fr .92fr;gap:4px;background:#fff;min-width:0}
-.mosaic{position:relative;overflow:hidden;background:#1b2226}
+.mosaic{position:relative;overflow:hidden;background:#1b2226;margin:0;min-width:0;min-height:0}
 .mosaic.wide{grid-column:1/3}
-.mosaic img{width:100%;height:100%;object-fit:cover;transition:transform .8s var(--ease)}
+.mosaic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .8s var(--ease)}
 .mosaic:hover img{transform:scale(1.018)}
 .mosaic-display img{object-position:center 18%}
 .mosaic-scene img{object-position:center 48%}
@@ -48,34 +48,34 @@ img,svg{display:block;max-width:100%}a{color:inherit;text-decoration:none}.wrap{
 .mosaic-map img{object-fit:contain;background:#f1f3f0;padding:26px}
 .mosaic-onboard img{object-fit:cover;object-position:center}
 .mosaic::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(5,10,13,.62))}
-.mosaic-label{position:absolute;z-index:2;left:24px;right:20px;bottom:20px;font-weight:850;font-size:clamp(15px,1.5vw,21px);line-height:1.45;color:#fff;text-shadow:0 1px 12px rgba(0,0,0,.36)}
+.mosaic-label{position:absolute;z-index:2;left:24px;right:20px;bottom:20px;font-weight:700;font-size:clamp(15px,1.5vw,21px);line-height:1.45;color:#fff;text-shadow:0 1px 12px rgba(0,0,0,.36)}
 .mosaic-phone::after,.mosaic-map::after{background:none}.mosaic-phone .mosaic-label,.mosaic-map .mosaic-label{display:none}
 
-.usecases{padding:84px 0 96px;background:#fff}.section-title{margin:0;font-size:clamp(36px,4.3vw,56px);line-height:1.07;letter-spacing:-.045em}
+.usecases{padding:84px 0 96px;background:#fff}.section-title{margin:0;font-size:clamp(36px,4.3vw,56px);line-height:1.25;letter-spacing:-.045em}
 .section-lead{margin:16px 0 0;max-width:760px;color:var(--muted);line-height:1.9}
 .scene-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:38px}
 .scene-card{overflow:hidden;background:#f5f6f3;border:1px solid var(--line);border-radius:18px}
 .scene-thumb{height:190px;overflow:hidden}.scene-thumb img{width:100%;height:100%;object-fit:cover}
 .scene-card:nth-child(1) img{object-position:center 17%}.scene-card:nth-child(2) img{object-position:center 50%}.scene-card:nth-child(3) img{object-fit:contain;background:#e9eeea;padding:12px}
-.scene-body{padding:18px 18px 21px}.scene-body strong{display:block;font-size:16px;line-height:1.5}.scene-body p{margin:8px 0 0;color:var(--muted);font-size:13px;line-height:1.75}
+.scene-body{padding:22px 22px 25px}.scene-body strong{display:block;font-size:16px;line-height:1.5}.scene-body p{margin:8px 0 0;color:var(--muted);font-size:14px;line-height:1.8}
 
 .features{padding:104px 0;background:#f4f6f3}.feature-layout{display:grid;grid-template-columns:1fr .94fr;gap:74px;align-items:center}
-.feature-copy h2{margin:0;font-size:clamp(44px,5vw,72px);line-height:1.02;letter-spacing:-.055em}.feature-copy>p{margin:20px 0 0;max-width:650px;color:var(--muted);line-height:1.9}
-.feature-list{margin-top:38px;border-top:1px solid var(--line)}.feature-row{display:grid;grid-template-columns:74px 1fr;gap:18px;padding:24px 0;border-bottom:1px solid var(--line)}
+.feature-copy h2{margin:0;font-size:clamp(44px,5vw,72px);line-height:1.22;letter-spacing:-.055em}.feature-copy>p{margin:20px 0 0;max-width:650px;color:var(--muted);line-height:1.9}
+.feature-list{margin-top:38px;border-top:1px solid var(--line)}.feature-row{display:grid;grid-template-columns:30px 1fr;gap:18px;padding:24px 0;border-bottom:1px solid var(--line)}
 .feature-no{font:850 11px/1.6 ui-monospace,SFMono-Regular,monospace;color:var(--green);letter-spacing:.1em}.feature-row h3{margin:0;font-size:21px}.feature-row p{margin:8px 0 0;color:var(--muted);line-height:1.8;font-size:14px}
 .product-stack{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:end}
-.product-shot{overflow:hidden;border-radius:30px 30px 9px 30px;background:#fff;box-shadow:0 24px 48px rgba(17,31,39,.12)}
+.product-shot{overflow:hidden;border-radius:24px;background:#fff;box-shadow:0 3px 0 #d8e2e3,0 24px 48px rgba(17,31,39,.12)}
 .product-shot:first-child{transform:translateY(-24px)}.product-shot img{width:100%;height:100%;object-fit:contain}.product-shot.dark{background:#111}.product-shot.dark img{object-fit:cover}
 
 .onboard{padding:100px 0;background:#0d161b;color:#fff}.onboard-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:44px;align-items:center}
-.onboard-media{overflow:hidden;border-radius:30px 30px 9px 30px}.onboard-media img{width:100%;height:100%;object-fit:cover}
-.onboard-copy small{font:850 11px/1.5 ui-monospace,SFMono-Regular,monospace;color:#a8c7ae;letter-spacing:.12em}.onboard-copy h2{margin:14px 0 0;font-size:clamp(42px,4.8vw,68px);line-height:1.03;letter-spacing:-.05em}.onboard-copy p{margin:18px 0 0;color:#b9c3c7;line-height:1.9}
+.onboard-media{overflow:hidden;border-radius:24px}.onboard-media img{width:100%;height:100%;object-fit:cover}
+.onboard-copy small{font:850 11px/1.5 ui-monospace,SFMono-Regular,monospace;color:#a8c7ae;letter-spacing:.12em}.onboard-copy h2{margin:14px 0 0;font-size:clamp(42px,4.8vw,68px);line-height:1.22;letter-spacing:-.05em}.onboard-copy p{margin:18px 0 0;color:#b9c3c7;line-height:1.9}
 
 .steps{padding:98px 0 108px;background:#fff}.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:34px;margin-top:44px}
 .step{padding-top:24px;border-top:4px solid var(--ink)}.step:nth-child(2){border-color:var(--green)}.step:nth-child(3){border-color:var(--blue)}
 .step small{font:850 11px/1.5 ui-monospace,SFMono-Regular,monospace;color:#788287}.step h3{margin:22px 0 10px;font-size:24px}.step p{margin:0;color:var(--muted);line-height:1.8}
 
-.final{padding:112px 0 120px;background:#eef1ee;text-align:center}.final h2{margin:0 auto;max-width:900px;font-size:clamp(44px,5.5vw,76px);line-height:1.02;letter-spacing:-.055em}.final p{margin:20px auto 0;max-width:640px;color:var(--muted);line-height:1.9}.final .hero-actions{justify-content:center}.final .primary{background:var(--ink);color:#fff}
+.final{padding:112px 0 120px;background:#eef1ee;text-align:center}.final h2{margin:0 auto;max-width:900px;font-size:clamp(44px,5.5vw,76px);line-height:1.22;letter-spacing:-.055em}.final p{margin:20px auto 0;max-width:640px;color:var(--muted);line-height:1.9}.final .hero-actions{justify-content:center}.final .primary{background:var(--ink);color:#fff}
 footer{padding:28px 0;background:#fff;color:#7a8488;font-size:12px}.footer-row{display:flex;justify-content:space-between;gap:20px}
 
 [data-reveal]{opacity:0;transform:translateY(22px);filter:blur(5px);transition:opacity .75s var(--ease),transform .75s var(--ease),filter .75s var(--ease)}
@@ -90,7 +90,7 @@ footer{padding:28px 0;background:#fff;color:#7a8488;font-size:12px}.footer-row{d
   .hero-grid,.hero-main,.hero-copy{min-height:0}.hero-main::after{background:none}
   .hero-copy{padding:52px 24px 40px;justify-content:center}.hero h1{font-size:clamp(38px,10.5vw,48px)}.hero p{font-size:15px}.hero-actions{display:grid}.primary,.ghost{width:100%}
   .hero-mosaic{grid-template-columns:1fr 1fr;grid-template-rows:210px 230px}.mosaic-label{left:16px;bottom:14px;font-size:14px}.mosaic-phone img{padding:15px}
-  .usecases,.features,.onboard,.steps{padding:76px 0}.scene-grid{grid-template-columns:1fr}.scene-thumb{height:220px}
+  .usecases,.features,.onboard,.steps{padding:64px 0}.scene-grid{grid-template-columns:1fr}.scene-thumb{height:220px}
   .feature-layout{gap:48px}.product-stack{grid-template-columns:1fr 1fr;gap:10px}.product-shot:first-child{transform:translateY(-12px)}
   .steps-grid{grid-template-columns:1fr;gap:30px}.final{padding:84px 0 92px}.footer-row{flex-direction:column}
 }
@@ -112,8 +112,8 @@ footer{padding:28px 0;background:#fff;color:#7a8488;font-size:12px}.footer-row{d
     <div class="hero-main">
 
       <div class="hero-copy" data-reveal>
-        <div class="kicker">CURRENT STATION UTILITY</div>
-        <h1>席に座っても、<br>今どの駅かすぐわかる。</h1>
+        <div class="kicker">現在駅を確認するアプリ</div>
+        <h1>席に座っても、<br>今どの駅か<br>すぐわかる。</h1>
         <p>エキココは、電車の中で現在駅をすばやく確認するためのシンプルなWebアプリです。乗換案内ではなく、移動中の「今ここ」に特化しています。</p>
         <div class="hero-actions"><a class="primary" href="./">エキココを開く →</a><a class="ghost" href="#usecases">できることを見る</a></div>
         <div class="hero-points"><span><i class="dot"></i>アカウント登録不要</span><span><i class="dot"></i>ブラウザですぐ使える</span><span><i class="dot"></i>PWA対応</span></div>
@@ -163,10 +163,10 @@ footer{padding:28px 0;background:#fff;color:#7a8488;font-size:12px}.footer-row{d
       <h2>現在駅を、<br>大きく、迷わず。</h2>
       <p>移動中に必要な情報だけを、読み取りやすい順番に。現在駅、次の駅、路線など、移動中に必要な情報をひと目で読み取れるように整理しています。</p>
       <div class="feature-list">
-        <div class="feature-row"><div class="feature-no">01 / NOW</div><div><h3>現在駅を大きく表示</h3><p>駅名・路線・距離を、短時間で確認しやすい構成に整理します。</p></div></div>
-        <div class="feature-row"><div class="feature-no">02 / RIDE</div><div><h3>車内モード</h3><p>駅名を特大表示。膝上や手元で一瞬見る使い方を想定しています。</p></div></div>
-        <div class="feature-row"><div class="feature-no">03 / DEST.</div><div><h3>目的地を設定</h3><p>降りる駅を設定して、到着前に気づきやすくします。</p></div></div>
-        <div class="feature-row"><div class="feature-no">04 / GUIDE</div><div><h3>駅で迷う場面にも</h3><p>IC・QR・きっぷ・乗り換えなどの補助情報へすぐアクセスできます。</p></div></div>
+        <div class="feature-row"><div class="feature-no">01</div><div><h3>現在駅を大きく表示</h3><p>駅名・路線・距離を、短時間で確認しやすい構成に整理します。</p></div></div>
+        <div class="feature-row"><div class="feature-no">02</div><div><h3>車内モード</h3><p>駅名を特大表示。膝上や手元で一瞬見る使い方を想定しています。</p></div></div>
+        <div class="feature-row"><div class="feature-no">03</div><div><h3>目的地を設定</h3><p>降りる駅を設定して、到着前に気づきやすくします。</p></div></div>
+        <div class="feature-row"><div class="feature-no">04</div><div><h3>駅で迷う場面にも</h3><p>IC・QR・きっぷ・乗り換えなどの補助情報へすぐアクセスできます。</p></div></div>
       </div>
     </div>
     <div class="product-stack" data-reveal>
@@ -179,7 +179,7 @@ footer{padding:28px 0;background:#fff;color:#7a8488;font-size:12px}.footer-row{d
 <section class="onboard">
   <div class="wrap onboard-grid">
     <div class="onboard-media" data-reveal><img src="lp-onboard-ui.svg" alt="黒背景で駅名を大きく表示する車内モード"></div>
-    <div class="onboard-copy" data-reveal><small>ONBOARD MODE</small><h2>今の駅だけを、<br>大きく、はっきり。</h2><p>車内モードは駅名を大きく表示。混雑で扉上の表示が見えないときも、手元で現在駅を確認できます。</p></div>
+    <div class="onboard-copy" data-reveal><small>車内モード</small><h2>今の駅だけを、<br>大きく、はっきり。</h2><p>車内モードは駅名を大きく表示。混雑で扉上の表示が見えないときも、手元で現在駅を確認できます。</p></div>
   </div>
 </section>
 
@@ -199,7 +199,7 @@ footer{padding:28px 0;background:#fff;color:#7a8488;font-size:12px}.footer-row{d
 </section>
 </main>
 
-<footer><div class="wrap footer-row"><span>© EKIKOKO</span><span>ビジュアル: 承認済みデザインより · <a href="privacy.html">プライバシー・利用情報</a></span></div></footer>
+<footer><div class="wrap footer-row"><span>© EKIKOKO</span><span><a href="privacy.html">プライバシー・利用情報</a></span></div></footer>
 
 <script>
 (() => {
