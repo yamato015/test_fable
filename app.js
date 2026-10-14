@@ -443,10 +443,12 @@ const STRINGS = {
     transferSame: "同じ会社",
     transferSameHow: "改札を出ずに乗り換えられることが多い",
     transferOther: "別の会社",
-    transferOtherHow: "一度改札を出て入り直す。オレンジ色の乗換改札があれば、そのまま通れる",
-    transferCompanyHow: "同じ会社なら改札内、別の会社なら改札を出るか乗換改札を通るのが基本",
+    transferOtherHow: "運賃は別。一度改札を出るか、駅にある連絡改札を通る",
+    transferCompanyHow: "同じ会社なら改札内で乗り換えられることが多い。別の会社なら運賃は別で、改札を出るか連絡改札を通る",
+    transferMetroExit: "東京メトロ同士でも、この駅は路線の組み合わせによって一度改札を出る。60分以内なら運賃は通し（きっぷはオレンジ色の改札機を通る）",
+    transferMetroPair: "東京メトロ公式の乗換駅。改札を出て60分以内に乗れば運賃は通し",
     transferWalk: "近くの駅へ歩いて乗り換え",
-    transferWalkHow: (name, d) => `${name}駅（約${d}）・改札を出て歩く`,
+    transferWalkHow: (name, d) => `${name}駅（直線で約${d}）・改札を出て歩く`,
     transferNote: "駅によって例外があります。駅の案内表示もあわせて確認してください。",
     transferNone: "この駅の乗り換え情報はまだありません。",
     alertTransfer: "乗り換えを見る",
@@ -454,7 +456,7 @@ const STRINGS = {
     gTransfer:
       "<li>JR・メトロ・私鉄は<b>別会社＝運賃も別</b></li>" +
       "<li>基本は<b>一度改札を出て入り直す</b></li>" +
-      "<li><b>オレンジの乗換改札</b>ならそのまま通れる</li>",
+      "<li>駅によっては<b>連絡改札</b>を通って乗り換えられる</li>",
     stationsCount: (n) => `${n}駅`,
     pwTitle: "EKIKOKO Plus",
     pw1: "<b>降車アラート</b> — 降りる駅が近づくと通知。寝過ごし防止に",
@@ -657,10 +659,12 @@ const STRINGS = {
     transferSame: "Same company",
     transferSameHow: "Usually no need to go through the gates",
     transferOther: "Different company",
-    transferOtherHow: "Exit the gates and enter again. If there is an orange transfer gate, you can go straight through",
-    transferCompanyHow: "Same company: transfer inside the gates. Different company: exit, or use a transfer gate",
+    transferOtherHow: "Separate fare. Exit the gates, or use the connecting transfer gate if the station has one",
+    transferCompanyHow: "Same company: usually inside the gates. Different company: separate fare; exit or use a connecting gate",
+    transferMetroExit: "Even between Tokyo Metro lines, some transfers here require exiting the gates. Within 60 minutes the fare continues (with a paper ticket, use the orange gates)",
+    transferMetroPair: "Official Tokyo Metro transfer. Board within 60 minutes after exiting and the fare continues",
     transferWalk: "Walk to a nearby station",
-    transferWalkHow: (name, d) => `${name} (about ${d}), exit the gates and walk`,
+    transferWalkHow: (name, d) => `${name} (about ${d} in a straight line), exit the gates and walk`,
     transferNote: "Some stations are exceptions. Please also check the signs in the station.",
     transferNone: "No transfer information for this station yet.",
     alertTransfer: "See transfers",
@@ -668,7 +672,7 @@ const STRINGS = {
     gTransfer:
       "<li>JR, Metro and private lines are <b>separate fares</b></li>" +
       "<li>Usually <b>exit and enter again</b></li>" +
-      "<li><b>Orange transfer gates</b> let you pass straight through</li>",
+      "<li>Some stations have a <b>connecting gate</b> between companies</li>",
     stationsCount: (n) => `${n} stations`,
     pwTitle: "EKIKOKO Plus",
     pw1: "<b>Get-off alert</b> — a nudge as your stop approaches",
@@ -1819,7 +1823,22 @@ function renderLineChips(nearest) {
 // 路線名の先頭から運営会社を判定し、乗車中の路線と同じ会社か (改札内で乗り換え
 // られることが多い) / 別の会社か (一度改札を出る) を示す。名前が違う徒歩乗り換え
 // (梅田と大阪など) は近くの別の駅として拾う。号車の案内はしない (2026-10-02の決定)。
-const TRANSFER_WALK_M = 400;
+const TRANSFER_WALK_M = 500; // 公式の徒歩乗換で最長の人形町⇔水天宮前(約490m)まで入る
+// 東京メトロ公式FAQ「一旦改札口を出場して乗り換える駅」(OpenFAQ-000204, 2026-10-14確認)。
+// 同名駅: 路線の組み合わせによっては改札を出る / 別名の組: 公式の改札外乗換駅
+const METRO_GATE_EXIT_STATIONS = new Set([
+  "上野", "三越前", "大手町", "池袋", "飯田橋", "渋谷", "新宿三丁目",
+]);
+const METRO_GATE_EXIT_PAIRS = [
+  ["上野広小路", "仲御徒町"], ["日比谷", "有楽町"], ["淡路町", "新御茶ノ水"],
+  ["人形町", "水天宮前"], ["築地", "新富町"], ["銀座", "銀座一丁目"],
+  ["虎ノ門", "虎ノ門ヒルズ"],
+];
+// データ上の名前と実際の運営会社が違うもの
+const OPERATOR_ALIASES = {
+  "日暮里・舎人ライナー": "都営",
+  北近畿タンゴ鉄道: "京都丹後鉄道",
+};
 // 長い接頭辞から順に照合する (「京都丹後鉄道」が「京」系より先になるように)
 const OPERATOR_PREFIXES = [
   "東京メトロ", "都営", "OsakaMetro", "横浜市営地下鉄", "京都市営地下鉄",
@@ -1837,7 +1856,21 @@ const OPERATOR_EN = {
 };
 
 function lineOperator(line) {
+  const alias = Object.keys(OPERATOR_ALIASES).find((name) => line.startsWith(name));
+  if (alias) return OPERATOR_ALIASES[alias];
   return OPERATOR_PREFIXES.find((prefix) => line.startsWith(prefix)) || line;
+}
+
+function baseStationName(station) {
+  return (station?.name || "").replace(/\(.+?\)$/, "");
+}
+
+function isMetroGateExitPair(a, b) {
+  const x = baseStationName(a);
+  const y = baseStationName(b);
+  return METRO_GATE_EXIT_PAIRS.some(
+    ([p, q]) => (p === x && q === y) || (p === y && q === x)
+  );
 }
 
 function operatorLabel(operator) {
@@ -1848,7 +1881,7 @@ function operatorLabel(operator) {
 // 「JR中央本線(東京～塩尻)」→「中央本線」。会社名は見出しに出すので外す
 function lineShortName(line) {
   const operator = lineOperator(line);
-  const rest = operator === line ? line : line.slice(operator.length);
+  const rest = operator === line || !line.startsWith(operator) ? line : line.slice(operator.length);
   return rest.replace(/\([^()]*～[^()]*\)/g, "").trim() || line;
 }
 
@@ -1945,28 +1978,51 @@ function renderTransferSheet(info) {
   $("transfer-context").textContent = info.riding.length
     ? t("transferFrom", lineShortName(info.riding[0]))
     : t("transferAt", dispName(info.station));
+  // 東京メトロ公式で「改札を出て乗り換える」同名駅は、同じ会社でも改札内と言わない
+  const metroExitHere = METRO_GATE_EXIT_STATIONS.has(baseStationName(info.station));
   for (const group of info.groups) {
+    const metroExit = metroExitHere && group.operator === "東京メトロ";
     if (group.kind === "same") {
-      body.appendChild(transferGroupEl(t("transferSame"), t("transferSameHow"), group.lines, "same"));
+      body.appendChild(transferGroupEl(
+        t("transferSame"),
+        metroExit ? t("transferMetroExit") : t("transferSameHow"),
+        group.lines,
+        metroExit ? "other" : "same"
+      ));
     } else if (group.kind === "other") {
       body.appendChild(transferGroupEl(t("transferOther"), t("transferOtherHow"), group.lines, "other"));
     } else {
-      body.appendChild(
-        transferGroupEl(operatorLabel(group.operator), t("transferCompanyHow"), group.lines, "company")
-      );
+      body.appendChild(transferGroupEl(
+        operatorLabel(group.operator),
+        metroExit ? t("transferMetroExit") : t("transferCompanyHow"),
+        group.lines,
+        "company"
+      ));
     }
   }
   if (info.walks.length) {
     const ownLines = new Set(info.station.lines || []);
+    const nameCount = new Map();
     for (const walk of info.walks) {
-      body.appendChild(
-        transferGroupEl(
-          t("transferWalk"),
-          t("transferWalkHow", dispName(walk), formatDistance(walk.dist)),
-          walk.lines.filter((line) => !ownLines.has(line)),
-          "walk"
-        )
-      );
+      nameCount.set(dispName(walk), (nameCount.get(dispName(walk)) || 0) + 1);
+    }
+    for (const walk of info.walks) {
+      // 同名の別の駅(大阪梅田の阪急/阪神など)は会社名を添えて区別する
+      const label = nameCount.get(dispName(walk)) > 1
+        ? (lang === "en"
+          ? `${dispName(walk)} (${operatorLabel(lineOperator(walk.lines[0]))})`
+          : `${dispName(walk)}（${operatorLabel(lineOperator(walk.lines[0]))}）`)
+        : dispName(walk);
+      let how = t("transferWalkHow", label, formatDistance(walk.dist));
+      if (isMetroGateExitPair(info.station, walk)) {
+        how += (lang === "en" ? ". " : "。") + t("transferMetroPair");
+      }
+      body.appendChild(transferGroupEl(
+        t("transferWalk"),
+        how,
+        walk.lines.filter((line) => !ownLines.has(line)),
+        "walk"
+      ));
     }
   }
 }
