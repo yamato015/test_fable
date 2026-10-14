@@ -229,6 +229,10 @@
         <h2 id="station-name" class="station-name">---</h2>
         <p id="station-kana" class="station-sub"></p>
         <div id="station-lines" class="lines"></div>
+        <button id="transfer-btn" class="transfer-btn hidden" type="button" aria-haspopup="dialog" aria-controls="transfer-modal" aria-expanded="false">
+          <svg class="ic" aria-hidden="true"><use href="#i-transfer"/></svg>
+          <span id="transfer-btn-label"></span>
+        </button>
         <p id="prev-next" class="prev-next"></p>
         <div class="station-readouts">
           <p id="distance" class="distance"></p>
@@ -428,6 +432,19 @@
     </div>
 
     <!-- 駅の乗り方ガイド: 道具のアニメーションと手順。きっぷ種別で出し分け -->
+    <!-- 乗り換え案内 (無料): 同じ会社なら改札内、別の会社なら一度改札を出る、を路線ごとに示す -->
+    <div id="transfer-modal" class="modal-overlay hidden" aria-hidden="true">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="transfer-modal-title" aria-describedby="transfer-context">
+        <div class="modal-header-row">
+          <h2 id="transfer-modal-title" data-i18n="transferTitle">乗り換え</h2>
+          <button id="transfer-close" class="icon-only-btn" type="button" title="閉じる" aria-label="閉じる"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
+        </div>
+        <p id="transfer-context" class="transfer-context"></p>
+        <div id="transfer-body" class="transfer-body"></div>
+        <p class="transfer-note" data-i18n="transferNote">駅によって例外があります。駅の案内表示もあわせて確認してください。</p>
+      </div>
+    </div>
+
     <div id="guide-modal" class="modal-overlay hidden" aria-hidden="true">
       <div class="modal" role="dialog" aria-modal="true" aria-labelledby="guide-modal-title">
         <div class="modal-header-row">
@@ -672,6 +689,7 @@
       <p id="alert-overlay-title" class="alert-title"><svg class="ic"><use href="#i-bell"/></svg><span data-i18n="soonTitle">まもなく</span></p>
       <p id="alert-overlay-station" class="alert-station-name"></p>
       <p id="alert-ticket-hint" class="alert-ticket-hint hidden"></p>
+      <button id="alert-transfer-btn" class="alert-transfer-btn hidden" type="button"><svg class="ic" aria-hidden="true"><use href="#i-transfer"/></svg><span data-i18n="alertTransfer">乗り換えを見る</span></button>
       <button id="alert-dismiss-btn" class="big-btn" data-i18n="alertDismiss">アラートを停止</button>
     </div>
 

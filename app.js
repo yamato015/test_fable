@@ -436,6 +436,20 @@ const STRINGS = {
     ticketHintIc: "入場と同じICカードで出る",
     ticketHintPaper: "きっぷは改札で回収される",
     ticketHintJrpass: "有人改札を通る",
+    transferBtn: (n) => `乗り換え ${n}路線`,
+    transferTitle: "乗り換え",
+    transferFrom: (line) => `${line} からの乗り換え`,
+    transferAt: (name) => `${name}駅で乗り換えられる路線`,
+    transferSame: "同じ会社",
+    transferSameHow: "改札を出ずに乗り換えられることが多い",
+    transferOther: "別の会社",
+    transferOtherHow: "一度改札を出て入り直す。オレンジ色の乗換改札があれば、そのまま通れる",
+    transferCompanyHow: "同じ会社なら改札内、別の会社なら改札を出るか乗換改札を通るのが基本",
+    transferWalk: "近くの駅へ歩いて乗り換え",
+    transferWalkHow: (name, d) => `${name}駅（約${d}）・改札を出て歩く`,
+    transferNote: "駅によって例外があります。駅の案内表示もあわせて確認してください。",
+    transferNone: "この駅の乗り換え情報はまだありません。",
+    alertTransfer: "乗り換えを見る",
     gTransferTitle: "会社が変わる乗り換え",
     gTransfer:
       "<li>JR・メトロ・私鉄は<b>別会社＝運賃も別</b></li>" +
@@ -636,6 +650,20 @@ const STRINGS = {
     ticketHintIc: "Same IC card to exit",
     ticketHintPaper: "The gate keeps your ticket",
     ticketHintJrpass: "Use the staffed gate",
+    transferBtn: (n) => `Transfers: ${n} lines`,
+    transferTitle: "Transfers",
+    transferFrom: (line) => `Transferring from the ${line}`,
+    transferAt: (name) => `Lines you can transfer to at ${name}`,
+    transferSame: "Same company",
+    transferSameHow: "Usually no need to go through the gates",
+    transferOther: "Different company",
+    transferOtherHow: "Exit the gates and enter again. If there is an orange transfer gate, you can go straight through",
+    transferCompanyHow: "Same company: transfer inside the gates. Different company: exit, or use a transfer gate",
+    transferWalk: "Walk to a nearby station",
+    transferWalkHow: (name, d) => `${name} (about ${d}), exit the gates and walk`,
+    transferNote: "Some stations are exceptions. Please also check the signs in the station.",
+    transferNone: "No transfer information for this station yet.",
+    alertTransfer: "See transfers",
     gTransferTitle: "Changing companies",
     gTransfer:
       "<li>JR, Metro and private lines are <b>separate fares</b></li>" +
@@ -773,7 +801,7 @@ function applyLang() {
   document.querySelectorAll("[data-i18n-alt]").forEach((el) => {
     el.alt = t(el.dataset.i18nAlt);
   });
-  for (const id of ["dest-close", "guide-close", "paywall-close"]) {
+  for (const id of ["dest-close", "guide-close", "paywall-close", "transfer-close"]) {
     const closeButton = $(id);
     if (!closeButton) continue;
     closeButton.title = t("close");
@@ -1652,6 +1680,7 @@ function render(lat, lon) {
   stationKana.textContent = dispSub(nearest);
   distanceEl.textContent = atStation ? "" : t("about", formatDistance(nearest.dist));
   renderLineChips(nearest);
+  renderTransferButton(nearest);
 
   // 車内モード側にも同じ内容を反映
   $("r-status").textContent = statusLabel.textContent;
@@ -1783,6 +1812,185 @@ function renderLineChips(nearest) {
     riding.style.setProperty("--route-color", lines[0] ? lineColor(lines[0]) : "");
   }
 }
+
+// =====================================================================
+// 乗り換え案内 (無料)
+// =====================================================================
+// 路線名の先頭から運営会社を判定し、乗車中の路線と同じ会社か (改札内で乗り換え
+// られることが多い) / 別の会社か (一度改札を出る) を示す。名前が違う徒歩乗り換え
+// (梅田と大阪など) は近くの別の駅として拾う。号車の案内はしない (2026-10-02の決定)。
+const TRANSFER_WALK_M = 400;
+// 長い接頭辞から順に照合する (「京都丹後鉄道」が「京」系より先になるように)
+const OPERATOR_PREFIXES = [
+  "東京メトロ", "都営", "OsakaMetro", "横浜市営地下鉄", "京都市営地下鉄",
+  "神戸市営地下鉄", "神戸新交通", "神戸高速", "千葉都市モノレール", "大阪モノレール",
+  "関東鉄道", "近江鉄道", "京都丹後鉄道", "叡山電鉄", "京福電鉄", "能勢電鉄",
+  "山陽電鉄", "阪堺電軌", "神鉄", "JR", "東急", "京王", "小田急", "西武", "東武",
+  "京急", "京成", "相鉄", "近鉄", "南海", "京阪", "阪急", "阪神",
+];
+const OPERATOR_EN = {
+  東京メトロ: "Tokyo Metro", 都営: "Toei", OsakaMetro: "Osaka Metro",
+  横浜市営地下鉄: "Yokohama Municipal Subway", 京都市営地下鉄: "Kyoto Municipal Subway",
+  神戸市営地下鉄: "Kobe Municipal Subway", 東急: "Tokyu", 京王: "Keio", 小田急: "Odakyu",
+  西武: "Seibu", 東武: "Tobu", 京急: "Keikyu", 京成: "Keisei", 相鉄: "Sotetsu",
+  近鉄: "Kintetsu", 南海: "Nankai", 京阪: "Keihan", 阪急: "Hankyu", 阪神: "Hanshin",
+};
+
+function lineOperator(line) {
+  return OPERATOR_PREFIXES.find((prefix) => line.startsWith(prefix)) || line;
+}
+
+function operatorLabel(operator) {
+  if (lang === "en") return OPERATOR_EN[operator] || operator;
+  return operator === "OsakaMetro" ? "Osaka Metro" : operator;
+}
+
+// 「JR中央本線(東京～塩尻)」→「中央本線」。会社名は見出しに出すので外す
+function lineShortName(line) {
+  const operator = lineOperator(line);
+  const rest = operator === line ? line : line.slice(operator.length);
+  return rest.replace(/\([^()]*～[^()]*\)/g, "").trim() || line;
+}
+
+function embeddedStationFor(station) {
+  if (!station) return null;
+  return (
+    EMBEDDED_STATIONS.find(
+      (s) =>
+        s.name === station.name &&
+        haversine(s.lat, s.lon, station.lat, station.lon) < 1000
+    ) || null
+  );
+}
+
+// 駅の乗り換え情報を組み立てる。乗車中の路線が分かれば会社の同異で分ける
+function transferInfo(station, fromLines = rideLines) {
+  const base = embeddedStationFor(station);
+  if (!base) return null;
+  const riding = new Set(fromLines ? [...fromLines] : []);
+  const ridingOps = new Set([...riding].map(lineOperator));
+  const ownLines = new Set(base.lines || []);
+  // 乗車路線が不明で1路線しか無い駅は、その路線が自分の乗っている路線なので数えない
+  const targets = riding.size === 0 && ownLines.size === 1
+    ? []
+    : [...ownLines].filter((line) => !riding.has(line));
+
+  const groups = new Map();
+  for (const line of targets) {
+    const operator = lineOperator(line);
+    const kind = ridingOps.size === 0
+      ? "company"
+      : ridingOps.has(operator) ? "same" : "other";
+    const key = kind === "company" ? `company:${operator}` : kind;
+    if (!groups.has(key)) groups.set(key, { kind, operator, lines: [] });
+    groups.get(key).lines.push(line);
+  }
+
+  const walks = EMBEDDED_STATIONS
+    .filter((s) => s.name !== base.name && s.lines?.length)
+    .map((s) => ({ ...s, dist: haversine(base.lat, base.lon, s.lat, s.lon) }))
+    .filter((s) => s.dist <= TRANSFER_WALK_M)
+    .filter((s) => s.lines.some((line) => !ownLines.has(line) && !riding.has(line)))
+    .sort((a, b) => a.dist - b.dist)
+    .slice(0, 5);
+
+  const order = { same: 0, other: 1, company: 2 };
+  const sorted = [...groups.values()].sort((a, b) => order[a.kind] - order[b.kind]);
+  // 乗車路線が不明なら、その駅の路線のうち1本は自分の路線なので除く
+  const ownTargets = riding.size === 0 ? Math.max(targets.length - 1, 0) : targets.length;
+  const count =
+    ownTargets +
+    walks.reduce((sum, s) => sum + s.lines.filter((l) => !ownLines.has(l)).length, 0);
+  return { station: base, groups: sorted, walks, count, riding: [...riding] };
+}
+
+function transferLineList(lines) {
+  const list = document.createElement("ul");
+  list.className = "transfer-lines";
+  for (const line of lines) {
+    const item = document.createElement("li");
+    item.className = "line-chip";
+    item.style.setProperty("--chip-color", lineColor(line));
+    item.textContent = lineShortName(line);
+    item.title = line;
+    list.appendChild(item);
+  }
+  return list;
+}
+
+function transferGroupEl(title, how, lines, kind) {
+  const section = document.createElement("section");
+  section.className = "transfer-group";
+  section.dataset.kind = kind;
+  const head = document.createElement("h3");
+  head.textContent = title;
+  const note = document.createElement("p");
+  note.className = "transfer-how";
+  note.textContent = how;
+  section.append(head, note, transferLineList(lines));
+  return section;
+}
+
+function renderTransferSheet(info) {
+  const body = $("transfer-body");
+  body.innerHTML = "";
+  if (!info || info.count === 0) {
+    $("transfer-context").textContent = info ? t("transferAt", dispName(info.station)) : "";
+    const empty = document.createElement("p");
+    empty.className = "empty-state";
+    empty.textContent = t("transferNone");
+    body.appendChild(empty);
+    return;
+  }
+  $("transfer-context").textContent = info.riding.length
+    ? t("transferFrom", lineShortName(info.riding[0]))
+    : t("transferAt", dispName(info.station));
+  for (const group of info.groups) {
+    if (group.kind === "same") {
+      body.appendChild(transferGroupEl(t("transferSame"), t("transferSameHow"), group.lines, "same"));
+    } else if (group.kind === "other") {
+      body.appendChild(transferGroupEl(t("transferOther"), t("transferOtherHow"), group.lines, "other"));
+    } else {
+      body.appendChild(
+        transferGroupEl(operatorLabel(group.operator), t("transferCompanyHow"), group.lines, "company")
+      );
+    }
+  }
+  if (info.walks.length) {
+    const ownLines = new Set(info.station.lines || []);
+    for (const walk of info.walks) {
+      body.appendChild(
+        transferGroupEl(
+          t("transferWalk"),
+          t("transferWalkHow", dispName(walk), formatDistance(walk.dist)),
+          walk.lines.filter((line) => !ownLines.has(line)),
+          "walk"
+        )
+      );
+    }
+  }
+}
+
+let transferStation = null; // 駅名標の「乗り換え」ボタンが指す駅
+
+function openTransferSheet(station, opener) {
+  renderTransferSheet(transferInfo(station));
+  openSheet("transfer-modal", $("transfer-close"), opener);
+}
+
+function renderTransferButton(station) {
+  transferStation = station;
+  const button = $("transfer-btn");
+  const info = transferInfo(station);
+  const show = Boolean(info && info.count > 0);
+  button.classList.toggle("hidden", !show);
+  if (show) $("transfer-btn-label").textContent = t("transferBtn", info.count);
+}
+
+$("transfer-btn").addEventListener("click", (event) => {
+  if (transferStation) openTransferSheet(transferStation, event.currentTarget);
+});
+$("transfer-close").addEventListener("click", () => closeSheet("transfer-modal"));
 
 // 前の駅・次の駅予測 (プレミアム):
 // 進行方向との角度差で前後を判定し、同じ路線の駅を優先する
@@ -2500,6 +2708,10 @@ function renderPendingDestination(source = "") {
       pendingDestination.lon
     );
     meta.push(t("destDistance", formatDistance(distance)));
+  }
+  const destTransfers = transferInfo(pendingDestination, null);
+  if (destTransfers && destTransfers.count > 0) {
+    meta.push(t("transferBtn", destTransfers.count));
   }
   $("dest-selection-name").textContent = name;
   $("dest-selection-sub").textContent = sub;
@@ -3376,6 +3588,14 @@ function rememberDest(st) {
 }
 
 let alertReturnFocus = null;
+let arrivalStation = null; // 直近に降車アラートが鳴った駅 (乗り換えシート用)
+
+$("alert-transfer-btn").addEventListener("click", () => {
+  const station = arrivalStation;
+  dismissArrivalAlert();
+  if (station) openTransferSheet(station, $("dest-btn"));
+});
+
 
 function showArrivalAlert() {
   const overlay = $("alert-overlay");
@@ -3417,8 +3637,14 @@ function checkAlert(lat, lon) {
   if (dist > ALERT_DISTANCE_M) return;
 
   const name = dispName(alertStation);
+  arrivalStation = alertStation;
   cancelAlert();
   $("alert-overlay-station").textContent = name;
+  const arrivalTransfers = transferInfo(arrivalStation);
+  $("alert-transfer-btn").classList.toggle(
+    "hidden",
+    !(arrivalTransfers && arrivalTransfers.count > 0)
+  );
   // 乗り方ガイドで選んだきっぷ種別があれば、改札を通る直前の一言を添える
   // (ガイド自体は自分から開かないと見ないため、必要な瞬間に自動で出す)
   const ticket = getTicketType();

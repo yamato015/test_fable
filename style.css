@@ -5284,3 +5284,119 @@ body.riding-active #main-screen {
     animation: none !important;
   }
 }
+
+/* =====================================================================
+   乗り換え案内
+   ===================================================================== */
+/* 駅名標の路線タグの下に置く控えめな操作。主役の駅名を邪魔しない */
+.transfer-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-control);
+  background: var(--panel-key);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 var(--press-depth) 0 var(--btn-edge);
+  transition: transform var(--motion-press) ease, box-shadow var(--motion-press) ease;
+}
+
+.transfer-btn:active {
+  transform: translateY(var(--press-depth));
+  box-shadow: 0 0 0 var(--btn-edge);
+}
+
+.transfer-btn .ic {
+  width: 1.05rem;
+  height: 1.05rem;
+  color: var(--accent);
+}
+
+.transfer-context {
+  color: var(--sub);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.transfer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.transfer-group {
+  padding: 14px 14px 12px;
+  border: 1px solid var(--card-border);
+  border-left: 3px solid var(--sub);
+  border-radius: var(--radius-control);
+  background: var(--card);
+}
+
+/* 同じ会社=改札内で済む(落ち着いた色) / 別の会社・徒歩=改札を出る(注意色) */
+.transfer-group[data-kind="same"] { border-left-color: var(--accent2); }
+.transfer-group[data-kind="other"],
+.transfer-group[data-kind="walk"] { border-left-color: var(--accent); }
+
+.transfer-group h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.transfer-how {
+  margin-top: 4px;
+  color: var(--sub);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.transfer-lines {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.transfer-note {
+  color: var(--sub);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+/* 降車アラート上: 停止ボタンより弱い二次操作として置く */
+.alert-transfer-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 18px;
+  border: 1px solid var(--control-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.alert-transfer-btn .ic {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--accent);
+}
+
+/* 駅名標の中では「路線タグの直後」に置く (駅名より目立たせない) */
+.station-display .transfer-btn {
+  order: 4;
+  align-self: flex-start;
+  width: auto;
+}
