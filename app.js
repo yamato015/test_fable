@@ -4034,7 +4034,7 @@ if (CONFIG.cloudflareAnalyticsToken) {
 
 // ---- PWA: Service Worker登録 ----
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js").catch(() => {});
+  navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(() => {});
 }
 
 // ---- 起動時に言語と課金状態を初期化 ----

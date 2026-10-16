@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "ekikoko-v52";
+const CACHE_NAME = "ekikoko-v53";
 const ASSETS = [
   "./","index.html","privacy.html","style.css","app-design.css","app.js","config.js","stations.js",
   "manifest.json","icon.svg","icon-512.png","apple-touch-icon.png","lp.html",
@@ -11,7 +11,7 @@ const ASSETS = [
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS.map((path) => new Request(path, { cache: "reload" })))));
   self.skipWaiting();
 });
 self.addEventListener("activate", (event) => {
