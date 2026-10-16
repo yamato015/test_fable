@@ -1937,14 +1937,16 @@ function transferInfo(station, fromLines = rideLines) {
   return { station: base, groups: sorted, walks, count, riding: [...riding] };
 }
 
-function transferLineList(lines) {
+function transferLineList(lines, showOperator = false) {
   const list = document.createElement("ul");
   list.className = "transfer-lines";
   for (const line of lines) {
     const item = document.createElement("li");
     item.className = "line-chip";
     item.style.setProperty("--chip-color", lineColor(line));
-    item.textContent = lineShortName(line);
+    item.textContent = showOperator
+      ? line.replace(/\([^()]*～[^()]*\)/g, "").trim()
+      : lineShortName(line);
     item.title = line;
     list.appendChild(item);
   }
@@ -1960,7 +1962,7 @@ function transferGroupEl(title, how, lines, kind) {
   const note = document.createElement("p");
   note.className = "transfer-how";
   note.textContent = how;
-  section.append(head, note, transferLineList(lines));
+  section.append(head, note, transferLineList(lines, kind !== "company"));
   return section;
 }
 
