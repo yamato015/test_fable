@@ -155,6 +155,7 @@
     <symbol id="i-shinkansen" viewBox="0 0 24 24"><use href="#s-shinkansen"/></symbol>
     <symbol id="i-yen" viewBox="0 0 24 24"><use href="#s-yen"/></symbol>
     <symbol id="i-transfer" viewBox="0 0 24 24"><use href="#s-transfer"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19.4 12a7.4 7.4 0 1 1-2.2-5.2"/><path d="M19.6 4.6v4.2h-4.2"/></g></symbol>
     <symbol id="i-compass" viewBox="0 0 24 24"><use href="#s-compass"/></symbol>
     <symbol id="i-filter" viewBox="0 0 24 24"><use href="#s-filter"/></symbol>
     <symbol id="i-list" viewBox="0 0 24 24"><use href="#s-list"/></symbol>
@@ -211,7 +212,7 @@
 
       <!-- 乗車路線の自動推定チップ (誤推定なら✕で解除) -->
       <div id="ride-chip" class="ride-chip hidden">
-        <span id="ride-chip-text"></span>
+        <button id="ride-chip-text" class="ride-chip-text" type="button" aria-controls="ride-ask"></button>
         <button id="ride-chip-clear" class="icon-only-btn" title="解除"><svg class="ic"><use href="#i-close"/></svg></button>
       </div>
 
@@ -236,11 +237,25 @@
         <p id="prev-next" class="prev-next"></p>
         <div class="station-readouts">
           <p id="distance" class="distance"></p>
-          <p id="updated-at" class="updated"></p>
+          <p id="updated-at" class="updated" aria-live="off"></p>
+          <button id="refresh-btn" class="refresh-btn" type="button">
+            <svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg>
+            <span id="refresh-btn-label" data-i18n="refreshNow">今すぐ更新</span>
+          </button>
           <p id="next-station" class="next-station hidden"></p>
         </div>
         <span class="station-axis" aria-hidden="true"></span>
       </div>
+
+      <!-- 乗っている路線を聞く (自動判定できないときだけ表示) -->
+      <section id="ride-ask" class="ride-ask hidden" aria-labelledby="ride-ask-title">
+        <div class="ride-ask-head">
+          <h3 id="ride-ask-title" data-i18n="rideAskTitle">乗っている路線は？</h3>
+          <button id="ride-ask-later" class="text-btn" type="button" data-i18n="rideAskLater">あとで</button>
+        </div>
+        <p class="ride-ask-hint" data-i18n="rideAskHint">選ぶと、次の駅と乗り換えの案内が正確になります</p>
+        <div id="ride-ask-choices"></div>
+      </section>
 
       <button id="riding-btn" class="ride-mode-row" aria-controls="riding-screen" aria-expanded="false">
         <svg class="ic" aria-hidden="true"><use href="#i-train"/></svg>

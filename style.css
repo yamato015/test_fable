@@ -5400,3 +5400,136 @@ body.riding-active #main-screen {
   align-self: flex-start;
   width: auto;
 }
+
+/* =====================================================================
+   位置の鮮度と手動更新 / 乗っている路線の質問
+   ===================================================================== */
+.station-readouts .updated.is-stale {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+/* 「何秒前の位置か」の直下に置く小さな手動更新。止まったときだけ目立たせる */
+.refresh-btn {
+  grid-column: 2;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--sub);
+  font: inherit;
+  font-size: 0.74rem;
+  cursor: pointer;
+}
+
+.refresh-btn .ic {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.refresh-btn[disabled] {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.refresh-btn[disabled] .ic {
+  animation: refresh-spin 0.9s linear infinite;
+}
+
+@keyframes refresh-spin {
+  to { transform: rotate(360deg); }
+}
+
+.refresh-btn.is-emphasis {
+  border-color: var(--danger);
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.ride-chip-text {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.ride-chip.is-confirmed .ride-chip-text {
+  text-decoration: none;
+}
+
+.ride-ask {
+  margin-bottom: 16px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--card-border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-control);
+  background: var(--card);
+}
+
+.ride-ask-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ride-ask-head h3 {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.ride-ask-hint {
+  margin-top: 4px;
+  color: var(--sub);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.ride-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* 路線の公式カラーを左端に持つ、押せる路線ボタン */
+.ride-choice {
+  min-height: 40px;
+  padding: 6px 12px 6px 10px;
+  border: 1px solid var(--control-border);
+  border-left: 4px solid var(--chip-color, var(--accent));
+  border-radius: var(--radius-control);
+  background: var(--panel-key);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.86rem;
+  cursor: pointer;
+  box-shadow: 0 var(--press-depth) 0 var(--btn-edge);
+  transition: transform var(--motion-press) ease, box-shadow var(--motion-press) ease;
+}
+
+.ride-choice:active {
+  transform: translateY(var(--press-depth));
+  box-shadow: 0 0 0 var(--btn-edge);
+}
+
+.transfer-ask p {
+  color: var(--sub);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .refresh-btn[disabled] .ic { animation: none; }
+}

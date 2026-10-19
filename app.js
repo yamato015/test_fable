@@ -77,6 +77,8 @@ let headingBuf = [];      // 方位の平滑化バッファ (直近3回が一致
 let departureAnchor = null; // 直近に停車した駅 (出発後の実移動ベクトル算出用)
 let rideLines = null;     // 乗車中と推定した路線名のSet (null = 未推定)
 let lastRideStation = null; // 乗車路線推定に使う直近の停車駅
+let rideLineSource = null;  // "user" = ユーザーが選んだ / "auto" = 停車駅から推定
+let lastRenderedStation = null; // 画面に出している駅 (路線の質問に使う)
 let alertStation = null;  // 降車アラート対象 { name, lat, lon }
 let pendingDestination = null; // モーダル内で選択中、未確定の目的地
 let lastHistoryName = null;
@@ -350,6 +352,17 @@ const STRINGS = {
     lineFilterLabel: "路線で絞り込み",
     allLines: "すべての路線",
     rideChip: (l) => `${l} に乗車中？`,
+    rideChipSure: (l) => `${l} に乗車中`,
+    rideChipChange: "変更",
+    rideAskTitle: "乗っている路線は？",
+    rideAskHint: "選ぶと、次の駅と乗り換えの案内が正確になります",
+    rideAskLater: "あとで",
+    transferAskHint: "乗っている路線を選ぶと、改札を出る必要があるか分かります",
+    updatedAgo: (sec) => sec < 5 ? "たった今更新" : sec < 60 ? `${sec}秒前に更新` : `${Math.floor(sec / 60)}分前に更新`,
+    updatedStale: (sec) => `位置の更新が止まっています（${sec < 60 ? `${sec}秒前` : `${Math.floor(sec / 60)}分前`}）`,
+    refreshNow: "今すぐ更新",
+    refreshing: "更新中…",
+    refreshFail: "位置を更新できませんでした。地下やトンネルでは届かないことがあります。",
     tapBack: "通常表示に戻る",
     destTitle: "どこで降りますか？",
     destPrompt: "降りる駅を選ぶ",
@@ -566,6 +579,17 @@ const STRINGS = {
     lineFilterLabel: "Filter by line",
     allLines: "All lines",
     rideChip: (l) => `Riding ${l}?`,
+    rideChipSure: (l) => `On the ${l}`,
+    rideChipChange: "Change",
+    rideAskTitle: "Which line are you on?",
+    rideAskHint: "Pick one for more accurate next-station and transfer info",
+    rideAskLater: "Later",
+    transferAskHint: "Pick your line to see whether you need to exit the gates",
+    updatedAgo: (sec) => sec < 5 ? "Updated just now" : sec < 60 ? `Updated ${sec}s ago` : `Updated ${Math.floor(sec / 60)} min ago`,
+    updatedStale: (sec) => `Location not updating (${sec < 60 ? `${sec}s` : `${Math.floor(sec / 60)} min`} ago)`,
+    refreshNow: "Refresh now",
+    refreshing: "Updating…",
+    refreshFail: "Couldn't update your location. GPS may not reach underground or in tunnels.",
     tapBack: "Return to standard view",
     destTitle: "Where are you getting off?",
     destPrompt: "Choose where to get off",
@@ -1412,6 +1436,7 @@ async function onPosition(pos) {
   const { latitude: lat, longitude: lon, accuracy } = pos.coords;
   curPos = { lat, lon };
   lastGpsAccuracy = accuracy;
+  lastFixAt = pos.timestamp || Date.now();
   syncDestMapPosition();
   // 誤差半径が大きい測位 (Wi-Fi/基地局による概算など) は駅を取り違えることがあるため、
   // 「参考程度」と明示する。位置自体はそのまま使う (無視すると更新が止まって見えるため)
@@ -1685,6 +1710,8 @@ function render(lat, lon) {
   distanceEl.textContent = atStation ? "" : t("about", formatDistance(nearest.dist));
   renderLineChips(nearest);
   renderTransferButton(nearest);
+  lastRenderedStation = nearest;
+  renderRideAsk(nearest);
 
   // 車内モード側にも同じ内容を反映
   $("r-status").textContent = statusLabel.textContent;
@@ -1705,11 +1732,84 @@ function render(lat, lon) {
     nearbyList.appendChild(nearbyItem(s));
   }
 
-  updatedAt.textContent = t(
-    "updated",
-    new Date().toLocaleTimeString(lang === "ja" ? "ja-JP" : "en-US")
+  renderFreshness();
+}
+
+// =====================================================================
+// 位置の鮮度表示と手動更新
+// =====================================================================
+// 表示は端末から新しい位置が届いたときにしか変わらない。電車内やポケットから
+// 出した直後は届かないことがあるため、「何秒前の位置か」を常に見せ、止まって
+// いれば知らせる。手動更新と、画面を開き直したときの取り直しも用意する。
+const STALE_AFTER_MS = 30000;
+let lastFixAt = 0;
+let refreshInFlight = false;
+
+function renderFreshness() {
+  if (!lastFixAt) {
+    updatedAt.textContent = "";
+    return;
+  }
+  const sec = Math.max(0, Math.round((Date.now() - lastFixAt) / 1000));
+  const stale = Date.now() - lastFixAt >= STALE_AFTER_MS;
+  updatedAt.textContent = stale ? t("updatedStale", sec) : t("updatedAgo", sec);
+  updatedAt.classList.toggle("is-stale", stale);
+  $("refresh-btn").classList.toggle("is-emphasis", stale);
+}
+
+// 端末の位置監視は「動いたとき」中心に届くため、停車中などは間が空く。
+// 画面を開いている間は、15秒届かなければ自分から取りに行き、止まって見える
+// 時間を作らない。30秒取れなかったときだけ「止まっています」と出す。
+const AUTO_REFRESH_MS = 15000;
+let lastAutoRefreshAt = 0;
+
+setInterval(() => {
+  if (document.visibilityState !== "visible" || !lastFixAt) return;
+  renderFreshness();
+  const now = Date.now();
+  if (
+    !refreshInFlight &&
+    now - lastFixAt >= AUTO_REFRESH_MS &&
+    now - lastAutoRefreshAt >= AUTO_REFRESH_MS
+  ) {
+    lastAutoRefreshAt = now;
+    refreshPosition({ silent: true });
+  }
+}, 1000);
+
+function refreshPosition({ silent = false } = {}) {
+  if (refreshInFlight || !("geolocation" in navigator)) return;
+  refreshInFlight = true;
+  const button = $("refresh-btn");
+  button.disabled = true;
+  $("refresh-btn-label").textContent = t("refreshing");
+  const done = () => {
+    refreshInFlight = false;
+    button.disabled = false;
+    $("refresh-btn-label").textContent = t("refreshNow");
+  };
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      done();
+      await onPosition(pos);
+    },
+    () => {
+      done();
+      // 定期の位置監視は動き続けているので、手動更新の失敗だけを知らせる
+      if (!silent) showToast(t("refreshFail"));
+    },
+    { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
   );
 }
+
+$("refresh-btn").addEventListener("click", () => refreshPosition());
+
+// アプリを開き直したとき (ポケットから出したときなど) はすぐに位置を取り直す
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible" || !lastFixAt) return;
+  renderFreshness();
+  if (Date.now() - lastFixAt > 5000) refreshPosition({ silent: true });
+});
 
 // =====================================================================
 // 乗車路線の自動推定
@@ -1718,13 +1818,45 @@ function render(lat, lon) {
 // 共通路線がない場合 (乗り換えなど) は推定をリセットする
 function updateRideInference(station) {
   if (lastRideStation?.name === station.name) return;
-  if (lastRideStation) {
-    const common = (station.lines || []).filter((l) =>
+  const stationLines = station.lines || [];
+  if (rideLineSource === "user") {
+    // ユーザーが選んだ路線が通らない駅に着いた = 乗り換えた。選択を解除して聞き直す
+    if (![...rideLines].some((line) => stationLines.includes(line))) {
+      rideLines = null;
+      rideLineSource = null;
+    }
+  } else if (stationLines.length === 1) {
+    // 1路線しか通らない駅に停車したなら、その路線で確定 (2駅待たない)
+    rideLines = new Set(stationLines);
+    rideLineSource = "auto";
+  } else if (lastRideStation) {
+    const common = stationLines.filter((l) =>
       (lastRideStation.lines || []).includes(l)
     );
     rideLines = common.length > 0 ? new Set(common) : null;
+    rideLineSource = rideLines ? "auto" : null;
   }
-  lastRideStation = { name: station.name, lines: station.lines || [] };
+  lastRideStation = { name: station.name, lines: stationLines };
+  renderRideChip();
+}
+
+// 路線名から運行区間の注記を外す (例: 「JR中央本線(東京～塩尻)」→「JR中央本線」)
+function rideLineLabel(line) {
+  return line.replace(/\([^()]*～[^()]*\)/g, "").trim() || line;
+}
+
+function setRideLine(line) {
+  rideLines = new Set([line]);
+  rideLineSource = "user";
+  rideAskDismissedAt = null;
+  renderRideChip();
+  if (curPos) render(curPos.lat, curPos.lon);
+}
+
+function clearRideLine() {
+  rideLines = null;
+  rideLineSource = null;
+  lastRideStation = null;
   renderRideChip();
 }
 
@@ -1734,16 +1866,76 @@ function renderRideChip() {
     chip.classList.add("hidden");
     return;
   }
-  const names = [...rideLines];
+  const names = [...rideLines].map(rideLineLabel);
   const label = names[0] + (names.length > 1 ? ` +${names.length - 1}` : "");
-  $("ride-chip-text").textContent = t("rideChip", label);
+  $("ride-chip-text").textContent = rideLineSource === "user"
+    ? t("rideChipSure", label)
+    : t("rideChip", label);
+  chip.classList.toggle("is-confirmed", rideLineSource === "user");
   chip.classList.remove("hidden");
 }
 
+// 路線を選ぶボタン群 (メイン画面の質問カードと乗り換えシートで共用)
+function rideChoiceButtons(lines, onPick) {
+  const wrap = document.createElement("div");
+  wrap.className = "ride-choices";
+  for (const line of lines) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "ride-choice";
+    button.style.setProperty("--chip-color", lineColor(line));
+    button.textContent = rideLineLabel(line);
+    button.addEventListener("click", () => onPick(line));
+    wrap.appendChild(button);
+  }
+  return wrap;
+}
+
+// 判定できていない (または候補が複数残っている) ときだけ、乗っている路線を聞く。
+// 「あとで」を押した駅では同じ駅にいる間は聞き直さない
+let rideAskDismissedAt = null;
+let rideAskShownFor = "";
+
+function renderRideAsk(station) {
+  const card = $("ride-ask");
+  const candidates = rideLines && rideLines.size > 1
+    ? [...rideLines]
+    : station?.lines || [];
+  const needsAnswer =
+    rideLineSource !== "user" &&
+    (!rideLines || rideLines.size > 1) &&
+    candidates.length > 1 &&
+    rideAskDismissedAt !== station?.name;
+  card.classList.toggle("hidden", !needsAnswer);
+  if (!needsAnswer) return;
+  const key = `${station.name}|${candidates.join(",")}`;
+  if (key === rideAskShownFor) return; // 位置更新のたびに作り直さない (押しかけの誤タップ防止)
+  rideAskShownFor = key;
+  const holder = $("ride-ask-choices");
+  holder.replaceChildren(rideChoiceButtons(candidates, setRideLine));
+}
+
+$("ride-ask-later").addEventListener("click", () => {
+  rideAskDismissedAt = lastRenderedStation?.name || null;
+  $("ride-ask").classList.add("hidden");
+});
+
+$("ride-chip-text").addEventListener("click", () => {
+  // チップを押したら路線を選び直せるようにする
+  rideAskDismissedAt = null;
+  rideAskShownFor = "";
+  const station = lastRenderedStation;
+  if (!station) return;
+  const card = $("ride-ask");
+  const lines = station.lines || [];
+  if (lines.length < 2) return;
+  $("ride-ask-choices").replaceChildren(rideChoiceButtons(lines, setRideLine));
+  card.classList.remove("hidden");
+  card.querySelector(".ride-choice")?.focus({ preventScroll: false });
+});
+
 $("ride-chip-clear").addEventListener("click", () => {
-  rideLines = null;
-  lastRideStation = null;
-  renderRideChip();
+  clearRideLine();
   if (curPos) render(curPos.lat, curPos.lon);
 });
 
@@ -1980,6 +2172,23 @@ function renderTransferSheet(info) {
   $("transfer-context").textContent = info.riding.length
     ? t("transferFrom", lineShortName(info.riding[0]))
     : t("transferAt", dispName(info.station));
+  // 乗っている路線が分からないと「改札内か外か」を判定できないので、その場で聞く
+  const ownLines = info.station.lines || [];
+  if (!info.riding.length && ownLines.length > 1) {
+    const ask = document.createElement("div");
+    ask.className = "transfer-ask";
+    const hint = document.createElement("p");
+    hint.textContent = t("transferAskHint");
+    ask.append(
+      hint,
+      rideChoiceButtons(ownLines, (line) => {
+        setRideLine(line);
+        renderTransferSheet(transferInfo(info.station));
+        $("transfer-body").querySelector(".transfer-group h3")?.focus?.();
+      })
+    );
+    body.appendChild(ask);
+  }
   // 東京メトロ公式で「改札を出て乗り換える」同名駅は、同じ会社でも改札内と言わない
   const metroExitHere = METRO_GATE_EXIT_STATIONS.has(baseStationName(info.station));
   for (const group of info.groups) {
