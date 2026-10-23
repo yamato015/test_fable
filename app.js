@@ -85,6 +85,11 @@ let lastHistoryName = null;
 let geoWatchId = null;
 let geoState = "idle";
 let lastGpsAccuracy = null;
+let locationActive = false;
+let lastReceivedPositionAt = 0;
+let positionGeneration = 0;
+let stationSourceGeneration = 0;
+let pendingStationFetch = null;
 
 // ---- DOM ----
 const $ = (id) => document.getElementById(id);
@@ -351,15 +356,23 @@ const STRINGS = {
     credit: "駅データ: station_database / © OpenStreetMap contributors",
     lineFilterLabel: "路線で絞り込み",
     allLines: "すべての路線",
-    rideChip: (l) => `${l} に乗車中？`,
-    rideChipSure: (l) => `${l} に乗車中`,
+    rideChip: (l) => `推定：${l}`,
+    rideChipSure: (l) => `選択中：${l}`,
     rideChipChange: "変更",
     rideAskTitle: "乗っている路線は？",
-    rideAskHint: "選ぶと、次の駅と乗り換えの案内が正確になります",
-    rideAskLater: "あとで",
-    transferAskHint: "乗っている路線を選ぶと、改札を出る必要があるか分かります",
+    rideAskHint: "選んだ路線を優先して表示します。",
+    rideAskLater: "今は選ばない",
+    rideSelect: "乗車路線を選ぶ",
+    rideSelectChange: "乗車路線を変更",
+    rideChangeTitle: "路線を変更しましたか？",
+    rideChangeHint: (name) => `${name}付近の情報が選択中の路線と異なります。変更するまで今の路線を保持します。`,
+    locationWaiting: "まだ位置を取得していません",
+    locationAgeHint: "地下・トンネル等では位置を取得しにくい場合があります。",
+    locationApproximate: "位置の精度が低いため、表示は目安です。",
+    lastLocation: "前回取得した位置の駅",
+    transferAskHint: "選んだ路線をもとに乗り換えの目安を表示します。",
     updatedAgo: (sec) => sec < 5 ? "たった今更新" : sec < 60 ? `${sec}秒前に更新` : `${Math.floor(sec / 60)}分前に更新`,
-    updatedStale: (sec) => `位置の更新が止まっています（${sec < 60 ? `${sec}秒前` : `${Math.floor(sec / 60)}分前`}）`,
+    updatedStale: (sec) => `最終取得：${sec < 60 ? `${sec}秒前` : `${Math.floor(sec / 60)}分前`}（要確認）`,
     refreshNow: "今すぐ更新",
     refreshing: "更新中…",
     refreshFail: "位置を更新できませんでした。地下やトンネルでは届かないことがあります。",
@@ -578,15 +591,23 @@ const STRINGS = {
     credit: "Station data: station_database / © OpenStreetMap contributors",
     lineFilterLabel: "Filter by line",
     allLines: "All lines",
-    rideChip: (l) => `Riding ${l}?`,
-    rideChipSure: (l) => `On the ${l}`,
+    rideChip: (l) => `Estimated: ${l}`,
+    rideChipSure: (l) => `Selected: ${l}`,
     rideChipChange: "Change",
     rideAskTitle: "Which line are you on?",
-    rideAskHint: "Pick one for more accurate next-station and transfer info",
-    rideAskLater: "Later",
-    transferAskHint: "Pick your line to see whether you need to exit the gates",
+    rideAskHint: "Your selected line is prioritized in the display.",
+    rideAskLater: "Not now",
+    rideSelect: "Choose your line",
+    rideSelectChange: "Change your line",
+    rideChangeTitle: "Have you changed lines?",
+    rideChangeHint: (name) => `Location near ${name} differs from your selected line. Your selection is kept until you change it.`,
+    locationWaiting: "No location fix yet",
+    locationAgeHint: "Location may be unavailable underground or in tunnels.",
+    locationApproximate: "Low location accuracy. The station is an estimate.",
+    lastLocation: "Station at last known location",
+    transferAskHint: "Choose your line for transfer guidance estimates.",
     updatedAgo: (sec) => sec < 5 ? "Updated just now" : sec < 60 ? `Updated ${sec}s ago` : `Updated ${Math.floor(sec / 60)} min ago`,
-    updatedStale: (sec) => `Location not updating (${sec < 60 ? `${sec}s` : `${Math.floor(sec / 60)} min`} ago)`,
+    updatedStale: (sec) => `Last fix: ${sec < 60 ? `${sec}s` : `${Math.floor(sec / 60)} min`} ago (check location)`,
     refreshNow: "Refresh now",
     refreshing: "Updating…",
     refreshFail: "Couldn't update your location. GPS may not reach underground or in tunnels.",
@@ -858,6 +879,7 @@ function applyLang() {
     renderLineList($("line-search").value.trim());
   }
   renderRideChip();
+  updateRefreshControls();
   renderLineFilter();
   if (isPremium()) renderHistory();
   if (curPos) render(curPos.lat, curPos.lon);
@@ -1347,10 +1369,16 @@ function startLocationWatch() {
     geoWatchId = null;
   }
   if (!("geolocation" in navigator)) {
+    locationActive = false;
     setGpsState("unavailable", t("geoUnsupported"));
     return;
   }
+  locationActive = true;
+  permissionDenied = false;
+  refreshFailures = 0;
+  nextAutoRefreshAt = Date.now() + AUTO_REFRESH_MS;
   setGpsState("requesting");
+  renderFreshness();
   geoWatchId = navigator.geolocation.watchPosition(onPosition, onGeoError, {
     enableHighAccuracy: true,
     maximumAge: 5000,
@@ -1434,44 +1462,64 @@ $("line-filter").addEventListener("change", (e) => {
 // =====================================================================
 async function onPosition(pos) {
   const { latitude: lat, longitude: lon, accuracy } = pos.coords;
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return false;
+  const measuredAt = Number.isFinite(pos.timestamp) && pos.timestamp > 0
+    ? Math.min(pos.timestamp, Date.now()) : Date.now();
+  // watchと単発取得の到着順が逆でも、位置・方位・通知を巻き戻さない。
+  if (measuredAt <= lastReceivedPositionAt) return false;
+  lastReceivedPositionAt = measuredAt;
+  const generation = ++positionGeneration;
+  await selectStationSource(lat, lon, () => generation === positionGeneration);
+  if (generation !== positionGeneration) return false;
+
   curPos = { lat, lon };
   lastGpsAccuracy = accuracy;
-  lastFixAt = pos.timestamp || Date.now();
+  lastFixAt = measuredAt;
+  permissionDenied = false;
+  refreshFailures = 0;
+  nextAutoRefreshAt = Date.now() + AUTO_REFRESH_MS;
   syncDestMapPosition();
-  // 誤差半径が大きい測位 (Wi-Fi/基地局による概算など) は駅を取り違えることがあるため、
-  // 「参考程度」と明示する。位置自体はそのまま使う (無視すると更新が止まって見えるため)
   setGpsState("success");
-
   updateHeading(lat, lon, pos.coords.heading, pos.coords.speed);
-
-  await selectStationSource(lat, lon);
+  observeRideStation(lat, lon, accuracy, pos.coords.speed, measuredAt);
   render(lat, lon);
-  checkAlert(lat, lon);
+  // 古い測位を新着として受けても、過去の位置で到着通知を鳴らさない。
+  if (Date.now() - measuredAt < STALE_AFTER_MS) checkAlert(lat, lon);
+  return true;
 }
 
-// 埋め込みデータのカバー圏内ならそれを使い、圏外ならOverpassから取得する
-async function selectStationSource(lat, lon) {
-  const covered =
-    EMBEDDED_STATIONS.length > 0 &&
+// 駅データは位置の描画とは別に管理する。同じ地域の取得は共有し、
+// 圏外の取得中に内蔵データへ戻ったら、遅れて届いた圏外データを採用しない。
+async function selectStationSource(lat, lon, isCurrent = () => true) {
+  const covered = EMBEDDED_STATIONS.length > 0 &&
     nearestEmbeddedDist(lat, lon) <= EMBEDDED_COVERAGE_M;
-
   if (covered) {
     if (!usingEmbedded) {
+      stationSourceGeneration += 1;
       usingEmbedded = true;
       stations = EMBEDDED_STATIONS;
-      lineNames = [...new Set(stations.flatMap((s) => s.lines))].sort();
+      lineNames = [...new Set(stations.flatMap((station) => station.lines))].sort();
       renderLineFilter();
     }
     return;
   }
-
   if (usingEmbedded) {
+    stationSourceGeneration += 1;
     usingEmbedded = false;
     stations = [];
     lastFetchPos = null;
   }
-  if (needsRefetch(lat, lon)) {
-    await fetchStations(lat, lon);
+  if (pendingStationFetch) await pendingStationFetch;
+  if (!isCurrent() || !needsRefetch(lat, lon)) return;
+  const sourceGeneration = ++stationSourceGeneration;
+  const request = fetchStations(lat, lon, () =>
+    sourceGeneration === stationSourceGeneration && !usingEmbedded
+  );
+  pendingStationFetch = request;
+  try {
+    await request;
+  } finally {
+    if (pendingStationFetch === request) pendingStationFetch = null;
   }
 }
 
@@ -1541,13 +1589,17 @@ function circularMean(arr) {
 }
 
 function onGeoError(err) {
+  // 権限が取り消された後に、待機中だった測位を成功として描画しない。
+  if (err.code === 1) positionGeneration += 1;
   const messages = { 1: t("geo1"), 2: t("geo2"), 3: t("geo3") };
   const state = err.code === 1
     ? "permission-denied"
     : err.code === 3
       ? "timeout"
       : "unavailable";
+  noteLocationFailure(err);
   setGpsState(state, messages[err.code] || t("geoFail"));
+  renderFreshness();
 }
 
 function needsRefetch(lat, lon) {
@@ -1559,7 +1611,7 @@ function needsRefetch(lat, lon) {
 // =====================================================================
 // 駅・路線データ取得 (Overpass API / OpenStreetMap)
 // =====================================================================
-async function fetchStations(lat, lon) {
+async function fetchStations(lat, lon, canApply = () => true) {
   fetching = true;
   $("screen-live").textContent = t("fetching");
   // プライバシー保護: 外部APIには約1km単位に丸めた座標のみ送信し、
@@ -1581,6 +1633,7 @@ async function fetchStations(lat, lon) {
   `;
 
   for (const endpoint of OVERPASS_ENDPOINTS) {
+    if (!canApply()) { fetching = false; return; }
     try {
       const res = await fetch(endpoint, {
         method: "POST",
@@ -1589,7 +1642,10 @@ async function fetchStations(lat, lon) {
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      parseOverpass(data.elements || []);
+      if (!canApply()) { fetching = false; return; }
+      stations = parseOverpass(data.elements || []);
+      lineNames = [...new Set(stations.flatMap((station) => station.lines))].sort();
+      renderLineFilter();
       lastFetchPos = { lat, lon };
       fetching = false;
       return;
@@ -1599,7 +1655,7 @@ async function fetchStations(lat, lon) {
   }
 
   fetching = false;
-  showError(t("fetchFail"));
+  if (canApply()) showError(t("fetchFail"));
 }
 
 function parseOverpass(elements) {
@@ -1616,7 +1672,7 @@ function parseOverpass(elements) {
     }
   }
 
-  stations = nodes.map((e) => ({
+  return nodes.map((e) => ({
     id: e.id,
     name: e.tags.name,
     kana: e.tags["name:ja-Hira"] || e.tags["name:ja_kana"] || "",
@@ -1625,8 +1681,6 @@ function parseOverpass(elements) {
     lines: [...(linesByNode.get(e.id) || [])],
   }));
 
-  lineNames = [...new Set(stations.flatMap((s) => s.lines))].sort();
-  renderLineFilter();
 }
 
 function renderLineFilter() {
@@ -1665,8 +1719,23 @@ function visibleStations() {
 function render(lat, lon) {
   const list = visibleStations();
   if (list.length === 0) {
+    lastRenderedStation = null;
     stationName.textContent = "---";
+    stationName.dataset.raw = "";
+    stationKana.textContent = "";
+    distanceEl.textContent = "";
     statusLabel.textContent = t("noStations");
+    statusLabel.classList.remove("at-station");
+    $("r-station").textContent = "---";
+    $("r-status").textContent = t("noStations");
+    $("r-status").classList.remove("at-station");
+    for (const id of ["r-dist", "r-next", "r-alert", "station-lines"]) $(id).textContent = "";
+    nextStationEl.classList.add("hidden");
+    $("prev-next").textContent = "";
+    nearbyList.replaceChildren();
+    renderTransferButton(null);
+    renderRideAsk(null);
+    renderFreshness();
     return;
   }
 
@@ -1685,11 +1754,6 @@ function render(lat, lon) {
   }
   const atStation = nearest.dist <= AT_STATION_THRESHOLD_M;
 
-  if (atStation) {
-    // 停車駅の履歴から乗車路線を推定し、出発後の方向判定の基準点にする
-    updateRideInference(nearest);
-    departureAnchor = { name: nearest.name, lat: nearest.lat, lon: nearest.lon };
-  }
 
   if (stationName.dataset.raw !== nearest.name) {
     stationName.dataset.raw = nearest.name;
@@ -1742,98 +1806,189 @@ function render(lat, lon) {
 // 出した直後は届かないことがあるため、「何秒前の位置か」を常に見せ、止まって
 // いれば知らせる。手動更新と、画面を開き直したときの取り直しも用意する。
 const STALE_AFTER_MS = 30000;
+const AUTO_REFRESH_MS = 30000;
+const MAX_REFRESH_MS = 120000;
 let lastFixAt = 0;
 let refreshInFlight = false;
+let refreshFailures = 0;
+let permissionDenied = false;
+let nextAutoRefreshAt = Infinity;
+let lastRefreshAttemptAt = -Infinity;
 
-function renderFreshness() {
-  if (!lastFixAt) {
-    updatedAt.textContent = "";
-    return;
-  }
-  const sec = Math.max(0, Math.round((Date.now() - lastFixAt) / 1000));
-  const stale = Date.now() - lastFixAt >= STALE_AFTER_MS;
-  updatedAt.textContent = stale ? t("updatedStale", sec) : t("updatedAgo", sec);
-  updatedAt.classList.toggle("is-stale", stale);
-  $("refresh-btn").classList.toggle("is-emphasis", stale);
+function setTextIfChanged(element, text) {
+  if (element.textContent !== text) element.textContent = text;
 }
 
-// 端末の位置監視は「動いたとき」中心に届くため、停車中などは間が空く。
-// 画面を開いている間は、15秒届かなければ自分から取りに行き、止まって見える
-// 時間を作らない。30秒取れなかったときだけ「止まっています」と出す。
-const AUTO_REFRESH_MS = 15000;
-let lastAutoRefreshAt = 0;
+function renderFreshness() {
+  const age = lastFixAt ? Math.max(0, Date.now() - lastFixAt) : Infinity;
+  const stale = Boolean(lastFixAt && age >= STALE_AFTER_MS);
+  const sec = lastFixAt ? Math.floor(age / 1000) : 0;
+  const text = lastFixAt
+    ? t(stale ? "updatedStale" : "updatedAgo", sec)
+    : locationActive ? t("locationWaiting") : "";
+  setTextIfChanged(updatedAt, text);
+  setTextIfChanged($("r-updated-at"), text);
+  updatedAt.classList.toggle("is-stale", stale);
+  $("r-updated-at").classList.toggle("is-stale", stale);
+  $("refresh-btn").classList.toggle("is-emphasis", stale || permissionDenied);
+  $("r-refresh-btn").classList.toggle("is-emphasis", stale || permissionDenied);
+  const note = permissionDenied ? t("gpsDenied")
+    : refreshInFlight ? t("gpsRequestingDetail")
+    : stale ? t("locationAgeHint")
+    : lastGpsAccuracy > ACCURACY_WARN_M ? t("locationApproximate") : "";
+  setTextIfChanged($("r-location-note"), note);
+  $("r-location-note").classList.toggle("hidden", !note);
+  if (lastRenderedStation) {
+    const historical = stale || permissionDenied;
+    const atStation = lastRenderedStation.dist <= AT_STATION_THRESHOLD_M;
+    for (const id of ["status-label", "r-status"]) {
+      setTextIfChanged($(id), t(historical ? "lastLocation" : atStation ? "here" : "nearest"));
+      $(id).classList.toggle("at-station", !historical && atStation);
+    }
+  }
+}
 
-setInterval(() => {
-  if (document.visibilityState !== "visible" || !lastFixAt) return;
+function updateRefreshControls() {
+  for (const id of ["refresh-btn", "r-refresh-btn"]) {
+    $(id).disabled = refreshInFlight;
+    $(id).setAttribute("aria-busy", String(refreshInFlight));
+  }
+  for (const id of ["refresh-btn-label", "r-refresh-btn-label"]) {
+    setTextIfChanged($(id), t(refreshInFlight ? "refreshing" : "refreshNow"));
+  }
   renderFreshness();
-  const now = Date.now();
-  if (
-    !refreshInFlight &&
-    now - lastFixAt >= AUTO_REFRESH_MS &&
-    now - lastAutoRefreshAt >= AUTO_REFRESH_MS
-  ) {
-    lastAutoRefreshAt = now;
+}
+
+function noteLocationFailure(error) {
+  permissionDenied = error.code === 1;
+  refreshFailures += 1;
+  const delay = Math.min(AUTO_REFRESH_MS * 2 ** Math.min(refreshFailures - 1, 2), MAX_REFRESH_MS);
+  nextAutoRefreshAt = permissionDenied ? Infinity : Date.now() + delay;
+}
+
+function tickLocationFreshness() {
+  if (!locationActive || document.visibilityState !== "visible") return;
+  renderFreshness();
+  if (!permissionDenied && !refreshInFlight && Date.now() >= nextAutoRefreshAt &&
+      (!lastFixAt || Date.now() - lastFixAt >= AUTO_REFRESH_MS)) {
     refreshPosition({ silent: true });
   }
-}, 1000);
+}
+setInterval(tickLocationFreshness, 1000);
 
 function refreshPosition({ silent = false } = {}) {
-  if (refreshInFlight || !("geolocation" in navigator)) return;
+  if (refreshInFlight || !locationActive || !("geolocation" in navigator)) return;
+  if (permissionDenied) {
+    if (!silent) startLocationWatch();
+    return;
+  }
   refreshInFlight = true;
-  const button = $("refresh-btn");
-  button.disabled = true;
-  $("refresh-btn-label").textContent = t("refreshing");
+  const receivedBefore = lastReceivedPositionAt;
+  lastRefreshAttemptAt = Date.now();
+  nextAutoRefreshAt = lastRefreshAttemptAt + AUTO_REFRESH_MS;
+  updateRefreshControls();
   const done = () => {
     refreshInFlight = false;
-    button.disabled = false;
-    $("refresh-btn-label").textContent = t("refreshNow");
+    updateRefreshControls();
   };
-  navigator.geolocation.getCurrentPosition(
-    async (pos) => {
-      done();
-      await onPosition(pos);
-    },
-    () => {
-      done();
-      // 定期の位置監視は動き続けているので、手動更新の失敗だけを知らせる
-      if (!silent) showToast(t("refreshFail"));
-    },
-    { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
-  );
+  const fail = (error) => {
+    // 単発要求の失敗より後にwatchの測位が届いていた場合は成功状態を保つ。
+    if (error.code === 1 || lastReceivedPositionAt <= receivedBefore) {
+      onGeoError(error);
+      if (!silent && error.code !== 1) showToast(t("refreshFail"));
+    }
+    done();
+  };
+  try {
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try { await onPosition(pos); }
+        catch { fail({ code: 2 }); return; }
+        // 古い結果しか返らなかったときは、即時の再試行ループに入らない。
+        if (lastReceivedPositionAt <= receivedBefore) noteLocationFailure({ code: 2 });
+        done();
+      },
+      fail,
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
+    );
+  } catch { fail({ code: 2 }); }
 }
 
 $("refresh-btn").addEventListener("click", () => refreshPosition());
+$("r-refresh-btn").addEventListener("click", (event) => {
+  event.stopPropagation();
+  refreshPosition();
+});
 
-// アプリを開き直したとき (ポケットから出したときなど) はすぐに位置を取り直す
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState !== "visible" || !lastFixAt) return;
+  if (!locationActive || document.visibilityState !== "visible") return;
   renderFreshness();
-  if (Date.now() - lastFixAt > 5000) refreshPosition({ silent: true });
+  const now = Date.now();
+  if (!permissionDenied && (!lastFixAt || now - lastFixAt > 5000) &&
+      now - lastRefreshAttemptAt >= 5000 && (!refreshFailures || now >= nextAutoRefreshAt)) {
+    refreshPosition({ silent: true });
+  }
 });
 
 // =====================================================================
-// 乗車路線の自動推定
+// 乗車路線の推定と、本人の選択の保護
 // =====================================================================
-// 連続して停車した2駅に共通する路線を「いま乗っている路線」とみなす。
-// 共通路線がない場合 (乗り換えなど) は推定をリセットする
-function updateRideInference(station) {
-  if (lastRideStation?.name === station.name) return;
+const RIDE_ACCURACY_M = 100;
+const RIDE_FIX_MAX_AGE_MS = 15000;
+const RIDE_CHANGE_SAMPLES = 3;
+const RIDE_CHANGE_SPAN_MS = 10000;
+let rideMismatch = null;
+let rideChangeCandidate = null;
+
+function observeRideStation(lat, lon, accuracy, speed, measuredAt) {
+  // 表示上の路線優先・Plusの絞り込みから独立した最寄り駅を観測する。
+  let nearest = null;
+  for (const station of stations) {
+    const dist = haversine(lat, lon, station.lat, station.lon);
+    if (!nearest || dist < nearest.dist) nearest = { ...station, dist };
+  }
+  const reliable = nearest && nearest.lines?.length &&
+    Number.isFinite(accuracy) && accuracy <= RIDE_ACCURACY_M &&
+    Date.now() - measuredAt <= RIDE_FIX_MAX_AGE_MS &&
+    nearest.dist <= AT_STATION_THRESHOLD_M &&
+    (!Number.isFinite(speed) || speed <= 3);
+  if (!reliable) {
+    rideMismatch = null;
+    return;
+  }
+  updateRideInference(nearest, measuredAt);
+  departureAnchor = { name: nearest.name, lat: nearest.lat, lon: nearest.lon };
+}
+
+function updateRideInference(station, measuredAt) {
   const stationLines = station.lines || [];
   if (rideLineSource === "user") {
-    // ユーザーが選んだ路線が通らない駅に着いた = 乗り換えた。選択を解除して聞き直す
-    if (![...rideLines].some((line) => stationLines.includes(line))) {
-      rideLines = null;
-      rideLineSource = null;
+    if (stationLines.some((line) => rideLines.has(line))) {
+      rideMismatch = null;
+      rideChangeCandidate = null;
+    } else {
+      const key = `${station.name}|${stationLines.join(",")}`;
+      if (!rideMismatch || rideMismatch.key !== key) {
+        rideMismatch = { key, firstAt: measuredAt, lastAt: measuredAt, count: 1 };
+      } else if (measuredAt > rideMismatch.lastAt) {
+        rideMismatch.lastAt = measuredAt;
+        rideMismatch.count += 1;
+      }
+      if (rideMismatch.count >= RIDE_CHANGE_SAMPLES &&
+          measuredAt - rideMismatch.firstAt >= RIDE_CHANGE_SPAN_MS) {
+        rideChangeCandidate = station;
+      }
     }
-  } else if (stationLines.length === 1) {
-    // 1路線しか通らない駅に停車したなら、その路線で確定 (2駅待たない)
+    // 本人が選んだ路線は、変更先を本人が選ぶまで保持する。
+    return;
+  }
+  if (lastRideStation?.name === station.name) return;
+  if (stationLines.length === 1) {
     rideLines = new Set(stationLines);
     rideLineSource = "auto";
   } else if (lastRideStation) {
-    const common = stationLines.filter((l) =>
-      (lastRideStation.lines || []).includes(l)
-    );
-    rideLines = common.length > 0 ? new Set(common) : null;
+    const common = stationLines.filter((line) => lastRideStation.lines.includes(line));
+    rideLines = common.length ? new Set(common) : null;
     rideLineSource = rideLines ? "auto" : null;
   }
   lastRideStation = { name: station.name, lines: stationLines };
@@ -1848,7 +2003,12 @@ function rideLineLabel(line) {
 function setRideLine(line) {
   rideLines = new Set([line]);
   rideLineSource = "user";
-  rideAskDismissedAt = null;
+  rideAskDismissed = false;
+  rideAskManual = false;
+  rideAskShownFor = "";
+  rideMismatch = null;
+  rideChangeCandidate = null;
+  lastRideStation = null;
   renderRideChip();
   if (curPos) render(curPos.lat, curPos.lon);
 }
@@ -1857,6 +2017,11 @@ function clearRideLine() {
   rideLines = null;
   rideLineSource = null;
   lastRideStation = null;
+  rideMismatch = null;
+  rideChangeCandidate = null;
+  rideAskDismissed = false;
+  rideAskManual = false;
+  rideAskShownFor = "";
   renderRideChip();
 }
 
@@ -1891,49 +2056,58 @@ function rideChoiceButtons(lines, onPick) {
   return wrap;
 }
 
-// 判定できていない (または候補が複数残っている) ときだけ、乗っている路線を聞く。
-// 「あとで」を押した駅では同じ駅にいる間は聞き直さない
-let rideAskDismissedAt = null;
+// 「あとで」は今回の乗車中の自動質問を抑止。手動の入口は常に残す。
+let rideAskDismissed = false;
+let rideAskManual = false;
 let rideAskShownFor = "";
+
+function rideCandidates(station, manual = false) {
+  const changing = rideLineSource === "user" && rideChangeCandidate;
+  const lines = changing ? rideChangeCandidate.lines
+    : !manual && rideLines?.size > 1 ? [...rideLines] : station?.lines || [];
+  return [...new Set(manual ? [...lines, ...(rideLines || [])] : lines)];
+}
 
 function renderRideAsk(station) {
   const card = $("ride-ask");
-  const candidates = rideLines && rideLines.size > 1
-    ? [...rideLines]
-    : station?.lines || [];
-  const needsAnswer =
-    rideLineSource !== "user" &&
-    (!rideLines || rideLines.size > 1) &&
-    candidates.length > 1 &&
-    rideAskDismissedAt !== station?.name;
+  const changing = Boolean(rideLineSource === "user" && rideChangeCandidate);
+  const candidates = rideCandidates(station, rideAskManual);
+  const autoAsk = !rideAskDismissed && (changing ||
+    (rideLineSource !== "user" && (!rideLines || rideLines.size > 1) && candidates.length > 1));
+  const needsAnswer = Boolean(station) && candidates.length > 0 && (rideAskManual || autoAsk);
   card.classList.toggle("hidden", !needsAnswer);
+  const available = Boolean(station) && rideCandidates(station, true).length > 0;
+  $("ride-select-btn").disabled = !available;
+  setTextIfChanged($("ride-select-btn-label"), t(rideLines?.size ? "rideSelectChange" : "rideSelect"));
   if (!needsAnswer) return;
-  const key = `${station.name}|${candidates.join(",")}`;
-  if (key === rideAskShownFor) return; // 位置更新のたびに作り直さない (押しかけの誤タップ防止)
+  setTextIfChanged($("ride-ask-title"), t(changing ? "rideChangeTitle" : "rideAskTitle"));
+  setTextIfChanged($("ride-ask-hint"), changing
+    ? t("rideChangeHint", dispName(rideChangeCandidate)) : t("rideAskHint"));
+  const key = `${lang}|${changing}|${candidates.join(",")}`;
+  if (key === rideAskShownFor) return;
   rideAskShownFor = key;
-  const holder = $("ride-ask-choices");
-  holder.replaceChildren(rideChoiceButtons(candidates, setRideLine));
+  $("ride-ask-choices").replaceChildren(rideChoiceButtons(candidates, (line) => {
+    setRideLine(line);
+    $("ride-chip-text").focus();
+  }));
+}
+
+function openRideChoice() {
+  if (!lastRenderedStation) return;
+  rideAskManual = true;
+  rideAskShownFor = "";
+  renderRideAsk(lastRenderedStation);
+  $("ride-ask").querySelector(".ride-choice")?.focus({ preventScroll: false });
 }
 
 $("ride-ask-later").addEventListener("click", () => {
-  rideAskDismissedAt = lastRenderedStation?.name || null;
+  rideAskDismissed = true;
+  rideAskManual = false;
   $("ride-ask").classList.add("hidden");
+  $("ride-select-btn").focus({ preventScroll: true });
 });
-
-$("ride-chip-text").addEventListener("click", () => {
-  // チップを押したら路線を選び直せるようにする
-  rideAskDismissedAt = null;
-  rideAskShownFor = "";
-  const station = lastRenderedStation;
-  if (!station) return;
-  const card = $("ride-ask");
-  const lines = station.lines || [];
-  if (lines.length < 2) return;
-  $("ride-ask-choices").replaceChildren(rideChoiceButtons(lines, setRideLine));
-  card.classList.remove("hidden");
-  card.querySelector(".ride-choice")?.focus({ preventScroll: false });
-});
-
+$("ride-chip-text").addEventListener("click", openRideChoice);
+$("ride-select-btn").addEventListener("click", openRideChoice);
 $("ride-chip-clear").addEventListener("click", () => {
   clearRideLine();
   if (curPos) render(curPos.lat, curPos.lon);
@@ -2174,7 +2348,7 @@ function renderTransferSheet(info) {
     : t("transferAt", dispName(info.station));
   // 乗っている路線が分からないと「改札内か外か」を判定できないので、その場で聞く
   const ownLines = info.station.lines || [];
-  if (!info.riding.length && ownLines.length > 1) {
+  if (rideLineSource !== "user" && info.riding.length !== 1 && ownLines.length > 1) {
     const ask = document.createElement("div");
     ask.className = "transfer-ask";
     const hint = document.createElement("p");
@@ -4027,7 +4201,7 @@ let ridingThemeColor = null;
 
 $("riding-btn").addEventListener("click", enterRidingMode);
 $("riding-screen").addEventListener("click", (event) => {
-  if (event.target.closest?.("#riding-exit-btn")) return;
+  if (event.target.closest?.("#riding-exit-btn, #r-refresh-btn")) return;
   exitRidingMode();
 });
 $("riding-exit-btn").addEventListener("click", exitRidingMode);
@@ -4053,6 +4227,7 @@ async function enterRidingMode() {
   $("riding-btn").setAttribute("aria-expanded", "true");
   $("riding-exit-btn").focus({ preventScroll: true });
   updateRidingClock();
+  renderFreshness();
   ridingClockTimer = setInterval(updateRidingClock, 1000);
   // 車内モード中は画面を消灯させない。手動設定とは別の所有理由として管理する。
   wakeReasons.add("riding");

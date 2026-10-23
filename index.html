@@ -247,13 +247,18 @@
         <span class="station-axis" aria-hidden="true"></span>
       </div>
 
+      <button id="ride-select-btn" class="ride-select-btn" type="button" aria-controls="ride-ask" disabled>
+        <svg class="ic" aria-hidden="true"><use href="#i-train"/></svg>
+        <span id="ride-select-btn-label" data-i18n="rideSelect">乗車路線を選ぶ</span>
+      </button>
+
       <!-- 乗っている路線を聞く (自動判定できないときだけ表示) -->
       <section id="ride-ask" class="ride-ask hidden" aria-labelledby="ride-ask-title">
         <div class="ride-ask-head">
           <h3 id="ride-ask-title" data-i18n="rideAskTitle">乗っている路線は？</h3>
-          <button id="ride-ask-later" class="text-btn" type="button" data-i18n="rideAskLater">あとで</button>
+          <button id="ride-ask-later" class="text-btn" type="button" data-i18n="rideAskLater">今は選ばない</button>
         </div>
-        <p class="ride-ask-hint" data-i18n="rideAskHint">選ぶと、次の駅と乗り換えの案内が正確になります</p>
+        <p id="ride-ask-hint" class="ride-ask-hint" data-i18n="rideAskHint">選んだ路線を優先して表示します。</p>
         <div id="ride-ask-choices"></div>
       </section>
 
@@ -360,11 +365,21 @@
     <!-- 車内モード: 起動したまま膝上・手元でチラ見するための特大全画面表示 -->
     <section id="riding-screen" class="riding hidden" aria-labelledby="r-station">
       <p id="r-clock" class="r-clock"></p>
+      <div class="r-station-readout">
       <p id="r-status" class="status-label" data-i18n="nearest">最寄り駅</p>
       <h2 id="r-station" class="r-station">---</h2>
       <p id="r-dist" class="r-dist"></p>
       <p id="r-next" class="r-next"></p>
       <p id="r-alert" class="r-alert"></p>
+      </div>
+      <div class="r-location-status">
+        <p id="r-updated-at" class="r-updated" aria-live="off"></p>
+        <p id="r-location-note" class="r-location-note hidden" role="status" aria-live="polite"></p>
+        <button id="r-refresh-btn" class="refresh-btn" type="button">
+          <svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg>
+          <span id="r-refresh-btn-label" data-i18n="refreshNow">今すぐ更新</span>
+        </button>
+      </div>
       <button id="riding-exit-btn" class="r-hint" type="button" data-i18n="tapBack">タップで戻る</button>
     </section>
 

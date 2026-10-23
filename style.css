@@ -5405,7 +5405,7 @@ body.riding-active #main-screen {
    位置の鮮度と手動更新 / 乗っている路線の質問
    ===================================================================== */
 .station-readouts .updated.is-stale {
-  color: var(--danger);
+  color: var(--location-attention);
   font-weight: 600;
 }
 
@@ -5446,8 +5446,8 @@ body.riding-active #main-screen {
 }
 
 .refresh-btn.is-emphasis {
-  border-color: var(--danger);
-  color: var(--danger);
+  border-color: var(--location-attention);
+  color: var(--location-attention);
   font-weight: 600;
 }
 
@@ -5532,4 +5532,50 @@ body.riding-active #main-screen {
 
 @media (prefers-reduced-motion: reduce) {
   .refresh-btn[disabled] .ic { animation: none; }
+}
+
+/* 測位の経過は注意色、権限・取得のエラーは既存のGPS欄で区別する。 */
+:root { --location-attention: #94601d; }
+body[data-mode="dark"], .riding { --location-attention: #e4b568; }
+
+.ride-select-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-control);
+  background: var(--panel-key);
+  color: var(--fg);
+  font: inherit;
+  font-size: .82rem;
+  cursor: pointer;
+  box-shadow: 0 2px 0 var(--btn-edge);
+}
+.ride-select-btn .ic { width: 1rem; height: 1rem; color: var(--accent); }
+.ride-select-btn:disabled { opacity: .5; cursor: default; box-shadow: none; }
+.ride-select-btn:active:not(:disabled) { transform: translateY(1px); box-shadow: none; }
+.ride-choice { min-height: 44px; }
+
+.riding { gap: 24px; padding: calc(72px + env(safe-area-inset-top)) 24px calc(88px + env(safe-area-inset-bottom)); overflow-y: auto; }
+.r-station-readout { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
+.r-station-readout > p:empty { display: none; }
+.r-location-status { display: flex; flex-direction: column; align-items: center; gap: 8px; width: min(100%, 520px); flex-shrink: 0; }
+.r-updated { color: #a8a9b2; font-size: .82rem; font-variant-numeric: tabular-nums; line-height: 1.5; }
+.r-updated.is-stale { color: var(--location-attention); }
+.r-location-note { color: #b5b7bf; font-size: .78rem; line-height: 1.5; max-width: 30em; }
+.r-location-status .refresh-btn { min-height: 44px; border-color: #4b4d55; color: #d2d3da; font-size: .82rem; }
+.r-location-status .refresh-btn.is-emphasis { color: var(--location-attention); border-color: var(--location-attention); }
+@media (max-height: 640px) {
+  .riding { gap: 14px; }
+  .r-station-readout { gap: 8px; }
+  .r-station { font-size: clamp(2.6rem, 17vw, 5rem); }
+}
+@media (max-height: 520px) and (min-width: 600px) {
+  .riding { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 24px; padding-left: 32px; padding-right: 32px; }
+  .r-station { font-size: clamp(2rem, 15vh, 4rem); }
+  .r-clock, .r-hint { left: 50%; transform: translateX(-50%); }
+  .r-hint:active { transform: translate(-50%, 2px); }
 }
