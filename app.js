@@ -349,7 +349,7 @@ const STRINGS = {
     adPlaceholder: "広告スペース",
     updated: (t) => `更新: ${t}`,
     privacyFooter: "プライバシー",
-    feedback: "フィードバック",
+    feedback: "メールで感想を送る",
     wipe: "データ削除",
     wipeConfirm: "端末に保存した履歴・目的地・設定をすべて削除します。よろしいですか？",
     // 内蔵駅データの出典 (tools/build_stations.py) と、圏外フォールバックの出典を併記
@@ -585,7 +585,7 @@ const STRINGS = {
     adPlaceholder: "Ad space",
     updated: (t) => `Updated: ${t}`,
     privacyFooter: "Privacy",
-    feedback: "Feedback",
+    feedback: "Send feedback by email",
     wipe: "Delete my data",
     wipeConfirm: "This will delete all data saved on this device (history, destination, theme, premium info). Continue?",
     credit: "Station data: station_database / © OpenStreetMap contributors",
@@ -4394,6 +4394,7 @@ function hideError() {
 if (CONFIG.feedbackUrl) {
   const link = $("feedback-link");
   link.href = CONFIG.feedbackUrl;
+  if (CONFIG.feedbackUrl.startsWith("mailto:")) link.removeAttribute("target");
   link.classList.remove("hidden");
 }
 
