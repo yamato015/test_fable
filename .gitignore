@@ -1,0 +1,19 @@
+# Private planning and local-only material belong outside the public repository.
+/private/
+/.private/
+/BUSINESS.md
+/docs/roadmap.md
+/docs/chatgpt-luxury-ideation.md
+/docs/codex-uiux-task.md
+/docs/design-brief.md
+/docs/design-brief-v2.md
+/docs/inbound-gate-guide-plan.md
+
+# Do not commit credentials or signing material.
+.env
+.env.*
+!.env.example
+*.keystore
+*.jks
+.DS_Store
+__pycache__/

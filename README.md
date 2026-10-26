@@ -1,139 +1,60 @@
-# エキココ 🚉
+# エキココ / EkiKoko
 
-電車内で「いまどの駅にいるか」をパッと確認できるWebアプリです。
+電車の中で、端末の位置情報をもとに近くの駅を大きく確認するWebアプリです。
 
-## 解決する課題
+- [アプリを開く](https://yamato015.github.io/test_fable/)
+- [紹介ページ](https://yamato015.github.io/test_fable/lp.html)
+- [プライバシー](https://yamato015.github.io/test_fable/privacy.html)
+- [権利・出典](https://yamato015.github.io/test_fable/rights.html)
 
-混雑した電車内で座っていると、車内の電光掲示板が人で隠れて見えず、
-いまどの駅に停車しているのか分からないことがあります。
-このアプリはスマホのGPSを使って、最寄り駅を**特大の文字**で表示します。
+## 現在の公開版
 
-## 主な機能
+登録不要の無料ベータ版です。ホーム画面に追加してPWAとして利用できます。
+現在駅の表示、車内モード、乗り換えの目安、乗り方ガイドに対応しています。
+Plusの目的地設定・降車アラート・次駅予測なども、現在は料金請求のないデモです。
+実際の決済は受け付けていません。
 
-### 無料プラン
-
-- 📍 **現在駅の表示** — GPSで最寄り駅を判定し、駅名を大きく表示
-- 🚉 **「いまここ！」表示** — 駅から200m以内に入ると停車中とみなして強調表示
-- 🚆 **車内モード** — 駅名を画面いっぱいに表示する全画面モード。
-  画面の自動消灯を防止するので、起動したまま膝上や手元でチラ見できる
-  （ロック画面表示が使えないPWAでの代替。タップで戻る）
-- 📋 **周辺の駅リスト** — 近い順に周辺の駅と距離を表示
-- 💡 **画面の常時点灯** — Wake Lock APIで画面が消えないように設定可能
-- 📱 **PWA対応** — ホーム画面に追加してアプリのように使える
-  （iPhoneは共有メニュー→「ホーム画面に追加」で全画面起動・専用アイコンに対応）
-
-### プレミアムプラン（月額240円 / 年額1,800円）
-
-- 🔔 **降車アラート** — 周辺駅リストの🔕をタップして設定。駅の600m手前で
-  振動・通知音・全画面表示・プッシュ通知でお知らせ（寝過ごし防止）
-- 🧭 **次の駅予測** — GPSの進行方向から、次に到着する駅を表示
-- 🚃 **路線絞り込み** — 乗車中の路線の駅だけに表示を限定
-  （OpenStreetMapに路線データがある地域のみ）
-- 📋 **乗車履歴** — 停車した駅を自動記録
-- 🚫 **広告非表示**
-
-収益化の設計は [BUSINESS.md](BUSINESS.md) を参照してください。
-
-## 収益化のセットアップ
-
-動作モードは `config.js` で切り替わります（ファイル編集後はsw.jsの
-`CACHE_NAME` のバージョンを上げてキャッシュを更新してください）。
-
-| 設定 | 未設定時 | 設定時 |
-|---|---|---|
-| `backendUrl` | 課金はデモモード（即時有効化） | Stripe Checkoutで実課金 |
-| `adsenseClient` | 広告枠はプレースホルダ表示 | AdSense広告を配信 |
-
-- **Stripe課金**: [server/README.md](server/README.md) の手順でCloudflare Workersに
-  課金バックエンドをデプロイし、そのURLを `backendUrl` に設定
-- **広告**: [AdSense](https://adsense.google.com/) でサイトを登録し、
-  発行されたクライアントIDを `adsenseClient` に設定
-- **ストア配信**: [docs/store-distribution.md](docs/store-distribution.md) を参照
+表示はGPSによる推定です。地下鉄・トンネル・並走区間などでは更新できない、
+または別の駅・路線が表示される場合があります。車内の表示・放送も確認してください。
+アプリを閉じた状態や画面ロック中の降車通知は保証しません。
 
 ## 使い方
 
-1. スマホのブラウザでアプリを開く
-2. 「現在地を確認する」をタップし、位置情報の利用を許可する
-3. 最寄り駅が自動で表示され、移動に合わせて更新される
+1. アプリを開き、「現在地を確認する」をタップして位置情報を許可します。
+2. 表示された駅と、必要に応じて路線を確認します。
+3. 車内モードで駅名を大きく表示できます。
 
-## ベータ公開チェックリスト（PoC・固定費ゼロ構成）
+感想・不具合は、アプリ内の「メールで感想を送る」から
+ ekikoko.app@gmail.com へお寄せください。
 
-費用: GitHub Pages 無料 / Cloudflare Workers・Web Analytics 無料枠 /
-Stripe 初期費用なし（決済成立時のみ手数料3.6%）= **固定費0円**で開始可能。
+## データと権利
 
-### 公開前（必須）
+独自のコード・文章・図案等の再利用条件は [LICENSE.md](LICENSE.md) に記載しています。
+本リポジトリの公開は、自由な再配布や別サービスへの転用を包括的に許諾するものでは
+ありません。通常のアプリ利用、リンクによる紹介・レビューは歓迎します。
 
-- [ ] `privacy.html` の特商法表記（販売事業者・運営責任者）を記入 ※問い合わせ先は記入済み
-- [x] GitHub Pagesで公開（作業ブランチ `claude/practical-babbage-xrtvmo` から配信中。下記手順）
-- [ ] 実機(iPhone/Android)で動作確認: 現在駅表示・車内モード・ホーム画面追加
-- [ ] Stripeをテストモードでデプロイし、テストカード(4242...)で購入→解約を一巡確認
-- [ ] Stripe本番モードに切替（本番キーで `wrangler secret put` し直す）
+第三者のデータ・素材には、各権利者のライセンスが適用されます。
+独自部分の条件で、第三者のライセンスを制限しません。詳細は [NOTICE.md](NOTICE.md)。
 
-### 公開時
+- 内蔵駅データ: [station_database](https://github.com/Seo-4d696b75/station_database)
+  by Seo-4d696b75 and contributors — [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)。
+  対象地域の抽出・形式変換・座標の丸め・ローマ字と検索用索引の生成を行っています。
+- 圏外のオンライン駅データ: © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright)
+  — [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/)。Overpass API経由で取得します。
 
-- [x] `config.js` に `cloudflareAnalyticsToken` を設定（無料・Cookie不使用の計測）
-- [x] `config.js` に `feedbackUrl` を設定（Tallyのフォームを設定済み）
-- [ ] X(Twitter)・通勤系コミュニティ等でベータ告知
+正確な座標・履歴は運営者のサーバーへ送信・保存しません。内蔵データの圏外では、
+駅情報取得のため約1km単位に丸めた座標を外部サービスへ送信します。
 
-### 反応を見る指標（最初の1ヶ月）
+## 開発と公開
 
-- [ ] 訪問数 → ホーム画面追加率 → 7日後再訪率（定着の検証）
-- [ ] ペイウォール表示回数 → 購入数（支払い意欲の検証。少数でもOK）
-- [ ] フィードバックの内容（特に「地下鉄で使えない」系の声の比率）
+バニラJavaScript・HTML・CSSで構成し、ビルド工程はありません。
+技術上の規約は [AGENTS.md](AGENTS.md) / [CLAUDE.md](CLAUDE.md) を参照してください。
+`stations.js` と `stations_jp.js` は自動生成物で、手で編集しません。
+静的アセットを変更した場合は、公開前に `python3 tools/bump_cache.py` を実行します。
 
-広告(AdSense)は審査に実績が要るため、トラフィックがついてから着手で十分です。
+本番ブランチは `claude/practical-babbage-xrtvmo`。
+このブランチへの反映でGitHub Pagesが更新されます。
 
-## 公開方法（GitHub Pages）
-
-ビルド不要の静的サイトなので、GitHub Pagesでそのまま公開できます。
-
-現在は **Settings → Pages** で Source を「Deploy from a branch」、Branch を
-`claude/practical-babbage-xrtvmo`（ルート）に設定済み。このブランチへ push すると
-1〜2分で https://yamato015.github.io/test_fable/ に自動反映される。
-静的アセットを変えたときは、push前に `python3 tools/bump_cache.py` でキャッシュ版を上げる
-（忘れるとService Workerが古い版を配り続ける）。
-
-※ Geolocation APIはHTTPSが必須です。GitHub PagesはHTTPSなので問題ありません。
-
-## ローカルでの動作確認
-
-```bash
-# リポジトリのルートで
-python3 -m http.server 8000
-# → http://localhost:8000 を開く（PCでは位置情報の精度が低い点に注意）
-```
-
-## 仕組み
-
-- **位置情報**: ブラウザのGeolocation API（`watchPosition`）で継続的に取得
-- **駅データ（ハイブリッド）**:
-  - 首都圏+関西の約3,100駅・267路線を `stations.js` に埋め込み
-    （出典: [station_database](https://github.com/Seo-4d696b75/station_database)、
-    原典は国土数値情報・駅データ.jp の公式座標。`tools/build_stations.py` で再生成可能）。
-    通信不要で高速・オフライン動作し、路線の公式カラー・正確な駅順・
-    駅名ローマ字（英語モード用）も収録
-  - 埋め込みデータの圏外（最寄りが8km超）では [OpenStreetMap](https://www.openstreetmap.org/) の
-    [Overpass API](https://overpass-api.de/) にフォールバックして全国対応
-- **最寄り駅判定**: ハバーサイン公式で各駅との距離を計算し、最も近い駅を表示
-- **目的地（降車アラート）**: 埋め込み全駅から駅名・ひらがなで検索して設定可能
-- 位置情報は端末内でのみ処理され、サーバーには保存されません
-
-※ 駅座標は公式オープンデータ由来です。
-
-## 既知の制限
-
-- ⚠️ **地下鉄・トンネル内ではGPSが届かない** ため位置を取得できません
-  （地上区間・高架区間では動作します）
-- 駅名・読みがなはOpenStreetMapのデータに依存します
-- 路線情報は未対応のため、並走する別路線の駅が表示されることがあります
-
-## 今後の拡張アイデア
-
-- Stripe Checkout / アプリ内課金の本連携（現在はデモゲート）
-- 地下鉄対策として、最後に確認できた駅 + 経過時間からの推定表示
-- TWA/Capacitorでのストア配信とバックグラウンド通知の強化
-- 降車駅に連動した駅周辺クーポンの表示（広告タイアップ）
-
-## ライセンス・クレジット
-
-駅データ: © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) (ODbL)
+収益計画・未公開の企画・検討資料は、オーナー管理の非公開Notionで扱います。
+公開リポジトリには追加しません。過去に公開されていた資料は、旧コミットや
+他のブランチ・第三者のコピーに残る場合があります。

@@ -861,6 +861,7 @@ body.sheet-open {
 
 .footer-links {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 16px;
   font-size: 0.78rem;
@@ -5579,3 +5580,6 @@ body[data-mode="dark"], .riding { --location-attention: #e4b568; }
   .r-clock, .r-hint { left: 50%; transform: translateX(-50%); }
   .r-hint:active { transform: translate(-50%, 2px); }
 }
+
+/* Keep data-license links readable in the compact credit line. */
+.credit a { color: inherit; text-underline-offset: 2px; }
