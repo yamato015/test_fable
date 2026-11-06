@@ -17,3 +17,6 @@
 *.jks
 .DS_Store
 __pycache__/
+
+# Generated static hosting output.
+/dist/
