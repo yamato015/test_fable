@@ -1,5 +1,12 @@
 # Cloudflare Pagesへの静的公開
 
+- アプリ: https://ekikoko.pages.dev/
+- LP: https://ekikoko.pages.dev/lp
+- プライバシー: https://ekikoko.pages.dev/privacy
+- 権利・出典: https://ekikoko.pages.dev/rights
+
+2026年11月6日に本番ブランチからの公開と、自動更新を確認した。
+
 ドメイン取得費用のない `*.pages.dev` のURLを利用する。独自ドメイン、有料プラン、課金バックエンドはこの設定に含めない。
 
 ## ビルド設定

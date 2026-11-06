@@ -4,8 +4,8 @@
 
 ## 公開先
 
-- 紹介ページ: https://yamato015.github.io/test_fable/lp.html
-- アプリ: https://yamato015.github.io/test_fable/
+- 紹介ページ: https://ekikoko.pages.dev/lp
+- アプリ: https://ekikoko.pages.dev/
 - 感想・不具合: ekikoko.app@gmail.com（アプリ内の「メールで感想を送る」からメールを作成）
 
 鉄道会社との提携を待たず、現在のWeb/PWAを無料の公開ベータとして利用してもらう。ストア配信と実課金は今回開始しない。
@@ -32,7 +32,7 @@
 手元で近くの駅を大きく確認できるWebアプリ「エキココ」を無料ベータとして公開しています。
 登録・インストール不要。車内モード、乗り換えの目安、乗り方ガイドを使えます。
 
-https://yamato015.github.io/test_fable/lp.html
+https://ekikoko.pages.dev/lp
 
 表示は位置情報による推定で、地下などでは更新できない場合があります。
 まず普段の移動で試して、気になった点を教えてください。

@@ -11,16 +11,17 @@ Codexなど他のエージェントは `AGENTS.md` から同じ文書を参照�
 
 ## 全体像
 
-- **フレームワーク不使用**のバニラJS + HTML + CSS。ビルド工程なし
+- **フレームワーク不使用**のバニラJS + HTML + CSS。公開用のファイルを `tools/build_public.py` でまとめる
 - **PWA**: ホーム画面追加で全画面起動。Service Workerでオフライン動作
-- **ホスティング**: GitHub Pages（静的配信・固定費ゼロ）
-- 公開URL: https://yamato015.github.io/test_fable/
+- **ホスティング**: Cloudflare Pages（無料の静的配信）。GitHub Pagesも継続
+- 公開URL: https://ekikoko.pages.dev/ （LP: https://ekikoko.pages.dev/lp）
 - **課金/解析は自前サーバーレス**: 決済はStripe、解析はCloudflare Web Analytics
 
 ## 開発ブランチ
 
 - 作業ブランチ: `claude/practical-babbage-xrtvmo`
-- このブランチへ push すると GitHub Pages に自動デプロイ（1〜2分）
+- このブランチへ push すると Cloudflare Pages に自動デプロイ。公開先は `dist`
+- 公開設定とURLの扱い: `docs/cloudflare-pages.md`。GitHub Pagesも継続
 
 ## ファイル構成
 

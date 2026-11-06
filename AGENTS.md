@@ -12,7 +12,9 @@ Codexなど、このリポジトリを編集するAIエージェント向けの�
 ## 必ず守ること（CLAUDE.mdの要約）
 
 - 作業ブランチは `claude/practical-babbage-xrtvmo`。このブランチへ push すると
-  GitHub Pages（https://yamato015.github.io/test_fable/）に**そのまま本番反映**される
+  Cloudflare Pages（https://ekikoko.pages.dev/）に**そのまま本番反映**される。
+  公開用ビルドは `python3 tools/build_public.py`、出力先は `dist`。
+  GitHub Pagesも継続するため、ソースHTMLの `.html` 参照を一括変更しない
 - 静的アセットを変えたら、push前に `python3 tools/bump_cache.py` でキャッシュ版を上げる
 - `stations.js` / `stations_jp.js` は自動生成物。手で編集しない
 - 文言を足すときは `app.js` の `STRINGS.ja` と `STRINGS.en` の両方に入れる

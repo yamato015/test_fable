@@ -2,10 +2,10 @@
 
 電車の中で、端末の位置情報をもとに近くの駅を大きく確認するWebアプリです。
 
-- [アプリを開く](https://yamato015.github.io/test_fable/)
-- [紹介ページ](https://yamato015.github.io/test_fable/lp.html)
-- [プライバシー](https://yamato015.github.io/test_fable/privacy.html)
-- [権利・出典](https://yamato015.github.io/test_fable/rights.html)
+- [アプリを開く](https://ekikoko.pages.dev/)
+- [紹介ページ](https://ekikoko.pages.dev/lp)
+- [プライバシー](https://ekikoko.pages.dev/privacy)
+- [権利・出典](https://ekikoko.pages.dev/rights)
 
 ## 現在の公開版
 
@@ -47,13 +47,15 @@ Plusの目的地設定・降車アラート・次駅予測なども、現在は�
 
 ## 開発と公開
 
-バニラJavaScript・HTML・CSSで構成し、ビルド工程はありません。
+バニラJavaScript・HTML・CSSで構成しています。Cloudflare Pages向けには
+`python3 tools/build_public.py` で公開用のファイルを `dist/` にまとめます。
 技術上の規約は [AGENTS.md](AGENTS.md) / [CLAUDE.md](CLAUDE.md) を参照してください。
 `stations.js` と `stations_jp.js` は自動生成物で、手で編集しません。
 静的アセットを変更した場合は、公開前に `python3 tools/bump_cache.py` を実行します。
 
 本番ブランチは `claude/practical-babbage-xrtvmo`。
-このブランチへの反映でGitHub Pagesが更新されます。
+このブランチへの反映でCloudflare Pagesが自動更新されます。
+[公開設定](docs/cloudflare-pages.md)を参照してください。以前のGitHub Pagesも継続しています。
 
 収益計画・未公開の企画・検討資料は、オーナー管理の非公開Notionで扱います。
 公開リポジトリには追加しません。過去に公開されていた資料は、旧コミットや
