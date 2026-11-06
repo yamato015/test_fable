@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "ekikoko-v58";
+const CACHE_NAME = "ekikoko-v59";
 const ASSETS = [
   "./","index.html","privacy.html","rights.html","style.css","app-design.css","app.js","config.js","stations.js",
   "manifest.json","icon.svg","icon-512.png","apple-touch-icon.png","lp.html",

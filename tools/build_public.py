@@ -5,6 +5,7 @@ Set the Pages output directory to dist. Only explicitly listed public files and
 assets are copied; repository instructions, tooling and server code stay out.
 """
 from pathlib import Path
+import re
 import shutil
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -33,6 +34,21 @@ def main():
     for name in PUBLIC_FILES:
         shutil.copy2(ROOT / name, OUTPUT / name)
     shutil.copytree(ROOT / "assets", OUTPUT / "assets")
+    # Pages redirects *.html to extensionless routes. Cache the canonical routes
+    # so a cached redirected response is never returned to a manual navigation.
+    # Keep source URLs unchanged for the existing GitHub Pages deployment.
+    for name in ("index.html", "lp.html", "privacy.html", "rights.html"):
+        path = OUTPUT / name
+        html = path.read_text(encoding="utf-8")
+        html = re.sub(r'href="(lp|privacy|rights)\.html([#?][^\"]*)?"',
+                      lambda m: f'href="{m[1]}{m[2] or ""}"', html)
+        path.write_text(html, encoding="utf-8")
+    worker = OUTPUT / "sw.js"
+    script = worker.read_text(encoding="utf-8")
+    script = script.replace('"./","index.html",', '"./",')
+    for route in ("lp", "privacy", "rights"):
+        script = script.replace(f'"{route}.html"', f'"{route}"')
+    worker.write_text(script, encoding="utf-8")
     # A top-level 404 prevents Pages from treating unknown paths as an SPA route.
     (OUTPUT / "404.html").write_text(
         '<!doctype html><html lang="ja"><meta charset="utf-8">'
@@ -43,7 +59,7 @@ def main():
         '<h1>ページが見つかりません</h1>'
         '<p lang="en">This page could not be found.</p>'
         '<p><a href="/">アプリを開く / Open app</a></p>'
-        '<p><a href="/lp.html">エキココの紹介 / About EkiKoko</a></p>'
+        '<p><a href="/lp">エキココの紹介 / About EkiKoko</a></p>'
         '</main></html>\n', encoding="utf-8")
     files = [p for p in OUTPUT.rglob("*") if p.is_file()]
     print(f"Built {len(files)} public files in dist ({sum(p.stat().st_size for p in files):,} bytes)")
