@@ -7,7 +7,6 @@
 <meta name="description" content="車内の表示が見えないとき、手元で駅を確認。エキココはGPSをもとに近くの駅を表示するWebアプリ。駅名の大きな表示と乗り方ガイドを、登録不要で。">
 <title>エキココ｜車内の「今どこ？」を、手元で。</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<meta name="robots" content="noindex,nofollow">
 <link rel="stylesheet" href="lp-motion.css">
 <script src="lp-motion.js" defer></script>
 <style>
@@ -45,7 +44,7 @@
 <section class="final"><div class="wrap final-row"><div><h2>次の移動で、<br>手元にエキココを。</h2><p>近くの駅を確認する、小さな道具。登録不要で始められます。</p></div><a class="button" href="./">エキココを開く <span class="arrow" aria-hidden="true">→</span></a></div></section>
 </main>
 <footer><div class="wrap footer-row"><span>© 2026 EkiKoko · ベータ版</span><div class="footer-links"><a href="rights.html">権利・出典</a><a href="privacy.html">プライバシー・利用情報</a><a href="./">アプリを開く ↗</a></div></div></footer>
-<aside class="motion-toolbar" aria-label="試作の比較"><span>強めの試作</span><button id="motion-toggle" type="button" aria-pressed="false" disabled>動き OFF</button><button id="ambient-toggle" type="button" aria-pressed="false" disabled>背景 OFF</button><button id="motion-replay" type="button" disabled>もう一度</button><a href="https://101a79af.ekikoko.pages.dev/lp" target="_blank" rel="noopener">穏やか版 ↗</a></aside>
+<aside class="motion-toolbar public-motion-controls" aria-label="動きの設定"><button id="motion-toggle" type="button" aria-pressed="false" disabled>動きを再開</button><button id="ambient-toggle" class="preview-only" type="button" aria-hidden="true" tabindex="-1" disabled>背景 OFF</button><button id="motion-replay" class="preview-only" type="button" aria-hidden="true" tabindex="-1" disabled>もう一度</button></aside>
 <script>
 (() => {
   const buttons = [...document.querySelectorAll('[data-mode]')];

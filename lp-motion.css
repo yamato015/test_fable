@@ -98,3 +98,8 @@ body{padding-bottom:82px}
 @keyframes dynamic-phone-enter-mobile{from{opacity:0;transform:translate(-24px,65px) rotate(-9deg) scale(.9)}to{opacity:1;transform:translateY(0) rotate(3deg)}}
 @keyframes dynamic-phone-float-mobile{0%,100%{transform:translate(-2px,0) rotate(3deg)}45%{transform:translate(-12px,-18px) rotate(-1deg)}}
 @media(prefers-reduced-motion:reduce){.motion-active .hero-stage{transform:none!important}.motion-active .motion-pending{transform:none!important}.motion-active .scene-photo-frame,.motion-active .scene-photo{animation:none!important;transform:none!important}.route-run{animation:none!important}}
+
+/* Public LP keeps a single pause control instead of preview comparison tools. */
+.public-motion-controls{left:auto;right:max(16px,env(safe-area-inset-right));transform:none;width:auto;max-width:none;padding:5px;flex-wrap:nowrap}
+.public-motion-controls .preview-only{display:none!important}
+.public-motion-controls button{min-height:42px;padding:0 14px}

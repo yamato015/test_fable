@@ -2,6 +2,7 @@
 (() => {
   'use strict';
   const root = document.documentElement;
+  const publicControls = Boolean(document.querySelector('.public-motion-controls'));
   const toggle = document.getElementById('motion-toggle');
   const replay = document.getElementById('motion-replay');
   const ambientToggle = document.getElementById('ambient-toggle');
@@ -102,7 +103,7 @@
     cancelAnimationFrame(replayFrame);
     root.classList.toggle('motion-active', enabled);
     toggle.setAttribute('aria-pressed', String(enabled));
-    toggle.textContent = enabled ? '動き ON' : '動き OFF';
+    toggle.textContent = publicControls ? (enabled ? '動きを止める' : '動きを再開') : (enabled ? '動き ON' : '動き OFF');
     toggle.disabled = preference.matches;
     toggle.title = preference.matches ? '端末の「動きを減らす」設定に合わせています' : '';
     replay.disabled = !enabled;
