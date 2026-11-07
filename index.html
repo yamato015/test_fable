@@ -26,6 +26,7 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="app-design.css">
+  <link rel="stylesheet" href="app-ux.css">
 </head>
 <body>
   <!-- アイコン定義 (絵文字を使わず、線幅を揃えた自前のSVGで統一する)。
@@ -168,6 +169,10 @@
   <main id="app">
     <!-- 開始画面 -->
     <section id="start-screen" class="screen">
+      <div class="start-language" role="group" aria-label="Language / 言語">
+        <button type="button" data-set-language="ja" lang="ja" aria-pressed="false">日本語</button>
+        <button type="button" data-set-language="en" lang="en" aria-pressed="false">English</button>
+      </div>
       <p class="start-eyebrow" aria-hidden="true">
         <span>EKIKOKO</span>
         <span>LOCATION INSTRUMENT</span>
@@ -181,6 +186,8 @@
         <img src="assets/lp/train-display.png" width="744" height="292" fetchpriority="high" data-i18n-alt="startPhotoAlt" alt="乗客の向こうに見える、電車の扉上の案内表示">
       </div>
       <button id="start-btn" class="big-btn" data-i18n="startBtn">現在地を確認する</button>
+      <p class="start-help" data-i18n="startHelp">位置情報を許可すると、近くの駅が表示されます。</p>
+      <button id="start-guide-btn" class="start-guide-action" type="button" aria-haspopup="dialog" aria-controls="guide-modal" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-ticket"/></svg><span><b data-i18n="startGuide">乗り方ガイドを見る</b><small data-i18n="startGuideHint">位置情報なしでも読めます</small></span><span aria-hidden="true">→</span></button>
       <p class="note"><span data-i18n-html="startNote">正確な位置情報を運営者に送信・保存しません。</span><br>
         <a class="policy-link" href="privacy.html" data-i18n="privacyLink">プライバシーポリシー</a> · <a class="policy-link" href="rights.html" data-i18n="rightsFooter">権利・出典</a></p>
     </section>
@@ -194,7 +201,7 @@
             <span class="brand-name" data-i18n="appName">エキココ</span>
           </span>
         </div>
-        <button id="settings-btn" class="settings-trigger" type="button"
+        <button id="settings-btn" class="settings-trigger" type="button" data-open-settings
                 aria-controls="settings-panel" aria-expanded="false">
           <svg class="ic" aria-hidden="true"><use href="#i-tune"/></svg>
           <span data-i18n="settingsLabel">表示設定</span>
@@ -247,21 +254,7 @@
         <span class="station-axis" aria-hidden="true"></span>
       </div>
 
-      <button id="ride-select-btn" class="ride-select-btn" type="button" aria-controls="ride-ask" disabled>
-        <svg class="ic" aria-hidden="true"><use href="#i-train"/></svg>
-        <span id="ride-select-btn-label" data-i18n="rideSelect">乗車路線を選ぶ</span>
-      </button>
-
-      <!-- 乗っている路線を聞く (自動判定できないときだけ表示) -->
-      <section id="ride-ask" class="ride-ask hidden" aria-labelledby="ride-ask-title">
-        <div class="ride-ask-head">
-          <h3 id="ride-ask-title" data-i18n="rideAskTitle">乗っている路線は？</h3>
-          <button id="ride-ask-later" class="text-btn" type="button" data-i18n="rideAskLater">今は選ばない</button>
-        </div>
-        <p id="ride-ask-hint" class="ride-ask-hint" data-i18n="rideAskHint">選んだ路線を優先して表示します。</p>
-        <div id="ride-ask-choices"></div>
-      </section>
-
+      <div class="primary-actions" role="group" data-i18n-aria="primaryActionsLabel" aria-label="よく使う操作">
       <button id="riding-btn" class="ride-mode-row" aria-controls="riding-screen" aria-expanded="false">
         <svg class="ic" aria-hidden="true"><use href="#i-train"/></svg>
         <span class="ride-mode-copy">
@@ -278,11 +271,29 @@
           <span id="dest-btn-hint" data-i18n="destPromptHint">駅名・地図・路線から選ぶ</span>
         </span>
 
+        <span id="dest-plus-tag" class="action-badge" data-i18n="plusDemoBadge">Plusデモ</span>
         <span class="row-arrow" aria-hidden="true">→</span>
       </button>
+      </div>
       <div class="mode-row">
         <button id="guide-btn" class="mode-btn secondary" aria-haspopup="dialog" aria-controls="guide-modal" aria-expanded="false"><svg class="ic"><use href="#i-ticket"/></svg><span data-i18n="guideBtn">乗り方ガイド</span><span class="guide-arrow" aria-hidden="true">→</span></button>
       </div>
+
+      <button id="ride-select-btn" class="ride-select-btn" type="button" aria-controls="ride-ask" disabled>
+        <svg class="ic" aria-hidden="true"><use href="#i-train"/></svg>
+        <span id="ride-select-btn-label" data-i18n="rideSelect">乗車路線を選ぶ</span>
+      </button>
+
+      <!-- 乗っている路線を聞く (自動判定できないときだけ表示) -->
+      <section id="ride-ask" class="ride-ask hidden" aria-labelledby="ride-ask-title">
+        <div class="ride-ask-head">
+          <h3 id="ride-ask-title" data-i18n="rideAskTitle">乗っている路線は？</h3>
+          <button id="ride-ask-later" class="text-btn" type="button" data-i18n="rideAskLater">今は選ばない</button>
+        </div>
+        <p id="ride-ask-hint" class="ride-ask-hint" data-i18n="rideAskHint">選んだ路線を優先して表示します。</p>
+        <div id="ride-ask-choices"></div>
+      </section>
+
 
       <!-- 降車アラート設定状態 -->
       <div id="alert-status" class="alert-status hidden">
@@ -328,6 +339,11 @@
         <p class="credit"><span data-i18n="creditLabel">駅データ:</span> <a href="https://github.com/Seo-4d696b75/station_database">station_database</a> (CC BY 4.0) / © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a> (ODbL)</p>
         <p class="credit">© 2026 EkiKoko contributors</p>
       </footer>
+      <nav class="app-nav" data-i18n-aria="navigationLabel" aria-label="主な操作">
+        <button id="nav-home" class="is-current" type="button"><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg><span data-i18n="navHome">近くの駅</span></button>
+        <button id="nav-guide" type="button" aria-haspopup="dialog" aria-controls="guide-modal" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-ticket"/></svg><span data-i18n="navGuide">乗り方</span></button>
+        <button id="nav-settings" type="button" data-open-settings aria-controls="settings-panel" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-tune"/></svg><span data-i18n="navSettings">設定</span></button>
+      </nav>
     </section>
 
     <!-- 表示設定: 背面から独立したダイアログとして開き、フォーカスを閉じ込める -->
@@ -341,8 +357,9 @@
             <span class="sr-only" data-i18n="close">閉じる</span>
           </button>
         </div>
-        <div id="status-actions" class="status-actions" role="group" aria-label="表示と端末の設定">
-          <button id="lang-btn" class="console-key" type="button">
+        <p class="settings-help" data-i18n="settingsHelp">見やすい表示に調整できます。</p>
+        <div id="status-actions" class="settings-sections" role="group" data-i18n-aria="headerControls" aria-label="表示と端末の設定">
+          <div class="legacy-controls hidden" aria-hidden="true" inert>          <button id="lang-btn" class="console-key" type="button">
             <span id="lang-btn-value" class="control-value">JA</span>
             <span class="control-label" data-i18n="controlLang">言語</span>
           </button>
@@ -355,11 +372,16 @@
             <span id="theme-btn-value" class="control-value">AMBER</span>
             <span class="control-label" data-i18n="controlTheme">配色</span>
           </button>
-          <button id="wakelock-btn" class="console-key" type="button" aria-pressed="false">
+          </div>
+          <section class="setting-section"><h3 id="language-title" data-i18n="settingsLanguage">言語</h3><div class="setting-options" role="group" aria-labelledby="language-title"><button type="button" data-set-language="ja" lang="ja" aria-pressed="false">日本語</button><button type="button" data-set-language="en" lang="en" aria-pressed="false">English</button></div></section>
+          <section class="setting-section"><h3 id="appearance-title" data-i18n="settingsAppearance">明るさ</h3><div class="setting-options" role="group" aria-labelledby="appearance-title"><button type="button" data-set-mode="light" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg><span data-i18n="displayLight">ライト</span></button><button type="button" data-set-mode="dark" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-moon"/></svg><span data-i18n="displayDark">ダーク</span></button></div></section>
+          <section class="setting-section"><h3 id="palette-title" data-i18n="settingsPalette">配色</h3><div class="setting-options palette-options" role="group" aria-labelledby="palette-title"><button type="button" data-set-theme="amber" aria-pressed="false"><i class="palette-dot gold" aria-hidden="true"></i><span data-i18n="themeAmber">ゴールド</span></button><button type="button" data-set-theme="blue" aria-pressed="false"><i class="palette-dot blue" aria-hidden="true"></i><span data-i18n="themeBlue">ブルー</span></button><button type="button" data-set-theme="pink" aria-pressed="false"><i class="palette-dot pink" aria-hidden="true"></i><span data-i18n="themePink">ピンク</span></button></div></section>
+          <section class="setting-section">          <button id="wakelock-btn" class="wake-setting" type="button" aria-pressed="false">
             <span class="pilot-lamp" aria-hidden="true"></span>
             <span id="wake-btn-value" class="control-value">OFF</span>
-            <span class="control-label" data-i18n="controlWake">点灯</span>
+            <span class="control-label" data-i18n="settingsWake">画面を点けたまま</span>
           </button>
+<p class="setting-note" data-i18n="settingsWakeHint">画面を見続けたいときに使えます。</p></section>
         </div>
       </div>
     </div>

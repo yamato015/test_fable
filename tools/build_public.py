@@ -7,13 +7,14 @@ assets are copied; repository instructions, tooling and server code stay out.
 from pathlib import Path
 import re
 import shutil
+from build_app_preview import build_preview
 
 ROOT = Path(__file__).resolve().parent.parent
 OUTPUT = ROOT / "dist"
 PUBLIC_FILES = (
     "index.html", "lp.html", "privacy.html", "rights.html",
     "lp-motion.css", "lp-motion.js",
-    "style.css", "app-design.css", "app.js", "config.js",
+    "style.css", "app-design.css", "app-ux.css", "app.js", "config.js",
     "stations.js", "stations_jp.js", "sw.js", "manifest.json",
     "icon.svg", "icon-512.png", "apple-touch-icon.png",
     "app-start-scene.svg", "lp-hero-desktop.svg", "lp-hero-mobile.svg",
@@ -62,6 +63,7 @@ def main():
         '<p><a href="/">アプリを開く / Open app</a></p>'
         '<p><a href="/lp">エキココの紹介 / About EkiKoko</a></p>'
         '</main></html>\n', encoding="utf-8")
+    build_preview(OUTPUT)
     files = [p for p in OUTPUT.rglob("*") if p.is_file()]
     print(f"Built {len(files)} public files in dist ({sum(p.stat().st_size for p in files):,} bytes)")
 

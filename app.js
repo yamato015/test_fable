@@ -296,14 +296,32 @@ document.addEventListener("keydown", (event) => {
 // 駅名は元データが日本語のため両言語で日本語表示 (ローマ字対応は今後の課題)
 const STRINGS = {
   ja: {
+    startHelp: "位置情報を許可すると、近くの駅が表示されます。",
+    startGuide: "乗り方ガイドを見る",
+    startGuideHint: "位置情報なしでも読めます",
+    primaryActionsLabel: "よく使う操作",
+    navigationLabel: "主な操作",
+    navHome: "近くの駅",
+    navGuide: "乗り方",
+    navSettings: "設定",
+    settingsHelp: "見やすい表示に調整できます。",
+    settingsLanguage: "言語",
+    settingsAppearance: "明るさ",
+    settingsPalette: "配色",
+    settingsWake: "画面を点けたまま",
+    settingsWakeHint: "画面を見続けたいときに使えます。",
+    settingOn: "オン",
+    settingOff: "オフ",
+    plusBadge: "Plus",
+    plusDemoBadge: "Plusデモ",
     appName: "エキココ",
-    tagline: "混雑した車内でも、<br>いまどの駅かひと目でわかる。",
+    tagline: "近くの駅を、<br>手元ですぐに確認。",
     startBtn: "現在地を確認する",
     startNote: "正確な位置情報を運営者に送信・保存しません。",
     startPhotoAlt: "乗客の向こうに見える、電車の扉上の案内表示",
     guideReplay: "もう一度見る",
     privacyLink: "プライバシーポリシー",
-    settingsLabel: "表示設定",
+    settingsLabel: "設定",
     displayLight: "ライト",
     displayDark: "ダーク",
     gpsWait: "GPS取得中…",
@@ -521,7 +539,7 @@ const STRINGS = {
     switchToLight: "ライト表示に切り替える",
     switchToDark: "ダーク表示に切り替える",
     changeTheme: (name) => `配色を変更する。現在は${name}`,
-    themeAmber: "アンバー",
+    themeAmber: "ゴールド",
     themeBlue: "ブルー",
     themePink: "ピンク",
     enableWakeLock: "画面の常時点灯を有効にする",
@@ -535,6 +553,24 @@ const STRINGS = {
     wakeLockFail: "この端末では画面の常時点灯に対応していません。",
   },
   en: {
+    startHelp: "Allow location access to see the nearest station.",
+    startGuide: "Explore the riding guide",
+    startGuideHint: "No location permission needed",
+    primaryActionsLabel: "Quick actions",
+    navigationLabel: "Main actions",
+    navHome: "Nearby",
+    navGuide: "Guide",
+    navSettings: "Settings",
+    settingsHelp: "Choose the display that works for you.",
+    settingsLanguage: "Language",
+    settingsAppearance: "Appearance",
+    settingsPalette: "Color",
+    settingsWake: "Keep screen awake",
+    settingsWakeHint: "Use while you want to keep the screen in view.",
+    settingOn: "On",
+    settingOff: "Off",
+    plusBadge: "Plus",
+    plusDemoBadge: "Plus demo",
     appName: "EkiKoko",
     tagline: "Know exactly which station you're at,<br>even on a packed train.",
     startBtn: "Show my location",
@@ -542,7 +578,7 @@ const STRINGS = {
     startPhotoAlt: "A train's overhead station display seen beyond standing passengers",
     guideReplay: "Replay",
     privacyLink: "Privacy Policy",
-    settingsLabel: "Display",
+    settingsLabel: "Settings",
     displayLight: "Light",
     displayDark: "Dark",
     gpsWait: "Getting GPS…",
@@ -758,7 +794,7 @@ const STRINGS = {
     switchToLight: "Switch to light display",
     switchToDark: "Switch to dark display",
     changeTheme: (name) => `Change color theme. Current: ${name}`,
-    themeAmber: "Amber",
+    themeAmber: "Gold",
     themeBlue: "Blue",
     themePink: "Pink",
     enableWakeLock: "Keep the screen awake",
@@ -797,7 +833,17 @@ function updateHeaderUI() {
   $("lang-btn-value").textContent = lang === "ja" ? "日本語" : "English";
   $("mode-btn-value").textContent = t(mode === "light" ? "displayLight" : "displayDark");
   $("theme-btn-value").textContent = themeNames[theme] || theme;
-  $("wake-btn-value").textContent = wakeOn ? "ON" : "OFF";
+  $("wake-btn-value").textContent = t(wakeOn ? "settingOn" : "settingOff");
+
+  document.querySelectorAll('[data-set-language]').forEach(button => {
+    button.setAttribute('aria-pressed', String(button.dataset.setLanguage === lang));
+  });
+  document.querySelectorAll('[data-set-mode]').forEach(button => {
+    button.setAttribute('aria-pressed', String(button.dataset.setMode === mode));
+  });
+  document.querySelectorAll('[data-set-theme]').forEach(button => {
+    button.setAttribute('aria-pressed', String(button.dataset.setTheme === theme));
+  });
 
   $("status-actions").setAttribute("aria-label", t("headerControls"));
   $("settings-btn").setAttribute("aria-label", t("settingsLabel"));
@@ -836,6 +882,12 @@ function updateDestinationAction() {
   if (label) label.textContent = primary;
   else if ($("dest-btn")) setBtnLabel("dest-btn", primary);
   if (hint) hint.textContent = hintText;
+  const plusTag = $('dest-plus-tag');
+  if (plusTag) {
+    plusTag.textContent = t(billingEnabled() ? 'plusBadge' : 'plusDemoBadge');
+    plusTag.classList.toggle('hidden', isPremium());
+  }
+
   $("dest-btn")?.setAttribute("aria-label", `${primary}. ${hintText}`);
 }
 
@@ -860,6 +912,9 @@ function applyLang() {
     closeButton.title = t("close");
     closeButton.setAttribute("aria-label", t("close"));
   }
+  document.querySelectorAll('[data-i18n-aria]').forEach(element => {
+    element.setAttribute('aria-label', t(element.dataset.i18nAria));
+  });
   // 動的に組み立てている文言を現在の状態で再描画
   updateDestinationAction();
   if (alertStation) {
@@ -899,14 +954,16 @@ const settingsPanel = $("settings-panel");
 const settingsButton = $("settings-btn");
 const settingsOverlay = $("settings-overlay");
 let settingsCloseTimer = null;
+let settingsReturnFocus = settingsButton;
 
-function setSettingsOpen(open, returnFocus = false) {
+function setSettingsOpen(open, returnFocus = false, opener = settingsButton) {
   if (open) {
     if (settingsOverlay.dataset.state === "open") return;
     window.clearTimeout(settingsCloseTimer);
+    settingsReturnFocus = opener;
     settingsOverlay.dataset.state = "opening";
     settingsOverlay.classList.remove("hidden", "is-closing");
-    settingsButton.setAttribute("aria-expanded", "true");
+    document.querySelectorAll("[data-open-settings]").forEach(button => button.setAttribute("aria-expanded", "true"));
     document.body.classList.add("sheet-open");
     activateOverlay(settingsOverlay);
     requestAnimationFrame(() => {
@@ -921,14 +978,14 @@ function setSettingsOpen(open, returnFocus = false) {
   ) return;
   settingsOverlay.dataset.state = "closing";
   settingsOverlay.classList.add("is-closing");
-  settingsButton.setAttribute("aria-expanded", "false");
+  document.querySelectorAll("[data-open-settings]").forEach(button => button.setAttribute("aria-expanded", "false"));
   settingsCloseTimer = window.setTimeout(() => {
     settingsOverlay.classList.add("hidden");
     settingsOverlay.classList.remove("is-closing");
     settingsOverlay.dataset.state = "closed";
     deactivateOverlay(settingsOverlay);
     if (!topOverlay()) document.body.classList.remove("sheet-open");
-    if (returnFocus) settingsButton.focus({ preventScroll: true });
+    if (returnFocus) settingsReturnFocus?.focus?.({ preventScroll: true });
   }, motionMs(140));
 }
 
@@ -1103,7 +1160,7 @@ function applyPlanUI() {
   $("premium-btn-label").textContent = premium
     ? (billing ? t("premiumMember") : t("plusDemoTitle"))
     : t("premiumBtn");
-  $("ad-slot").classList.toggle("hidden", premium);
+  $("ad-slot").classList.toggle("hidden", premium || !CONFIG.adsenseClient);
   $("plus-price").classList.toggle("hidden", !billing || premium);
   $("buy-monthly-btn").classList.toggle("hidden", !billing || premium);
   $("buy-yearly-btn").classList.toggle("hidden", !billing || premium);
@@ -1132,6 +1189,7 @@ function applyPlanUI() {
   }
   if (premium) renderHistory();
   updateHeaderUI();
+  updateDestinationAction();
 }
 
 // 「プレミアム機能を使おうとしたら案内を出す」ゲート
@@ -1250,12 +1308,13 @@ function renderGuide(animate = false) {
   if (animate) playGuideAnimation();
 }
 
-$("guide-btn").addEventListener("click", (event) => {
+function openGuide(opener) {
   renderGuide();
-  openSheet("guide-modal", $("guide-close"), event.currentTarget);
+  openSheet("guide-modal", $("guide-close"), opener);
   guideReadyAt = performance.now() + motionMs(GUIDE_OPEN_SETTLE_MS);
   playGuideAnimation();
-});
+}
+$("guide-btn").addEventListener("click", event => openGuide(event.currentTarget));
 $("guide-close").addEventListener("click", () => closeSheet("guide-modal"));
 const guideTicketButtons = [...document.querySelectorAll(
   "#guide-modal .chip-btn"
@@ -4425,6 +4484,31 @@ if (CONFIG.cloudflareAnalyticsToken) {
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(() => {});
 }
+
+// Explicit choices and persistent entrances reuse the existing app behavior.
+document.querySelectorAll('[data-set-language]').forEach(button => {
+  button.addEventListener('click', () => {
+    const selected = button.dataset.setLanguage;
+    if (!STRINGS[selected] || selected === lang) return;
+    lang = selected;
+    applyLang();
+  });
+});
+document.querySelectorAll('[data-set-mode]').forEach(button => {
+  button.addEventListener('click', () => applyMode(button.dataset.setMode));
+});
+document.querySelectorAll('[data-set-theme]').forEach(button => {
+  button.addEventListener('click', () => {
+    if (THEMES.includes(button.dataset.setTheme)) applyTheme(button.dataset.setTheme);
+  });
+});
+$('start-guide-btn').addEventListener('click', event => openGuide(event.currentTarget));
+$('nav-guide').addEventListener('click', event => openGuide(event.currentTarget));
+$('nav-settings').addEventListener('click', event => setSettingsOpen(true, false, event.currentTarget));
+$('nav-home').addEventListener('click', () => {
+  window.scrollTo({top: 0, behavior: reduceMotionQuery.matches ? 'instant' : 'smooth'});
+  document.querySelector('.station-display')?.focus?.({preventScroll: true});
+});
 
 // ---- 起動時に言語と課金状態を初期化 ----
 applyLang();
