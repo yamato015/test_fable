@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parent.parent
 OUTPUT = ROOT / "dist"
 PUBLIC_FILES = (
     "index.html", "lp.html", "privacy.html", "rights.html",
+    "lp-motion.css", "lp-motion.js",
     "style.css", "app-design.css", "app.js", "config.js",
     "stations.js", "stations_jp.js", "sw.js", "manifest.json",
     "icon.svg", "icon-512.png", "apple-touch-icon.png",

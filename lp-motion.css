@@ -1,0 +1,105 @@
+/* Motion study: enhanced only when JavaScript enables .motion-active. */
+body{position:relative;isolation:isolate}
+.ambient-backdrop{display:none;position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.ambient-active .ambient-backdrop{display:block}
+.ambient-glow{position:absolute;border-radius:50%;pointer-events:none}
+.ambient-warm{width:100vmax;height:90vmax;left:-50vmax;top:-45vmax;background:radial-gradient(ellipse,#d6b68c70 0%,#e0cbb442 32%,#f1e5d31c 50%,transparent 68%)}
+.ambient-cool{width:100vmax;height:95vmax;right:-48vmax;top:-12vmax;background:radial-gradient(ellipse,#87b1af5c 0%,#adc5bc38 35%,transparent 68%)}
+.ambient-light{position:absolute;width:28vw;height:160vh;left:-40vw;top:-20vh;background:linear-gradient(90deg,transparent,#c8b17e20 40%,#fff8e84d 50%,transparent 70%);transform:skewX(-20deg)}
+.ambient-active .ambient-warm{animation:ambient-warm-drift 24s ease-in-out infinite alternate}
+.ambient-active .ambient-cool{animation:ambient-cool-drift 30s ease-in-out infinite alternate}
+.ambient-active .ambient-light{animation:ambient-light-pass 22s linear infinite}
+.ambient-active .experience{background-color:#eaf0eedb}
+.ambient-active .final{background-color:#e4ebe6e6}
+.scene-photo-frame{position:relative;width:92%;overflow:hidden;border-radius:26px;box-shadow:0 24px 50px #18313d15}
+.scene-photo-frame .scene-photo{width:100%;border-radius:0;box-shadow:none}
+.scene-photo-frame:after{content:"";position:absolute;inset:-15% -45%;pointer-events:none;background:linear-gradient(110deg,transparent 28%,#fff9e929 42%,#ffffff40 47%,transparent 60%);opacity:0;transform:translateX(-50%)}
+.ambient-active .scene-photo-frame:after{animation:window-reflection 14s 1.5s ease-in-out infinite}
+.hero:not(.motion-in-view) .scene-photo-frame:after{animation-play-state:paused}
+.features{position:relative;isolation:isolate;overflow:hidden}
+.features:before{content:"";position:absolute;inset:-50%;z-index:-1;pointer-events:none;background:linear-gradient(115deg,transparent 35%,#afc9c126 48%,#c3ab8121 53%,transparent 65%);opacity:0}
+.ambient-active .features:before{animation:feature-light-pass 20s linear infinite}
+.features:not(.ambient-in-view):before{animation-play-state:paused}
+.motion-suspended .ambient-backdrop *,.motion-suspended .scene-photo-frame:after,.motion-suspended .features:before,.motion-suspended .hero-phone{animation-play-state:paused!important}
+@keyframes ambient-warm-drift{from{transform:translate(-3vw,-4vh) scale(.95);opacity:.7}to{transform:translate(35vw,22vh) scale(1.1);opacity:1}}
+@keyframes ambient-cool-drift{from{transform:translate(6vw,12vh) scale(1.05);opacity:.65}to{transform:translate(-30vw,-14vh) scale(.94);opacity:1}}
+@keyframes ambient-light-pass{0%{transform:translateX(0) skewX(-20deg);opacity:0}12%,70%{opacity:.65}90%,100%{transform:translateX(165vw) skewX(-20deg);opacity:0}}
+@keyframes window-reflection{0%,12%{transform:translateX(-48%);opacity:0}22%,48%{opacity:.9}65%,100%{transform:translateX(48%);opacity:0}}
+@keyframes feature-light-pass{0%{transform:translateX(-35%);opacity:0}20%,65%{opacity:1}90%,100%{transform:translateX(35%);opacity:0}}
+.hero-phone .demo-onboard{position:absolute;inset:0;opacity:0}
+.hero-phone .demo-mode-label{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);white-space:nowrap;padding:6px 11px;border:1px solid #ffffff40;border-radius:20px;background:#162b35e8;color:#fff;font-size:10px;letter-spacing:.04em;box-shadow:0 4px 14px #102a3520}
+.motion-active .hero-copy>.eyebrow{animation:motion-enter .7s .04s both}
+.motion-active .hero h1 span{animation:motion-enter .9s .13s both}
+.motion-active .hero h1 span+span{animation-delay:.24s}
+.motion-active .hero .lead{animation:motion-enter .8s .34s both}
+.motion-active .hero .actions{animation:motion-enter .8s .44s both}
+.motion-active .hero-facts{animation:motion-enter .8s .52s both}
+.motion-active .scene-photo{animation:photo-enter 1.1s .15s both}
+.motion-active .photo-caption,.motion-active .stage-note{animation:motion-enter .9s .5s both}
+.motion-active .hero-phone{animation:phone-enter 1s .28s both,phone-drift 6.5s 1.3s ease-in-out infinite}
+.motion-active .hero:not(.motion-in-view) .hero-phone{animation-play-state:paused}
+.motion-active .hero-phone img{transition:opacity .65s ease}
+.motion-active .hero-phone.is-demo-onboard .demo-normal{opacity:0}
+.motion-active .hero-phone.is-demo-onboard .demo-onboard{opacity:1}
+.motion-active .motion-pending{opacity:0;transform:translateY(22px);transition:opacity .8s var(--reveal-delay,0s),transform .8s var(--reveal-delay,0s);transition-timing-function:cubic-bezier(.2,.65,.3,1)}
+.motion-active .motion-pending.is-visible{opacity:1;transform:none}
+.motion-active .mode-panel:not([hidden]) .experience-grid{animation:mode-enter .45s both}
+@keyframes motion-enter{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes photo-enter{from{opacity:0;transform:translateY(16px) scale(.975)}to{opacity:1;transform:none}}
+@keyframes phone-enter{from{opacity:0;transform:translateY(28px) rotate(6deg)}to{opacity:1;transform:translateY(0) rotate(3deg)}}
+@keyframes phone-drift{0%,100%{transform:translateY(0) rotate(3deg)}50%{transform:translateY(-7px) rotate(2deg)}}
+@keyframes mode-enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.motion-toolbar{position:fixed;z-index:70;left:50%;bottom:max(16px,env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;align-items:center;gap:5px;max-width:calc(100% - 24px);padding:7px 9px 7px 15px;border:1px solid #c8d4cf;border-radius:18px;background:#ffffffed;color:#192f3a;box-shadow:0 8px 32px #102a3526;backdrop-filter:blur(16px);font-size:12px;white-space:nowrap}
+.motion-toolbar>span{font-size:10px;font-weight:700;color:#78603c;margin-right:6px}
+.motion-toolbar button,.motion-toolbar a{display:inline-flex;align-items:center;justify-content:center;min-height:42px;border:0;border-radius:11px;background:transparent;padding:0 12px;font-size:12px;font-weight:650;color:inherit;cursor:pointer}
+.motion-toolbar button[aria-pressed="true"]{background:#192f3a;color:white}
+.motion-toolbar button:hover,.motion-toolbar a:hover{background:#e9efeb}
+.motion-toolbar button[aria-pressed="true"]:hover{background:#2d4c59}
+.motion-toolbar button:disabled{opacity:.5;cursor:default}
+body{padding-bottom:82px}
+@media(max-width:700px){body{padding-bottom:100px}.motion-toolbar{width:calc(100% - 24px);max-width:370px;flex-wrap:wrap;justify-content:center;gap:3px;padding:7px;border-radius:15px}.motion-toolbar>span{width:100%;text-align:center;font-size:9px;margin:0;line-height:14px}.motion-toolbar button,.motion-toolbar a{font-size:11px;padding:0 9px}.motion-active .hero-phone{animation-name:phone-enter,phone-drift}.scene-photo-frame{width:88%;border-radius:20px}.ambient-warm,.ambient-cool{width:115vmax;height:100vmax}.ambient-light{width:45vw}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.motion-active *{animation:none!important;transition:none!important}.motion-active .motion-pending{opacity:1;transform:none}.motion-active .hero-phone{transform:rotate(3deg)}.ambient-backdrop{display:none!important}.scene-photo-frame:after,.features:before{animation:none!important;opacity:0!important}}
+
+/* Dynamic variation; earlier preview deployments keep the calmer motion. */
+.dynamic-routes{position:absolute;inset:0;width:100%;height:100%;opacity:.55;pointer-events:none}
+.route-track{stroke:#a9bcb435;stroke-width:1}
+.route-run{stroke-width:3;stroke-dasharray:170 1900}
+.route-run-gold{stroke:url(#dynamic-route-gold)}
+.route-run-teal{stroke:url(#dynamic-route-teal)}
+.ambient-active .route-run-gold{animation:route-travel 5.8s linear infinite}
+.ambient-active .route-run-teal{animation:route-travel 7.2s -3s linear infinite}
+.ambient-active .ambient-warm{animation-duration:8s;background:radial-gradient(ellipse,#d6b68c8f 0%,#e0cbb45e 32%,#f1e5d330 50%,transparent 68%)}
+.ambient-active .ambient-cool{animation-duration:10s;background:radial-gradient(ellipse,#87b1af7a 0%,#adc5bc52 35%,transparent 68%)}
+.ambient-active .ambient-light{animation-duration:6s}
+.ambient-active .scene-photo-frame:after{animation-duration:5s;animation-delay:.7s}
+.ambient-active .features:before{animation-duration:8s}
+.hero-stage{perspective:1100px;transform-style:preserve-3d}
+.motion-active .hero-stage{transform:rotateX(var(--stage-tilt-x,0deg)) rotateY(var(--stage-tilt-y,0deg));transition:transform .45s cubic-bezier(.16,1,.3,1)}
+.motion-active .scene-photo-frame{animation:dynamic-stage-enter 1.35s .12s cubic-bezier(.16,1,.3,1) both;transform-origin:75% 65%}
+.motion-active .scene-photo{animation:dynamic-photo-pan 12s 1.4s ease-in-out infinite alternate}
+.motion-active .hero:not(.motion-in-view) .scene-photo{animation-play-state:paused}
+.motion-active .hero-phone{animation:dynamic-phone-enter 1.25s .35s cubic-bezier(.16,1,.3,1) both,dynamic-phone-float 4.8s 1.6s ease-in-out infinite}
+.motion-active .hero h1 span{animation-name:dynamic-title-enter;animation-duration:1.05s;animation-timing-function:cubic-bezier(.16,1,.3,1);transform-origin:0 100%}
+.motion-active .hero .lead,.motion-active .hero .actions,.motion-active .hero-facts{animation-name:dynamic-copy-enter;animation-duration:.9s}
+.motion-active .motion-pending{transform:translateY(56px) scale(.97);transition-duration:1s;transition-timing-function:cubic-bezier(.16,1,.3,1)}
+.motion-active .motion-pending.is-visible{transform:none}
+.motion-active .mode-panel:not([hidden]) .experience-grid{animation:dynamic-mode-enter .65s cubic-bezier(.16,1,.3,1) both}
+.motion-suspended .scene-photo{animation-play-state:paused!important}
+@keyframes route-travel{from{stroke-dashoffset:2070}to{stroke-dashoffset:0}}
+@keyframes dynamic-title-enter{from{opacity:0;transform:translateY(62px) rotate(-3deg);clip-path:inset(0 0 100% 0)}to{opacity:1;transform:none;clip-path:inset(0)}}
+@keyframes dynamic-copy-enter{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+@keyframes dynamic-stage-enter{from{opacity:0;transform:translate3d(80px,45px,-100px) rotateY(-22deg) rotateZ(-5deg) scale(.85)}to{opacity:1;transform:none}}
+@keyframes dynamic-photo-pan{from{transform:scale(1.04) translateX(-5px)}to{transform:scale(1.12) translateX(8px)}}
+@keyframes dynamic-phone-enter{from{opacity:0;transform:translate3d(75px,95px,0) rotate(17deg) scale(.9)}to{opacity:1;transform:translateY(0) rotate(3deg)}}
+@keyframes dynamic-phone-float{0%,100%{transform:translate(0,0) rotate(3deg)}35%{transform:translate(-12px,-24px) rotate(-1.5deg)}70%{transform:translate(-3px,-8px) rotate(5deg)}}
+@keyframes dynamic-mode-enter{from{opacity:0;transform:translateY(30px) scale(.96)}to{opacity:1;transform:none}}
+@media(max-width:700px){.dynamic-routes{opacity:.35}.motion-active .scene-photo-frame{animation-name:dynamic-stage-enter-mobile}.motion-active .hero-phone{animation-name:dynamic-phone-enter-mobile,dynamic-phone-float-mobile}.motion-active .motion-pending{transform:translateY(38px) scale(.98)}.motion-active .motion-pending.is-visible{transform:none}}
+@keyframes dynamic-stage-enter-mobile{from{opacity:0;transform:translate(20px,45px) rotate(-4deg) scale(.88)}to{opacity:1;transform:none}}
+@keyframes dynamic-phone-enter-mobile{from{opacity:0;transform:translate(-24px,65px) rotate(-9deg) scale(.9)}to{opacity:1;transform:translateY(0) rotate(3deg)}}
+@keyframes dynamic-phone-float-mobile{0%,100%{transform:translate(-2px,0) rotate(3deg)}45%{transform:translate(-12px,-18px) rotate(-1deg)}}
+@media(prefers-reduced-motion:reduce){.motion-active .hero-stage{transform:none!important}.motion-active .motion-pending{transform:none!important}.motion-active .scene-photo-frame,.motion-active .scene-photo{animation:none!important;transform:none!important}.route-run{animation:none!important}}
+
+/* Public LP keeps a single pause control instead of preview comparison tools. */
+.public-motion-controls{left:auto;right:max(16px,env(safe-area-inset-right));transform:none;width:auto;max-width:none;padding:5px;flex-wrap:nowrap}
+.public-motion-controls .preview-only{display:none!important}
+.public-motion-controls button{min-height:42px;padding:0 14px}
