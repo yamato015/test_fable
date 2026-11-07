@@ -7,6 +7,9 @@
 <meta name="description" content="車内の表示が見えないとき、手元で駅を確認。エキココはGPSをもとに近くの駅を表示するWebアプリ。駅名の大きな表示と乗り方ガイドを、登録不要で。">
 <title>エキココ｜車内の「今どこ？」を、手元で。</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="lp-motion.css">
+<script src="lp-motion.js" defer></script>
 <style>
 :root{--ink:#192f3a;--muted:#5c7079;--paper:#f7f8f5;--line:#dce3df;--accent:#78603c;--max:1160px;--font:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic",sans-serif}
 *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:90px}body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}img{display:block;max-width:100%;height:auto}a{color:inherit;text-decoration:none}button{font:inherit}h1,h2,h3,p,figure{margin:0}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #477893;outline-offset:5px}.wrap{width:min(calc(100% - 64px),var(--max));margin:auto}.skip{position:absolute;left:20px;top:-80px;background:white;padding:15px;z-index:60}.skip:focus{top:12px}
@@ -28,7 +31,7 @@
 <main id="main">
 <section class="hero"><div class="wrap">
 <div class="hero-grid"><div class="hero-copy"><p class="eyebrow">電車の中の、小さな安心。</p><h1><span>「今どこ？」を、</span><span>手元で。</span></h1><p class="lead">扉上の表示が見えない。<br>アナウンスを聞き逃した。<br>そんなとき、近くの駅をスマホで確認。</p><div class="actions"><a class="button" href="./">エキココを使ってみる <span class="arrow" aria-hidden="true">→</span></a><a class="text-link" href="#experience">実際の画面を見る</a></div><div class="hero-facts"><span>アカウント登録不要</span><span>ブラウザで使える</span></div></div>
-<div class="hero-stage"><img class="scene-photo" src="assets/lp/seated-passenger.png" alt="電車のロングシートに座り、手元のスマートフォンを確認する乗客" width="1024" height="1536" fetchpriority="high"><span class="photo-caption">表示が見えない、その席でも。</span><div class="phone hero-phone"><img src="assets/lp/app-current.jpg" alt="実際の基本画面。駅名・路線・車内モードへのボタンを表示" width="390" height="844"></div><p class="stage-note"><b>駅名から、迷わず読める。</b>画面は実際のアプリを撮影。<br>新宿の表示はサンプルです。</p></div></div>
+<div class="hero-stage"><img class="scene-photo" src="assets/lp/seated-passenger.png" alt="電車のロングシートに座り、手元のスマートフォンを確認する乗客" width="1024" height="1536" fetchpriority="high"><span class="photo-caption">表示が見えない、その席でも。</span><div class="phone hero-phone" role="img" aria-label="実際のアプリ画面。通常表示と車内モード。新宿はサンプルです。"><img class="demo-normal" src="assets/lp/app-current.jpg" alt="" width="390" height="844"><img class="demo-onboard" src="assets/lp/app-onboard.jpg" alt="" width="390" height="844"><span class="demo-mode-label" aria-hidden="true">通常表示</span></div><p class="stage-note"><b>駅名から、迷わず読める。</b>画面は実際のアプリを撮影。<br>新宿の表示はサンプルです。</p></div></div>
 <div class="hero-foot"><div><small>01</small><p>GPSをもとに近くの駅を表示</p></div><div><small>02</small><p>駅名を大きくする車内モード</p></div><div><small>03</small><p>改札の通り方を動く図で確認</p></div></div></section>
 <section class="section experience" id="experience"><div class="wrap"><div class="experience-top"><div class="section-heading"><p class="eyebrow">見たい情報に、ちょうどいい表示。</p><h2>いつもの画面。<br>駅名に集中する画面。</h2></div><div class="mode-switch" role="group" aria-label="アプリの画面を切り替え"><button type="button" data-mode="normal" aria-pressed="true" aria-controls="normal-panel">通常表示</button><button type="button" data-mode="onboard" aria-pressed="false" aria-controls="onboard-panel">車内モード</button></div></div>
 <div class="mode-panel" id="normal-panel"><div class="experience-grid"><figure><div class="phone app-frame"><img src="assets/lp/app-current.jpg" alt="通常表示の実画面。新宿、路線、周辺の駅を表示" width="390" height="844" loading="lazy"></div><figcaption class="caption demo-note">通常表示・ライト設定／サンプル地点：新宿</figcaption></figure><div class="experience-copy"><h3>駅名、路線、その距離。<br>必要な情報をひと目で。</h3><p>現在地に近い駅を、読みやすい大きさで表示。駅から離れているときは「最寄り駅」と距離を表示します。</p><ul class="detail-list"><li>周辺の駅もまとめて確認</li><li>ライト／ダークと配色を選べる</li><li>日本語／英語を切り替えられる</li></ul><p class="caption">表示はGPSによる推定です。地下・トンネル内など、位置情報を取得しにくい場所では更新できないことがあります。</p></div></div></div>
@@ -41,6 +44,7 @@
 <section class="final"><div class="wrap final-row"><div><h2>次の移動で、<br>手元にエキココを。</h2><p>近くの駅を確認する、小さな道具。登録不要で始められます。</p></div><a class="button" href="./">エキココを開く <span class="arrow" aria-hidden="true">→</span></a></div></section>
 </main>
 <footer><div class="wrap footer-row"><span>© 2026 EkiKoko · ベータ版</span><div class="footer-links"><a href="rights.html">権利・出典</a><a href="privacy.html">プライバシー・利用情報</a><a href="./">アプリを開く ↗</a></div></div></footer>
+<aside class="motion-toolbar" aria-label="試作の比較"><span>動きの試作</span><button id="motion-toggle" type="button" aria-pressed="false" disabled>動き OFF</button><button id="motion-replay" type="button" disabled>もう一度</button><a href="https://ekikoko.pages.dev/lp" target="_blank" rel="noopener">現行版を見る ↗</a></aside>
 <script>
 (() => {
   const buttons = [...document.querySelectorAll('[data-mode]')];
