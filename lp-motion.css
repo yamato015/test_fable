@@ -1,4 +1,31 @@
 /* Motion study: enhanced only when JavaScript enables .motion-active. */
+body{position:relative;isolation:isolate}
+.ambient-backdrop{display:none;position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.ambient-active .ambient-backdrop{display:block}
+.ambient-glow{position:absolute;border-radius:50%;pointer-events:none}
+.ambient-warm{width:100vmax;height:90vmax;left:-50vmax;top:-45vmax;background:radial-gradient(ellipse,#d6b68c70 0%,#e0cbb442 32%,#f1e5d31c 50%,transparent 68%)}
+.ambient-cool{width:100vmax;height:95vmax;right:-48vmax;top:-12vmax;background:radial-gradient(ellipse,#87b1af5c 0%,#adc5bc38 35%,transparent 68%)}
+.ambient-light{position:absolute;width:28vw;height:160vh;left:-40vw;top:-20vh;background:linear-gradient(90deg,transparent,#c8b17e20 40%,#fff8e84d 50%,transparent 70%);transform:skewX(-20deg)}
+.ambient-active .ambient-warm{animation:ambient-warm-drift 24s ease-in-out infinite alternate}
+.ambient-active .ambient-cool{animation:ambient-cool-drift 30s ease-in-out infinite alternate}
+.ambient-active .ambient-light{animation:ambient-light-pass 22s linear infinite}
+.ambient-active .experience{background-color:#eaf0eedb}
+.ambient-active .final{background-color:#e4ebe6e6}
+.scene-photo-frame{position:relative;width:92%;overflow:hidden;border-radius:26px;box-shadow:0 24px 50px #18313d15}
+.scene-photo-frame .scene-photo{width:100%;border-radius:0;box-shadow:none}
+.scene-photo-frame:after{content:"";position:absolute;inset:-15% -45%;pointer-events:none;background:linear-gradient(110deg,transparent 28%,#fff9e929 42%,#ffffff40 47%,transparent 60%);opacity:0;transform:translateX(-50%)}
+.ambient-active .scene-photo-frame:after{animation:window-reflection 14s 1.5s ease-in-out infinite}
+.hero:not(.motion-in-view) .scene-photo-frame:after{animation-play-state:paused}
+.features{position:relative;isolation:isolate;overflow:hidden}
+.features:before{content:"";position:absolute;inset:-50%;z-index:-1;pointer-events:none;background:linear-gradient(115deg,transparent 35%,#afc9c126 48%,#c3ab8121 53%,transparent 65%);opacity:0}
+.ambient-active .features:before{animation:feature-light-pass 20s linear infinite}
+.features:not(.ambient-in-view):before{animation-play-state:paused}
+.motion-suspended .ambient-backdrop *,.motion-suspended .scene-photo-frame:after,.motion-suspended .features:before,.motion-suspended .hero-phone{animation-play-state:paused!important}
+@keyframes ambient-warm-drift{from{transform:translate(-3vw,-4vh) scale(.95);opacity:.7}to{transform:translate(35vw,22vh) scale(1.1);opacity:1}}
+@keyframes ambient-cool-drift{from{transform:translate(6vw,12vh) scale(1.05);opacity:.65}to{transform:translate(-30vw,-14vh) scale(.94);opacity:1}}
+@keyframes ambient-light-pass{0%{transform:translateX(0) skewX(-20deg);opacity:0}12%,70%{opacity:.65}90%,100%{transform:translateX(165vw) skewX(-20deg);opacity:0}}
+@keyframes window-reflection{0%,12%{transform:translateX(-48%);opacity:0}22%,48%{opacity:.9}65%,100%{transform:translateX(48%);opacity:0}}
+@keyframes feature-light-pass{0%{transform:translateX(-35%);opacity:0}20%,65%{opacity:1}90%,100%{transform:translateX(35%);opacity:0}}
 .hero-phone .demo-onboard{position:absolute;inset:0;opacity:0}
 .hero-phone .demo-mode-label{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);white-space:nowrap;padding:6px 11px;border:1px solid #ffffff40;border-radius:20px;background:#162b35e8;color:#fff;font-size:10px;letter-spacing:.04em;box-shadow:0 4px 14px #102a3520}
 .motion-active .hero-copy>.eyebrow{animation:motion-enter .7s .04s both}
@@ -30,5 +57,5 @@
 .motion-toolbar button[aria-pressed="true"]:hover{background:#2d4c59}
 .motion-toolbar button:disabled{opacity:.5;cursor:default}
 body{padding-bottom:82px}
-@media(max-width:700px){.motion-toolbar{gap:2px;padding:5px 6px 5px 11px;border-radius:15px}.motion-toolbar>span{font-size:9px;margin-right:2px}.motion-toolbar button,.motion-toolbar a{font-size:11px;padding:0 9px}.motion-active .hero-phone{animation-name:phone-enter,phone-drift}}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.motion-active *{animation:none!important;transition:none!important}.motion-active .motion-pending{opacity:1;transform:none}.motion-active .hero-phone{transform:rotate(3deg)}}
+@media(max-width:700px){body{padding-bottom:100px}.motion-toolbar{width:calc(100% - 24px);max-width:370px;flex-wrap:wrap;justify-content:center;gap:3px;padding:7px;border-radius:15px}.motion-toolbar>span{width:100%;text-align:center;font-size:9px;margin:0;line-height:14px}.motion-toolbar button,.motion-toolbar a{font-size:11px;padding:0 9px}.motion-active .hero-phone{animation-name:phone-enter,phone-drift}.scene-photo-frame{width:88%;border-radius:20px}.ambient-warm,.ambient-cool{width:115vmax;height:100vmax}.ambient-light{width:45vw}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.motion-active *{animation:none!important;transition:none!important}.motion-active .motion-pending{opacity:1;transform:none}.motion-active .hero-phone{transform:rotate(3deg)}.ambient-backdrop{display:none!important}.scene-photo-frame:after,.features:before{animation:none!important;opacity:0!important}}

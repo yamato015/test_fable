@@ -4,22 +4,37 @@
   const root = document.documentElement;
   const toggle = document.getElementById('motion-toggle');
   const replay = document.getElementById('motion-replay');
+  const ambientToggle = document.getElementById('ambient-toggle');
   const hero = document.querySelector('.hero');
   const phone = document.querySelector('.hero-phone');
   const label = document.querySelector('.demo-mode-label');
   const preference = matchMedia('(prefers-reduced-motion: reduce)');
-  if (!toggle || !replay || !hero || !phone || !label) return;
+  if (!toggle || !replay || !ambientToggle || !hero || !phone || !label) return;
 
   const items = [...document.querySelectorAll(
     '.hero-foot>div,.experience-top,.mode-panel figure,.experience-copy,' +
     '.guide-copy,.guide-stage,.features .section-heading,.feature-group,' +
     '.feature-note,.start-grid>.section-heading,.steps li,.faq,.final-row')];
   let enabled = false;
+  let ambientRequested = true;
   let heroVisible = true;
   let timer;
   let revealObserver;
   let replayFrame;
   let replayGeneration = 0;
+
+  function updateAmbient() {
+    const active = enabled && ambientRequested;
+    root.classList.toggle('ambient-active', active);
+    ambientToggle.setAttribute('aria-pressed', String(active));
+    ambientToggle.textContent = active ? '背景 ON' : '背景 OFF';
+    ambientToggle.disabled = !enabled;
+  }
+
+  function updateVisibility() {
+    root.classList.toggle('motion-suspended', document.hidden);
+    scheduleDemo();
+  }
 
   function showScreen(onboard) {
     phone.classList.toggle('is-demo-onboard', onboard);
@@ -64,10 +79,15 @@
     toggle.title = preference.matches ? '端末の「動きを減らす」設定に合わせています' : '';
     replay.disabled = !enabled;
     if (!enabled) showScreen(false);
+    updateAmbient();
     scheduleDemo();
   }
 
   toggle.addEventListener('click', () => setMotion(!enabled));
+  ambientToggle.addEventListener('click', () => {
+    ambientRequested = !ambientRequested;
+    updateAmbient();
+  });
   replay.addEventListener('click', () => {
     if (!enabled) return;
     const generation = ++replayGeneration;
@@ -83,7 +103,7 @@
       });
     });
   });
-  document.addEventListener('visibilitychange', scheduleDemo);
+  document.addEventListener('visibilitychange', updateVisibility);
   preference.addEventListener('change', () => setMotion(!preference.matches));
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(entries => {
@@ -91,8 +111,15 @@
       hero.classList.toggle('motion-in-view', heroVisible);
       scheduleDemo();
     }, {threshold: 0}).observe(hero);
+    const features = document.querySelector('.features');
+    if (features) {
+      new IntersectionObserver(entries => {
+        entries.forEach(entry => entry.target.classList.toggle('ambient-in-view', entry.isIntersecting));
+      }, {threshold: 0}).observe(features);
+    }
   }
   observeReveals();
   hero.classList.add('motion-in-view');
   setMotion(!preference.matches);
+  updateVisibility();
 })();
