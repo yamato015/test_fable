@@ -6,6 +6,7 @@
   const replay = document.getElementById('motion-replay');
   const ambientToggle = document.getElementById('ambient-toggle');
   const hero = document.querySelector('.hero');
+  const stage = document.querySelector('.hero-stage');
   const phone = document.querySelector('.hero-phone');
   const label = document.querySelector('.demo-mode-label');
   const preference = matchMedia('(prefers-reduced-motion: reduce)');
@@ -22,6 +23,32 @@
   let revealObserver;
   let replayFrame;
   let replayGeneration = 0;
+  let tiltFrame;
+
+  function resetTilt() {
+    cancelAnimationFrame(tiltFrame);
+    if (!stage) return;
+    stage.style.setProperty('--stage-tilt-x', '0deg');
+    stage.style.setProperty('--stage-tilt-y', '0deg');
+  }
+
+  if (stage) {
+    stage.addEventListener('pointermove', event => {
+      if (!enabled || !heroVisible || event.pointerType !== 'mouse') return;
+      const x = event.clientX;
+      const y = event.clientY;
+      cancelAnimationFrame(tiltFrame);
+      tiltFrame = requestAnimationFrame(() => {
+        if (!enabled || !heroVisible) return;
+        const box = stage.getBoundingClientRect();
+        const dx = Math.max(-1, Math.min(1, (x - box.left) / box.width * 2 - 1));
+        const dy = Math.max(-1, Math.min(1, (y - box.top) / box.height * 2 - 1));
+        stage.style.setProperty('--stage-tilt-x', `${-dy * 2.5}deg`);
+        stage.style.setProperty('--stage-tilt-y', `${dx * 3.5}deg`);
+      });
+    });
+    stage.addEventListener('pointerleave', resetTilt);
+  }
 
   function updateAmbient() {
     const active = enabled && ambientRequested;
@@ -33,6 +60,7 @@
 
   function updateVisibility() {
     root.classList.toggle('motion-suspended', document.hidden);
+    if (document.hidden) resetTilt();
     scheduleDemo();
   }
 
@@ -78,7 +106,10 @@
     toggle.disabled = preference.matches;
     toggle.title = preference.matches ? '端末の「動きを減らす」設定に合わせています' : '';
     replay.disabled = !enabled;
-    if (!enabled) showScreen(false);
+    if (!enabled) {
+      showScreen(false);
+      resetTilt();
+    }
     updateAmbient();
     scheduleDemo();
   }
@@ -108,6 +139,7 @@
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(entries => {
       heroVisible = entries[0].isIntersecting;
+      if (!heroVisible) resetTilt();
       hero.classList.toggle('motion-in-view', heroVisible);
       scheduleDemo();
     }, {threshold: 0}).observe(hero);

@@ -59,3 +59,42 @@ body{position:relative;isolation:isolate}
 body{padding-bottom:82px}
 @media(max-width:700px){body{padding-bottom:100px}.motion-toolbar{width:calc(100% - 24px);max-width:370px;flex-wrap:wrap;justify-content:center;gap:3px;padding:7px;border-radius:15px}.motion-toolbar>span{width:100%;text-align:center;font-size:9px;margin:0;line-height:14px}.motion-toolbar button,.motion-toolbar a{font-size:11px;padding:0 9px}.motion-active .hero-phone{animation-name:phone-enter,phone-drift}.scene-photo-frame{width:88%;border-radius:20px}.ambient-warm,.ambient-cool{width:115vmax;height:100vmax}.ambient-light{width:45vw}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.motion-active *{animation:none!important;transition:none!important}.motion-active .motion-pending{opacity:1;transform:none}.motion-active .hero-phone{transform:rotate(3deg)}.ambient-backdrop{display:none!important}.scene-photo-frame:after,.features:before{animation:none!important;opacity:0!important}}
+
+/* Dynamic variation; earlier preview deployments keep the calmer motion. */
+.dynamic-routes{position:absolute;inset:0;width:100%;height:100%;opacity:.55;pointer-events:none}
+.route-track{stroke:#a9bcb435;stroke-width:1}
+.route-run{stroke-width:3;stroke-dasharray:170 1900}
+.route-run-gold{stroke:url(#dynamic-route-gold)}
+.route-run-teal{stroke:url(#dynamic-route-teal)}
+.ambient-active .route-run-gold{animation:route-travel 5.8s linear infinite}
+.ambient-active .route-run-teal{animation:route-travel 7.2s -3s linear infinite}
+.ambient-active .ambient-warm{animation-duration:8s;background:radial-gradient(ellipse,#d6b68c8f 0%,#e0cbb45e 32%,#f1e5d330 50%,transparent 68%)}
+.ambient-active .ambient-cool{animation-duration:10s;background:radial-gradient(ellipse,#87b1af7a 0%,#adc5bc52 35%,transparent 68%)}
+.ambient-active .ambient-light{animation-duration:6s}
+.ambient-active .scene-photo-frame:after{animation-duration:5s;animation-delay:.7s}
+.ambient-active .features:before{animation-duration:8s}
+.hero-stage{perspective:1100px;transform-style:preserve-3d}
+.motion-active .hero-stage{transform:rotateX(var(--stage-tilt-x,0deg)) rotateY(var(--stage-tilt-y,0deg));transition:transform .45s cubic-bezier(.16,1,.3,1)}
+.motion-active .scene-photo-frame{animation:dynamic-stage-enter 1.35s .12s cubic-bezier(.16,1,.3,1) both;transform-origin:75% 65%}
+.motion-active .scene-photo{animation:dynamic-photo-pan 12s 1.4s ease-in-out infinite alternate}
+.motion-active .hero:not(.motion-in-view) .scene-photo{animation-play-state:paused}
+.motion-active .hero-phone{animation:dynamic-phone-enter 1.25s .35s cubic-bezier(.16,1,.3,1) both,dynamic-phone-float 4.8s 1.6s ease-in-out infinite}
+.motion-active .hero h1 span{animation-name:dynamic-title-enter;animation-duration:1.05s;animation-timing-function:cubic-bezier(.16,1,.3,1);transform-origin:0 100%}
+.motion-active .hero .lead,.motion-active .hero .actions,.motion-active .hero-facts{animation-name:dynamic-copy-enter;animation-duration:.9s}
+.motion-active .motion-pending{transform:translateY(56px) scale(.97);transition-duration:1s;transition-timing-function:cubic-bezier(.16,1,.3,1)}
+.motion-active .motion-pending.is-visible{transform:none}
+.motion-active .mode-panel:not([hidden]) .experience-grid{animation:dynamic-mode-enter .65s cubic-bezier(.16,1,.3,1) both}
+.motion-suspended .scene-photo{animation-play-state:paused!important}
+@keyframes route-travel{from{stroke-dashoffset:2200}to{stroke-dashoffset:0}}
+@keyframes dynamic-title-enter{from{opacity:0;transform:translateY(62px) rotate(-3deg);clip-path:inset(0 0 100% 0)}to{opacity:1;transform:none;clip-path:inset(0)}}
+@keyframes dynamic-copy-enter{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+@keyframes dynamic-stage-enter{from{opacity:0;transform:translate3d(80px,45px,-100px) rotateY(-22deg) rotateZ(-5deg) scale(.85)}to{opacity:1;transform:none}}
+@keyframes dynamic-photo-pan{from{transform:scale(1.04) translateX(-5px)}to{transform:scale(1.12) translateX(8px)}}
+@keyframes dynamic-phone-enter{from{opacity:0;transform:translate3d(75px,95px,0) rotate(17deg) scale(.9)}to{opacity:1;transform:translateY(0) rotate(3deg)}}
+@keyframes dynamic-phone-float{0%,100%{transform:translate(0,0) rotate(3deg)}35%{transform:translate(-12px,-24px) rotate(-1.5deg)}70%{transform:translate(-3px,-8px) rotate(5deg)}}
+@keyframes dynamic-mode-enter{from{opacity:0;transform:translateY(30px) scale(.96)}to{opacity:1;transform:none}}
+@media(max-width:700px){.dynamic-routes{opacity:.35}.motion-active .scene-photo-frame{animation-name:dynamic-stage-enter-mobile}.motion-active .hero-phone{animation-name:dynamic-phone-enter-mobile,dynamic-phone-float-mobile}.motion-active .motion-pending{transform:translateY(38px) scale(.98)}.motion-active .motion-pending.is-visible{transform:none}}
+@keyframes dynamic-stage-enter-mobile{from{opacity:0;transform:translate(20px,45px) rotate(-4deg) scale(.88)}to{opacity:1;transform:none}}
+@keyframes dynamic-phone-enter-mobile{from{opacity:0;transform:translate(-24px,65px) rotate(-9deg) scale(.9)}to{opacity:1;transform:translateY(0) rotate(3deg)}}
+@keyframes dynamic-phone-float-mobile{0%,100%{transform:translate(-2px,0) rotate(3deg)}45%{transform:translate(-12px,-18px) rotate(-1deg)}}
+@media(prefers-reduced-motion:reduce){.motion-active .hero-stage{transform:none!important}.motion-active .motion-pending{transform:none!important}.motion-active .scene-photo-frame,.motion-active .scene-photo{animation:none!important;transform:none!important}.route-run{animation:none!important}}
