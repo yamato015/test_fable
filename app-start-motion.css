@@ -1,0 +1,45 @@
+/* Start screen only: short entrances, then a quiet moving photograph. */
+.start-tools { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+.start-tools .start-language { margin-left:auto; }
+.start-motion-toggle { min-height:44px; padding:8px 10px; border:1px solid var(--line); border-radius:12px; background:var(--card); color:var(--sub); font:inherit; font-size:.72rem; cursor:pointer; }
+#start-screen .app-intro-visual { position:relative; overflow:hidden; isolation:isolate; }
+#start-screen .app-intro-visual::after { content:""; position:absolute; inset:-25% -70%; z-index:1; pointer-events:none; background:linear-gradient(110deg,transparent 40%,rgba(255,255,255,.14) 48%,rgba(255,255,255,.28) 50%,transparent 59%); opacity:0; transform:translateX(-38%); }
+
+@media (prefers-reduced-motion:no-preference) {
+  #start-screen.start-motion-ready:not(.start-motion-paused) .app-intro-title,
+  #start-screen.start-motion-ready:not(.start-motion-paused) .tagline,
+  #start-screen.start-motion-ready:not(.start-motion-paused) .app-intro-visual,
+  #start-screen.start-motion-ready:not(.start-motion-paused) #start-btn,
+  #start-screen.start-motion-ready:not(.start-motion-paused) .start-help,
+  #start-screen.start-motion-ready:not(.start-motion-paused) .start-guide-action {
+    animation:start-arrive .65s cubic-bezier(.2,.75,.2,1) both;
+  }
+  #start-screen .tagline { animation-delay:70ms !important; }
+  #start-screen .app-intro-visual { animation-delay:130ms !important; }
+  #start-screen #start-btn { animation-delay:210ms !important; }
+  #start-screen .start-help { animation-delay:250ms !important; }
+  #start-screen .start-guide-action { animation-delay:290ms !important; }
+  #start-screen.start-motion-ready .app-intro-visual img { animation:start-photo-drift 14s ease-in-out infinite; animation-play-state:paused; }
+  #start-screen.start-motion-ready .app-intro-visual::after { animation:start-window-light 10s ease-in-out infinite; animation-play-state:paused; }
+  #start-screen.start-ambient-running .app-intro-visual img,
+  #start-screen.start-ambient-running .app-intro-visual::after { animation-play-state:running; }
+}
+
+@keyframes start-arrive {
+  from { opacity:.55; transform:translateY(16px); }
+  to { opacity:1; transform:translateY(0); }
+}
+@keyframes start-photo-drift {
+  0%,100% { transform:scale(1.035) translateX(-.5%); }
+  50% { transform:scale(1.085) translateX(.5%); }
+}
+@keyframes start-window-light {
+  0%,12% { opacity:0; transform:translateX(-38%); }
+  28% { opacity:.7; }
+  58% { opacity:0; transform:translateX(38%); }
+  100% { opacity:0; transform:translateX(38%); }
+}
+@media (prefers-reduced-motion:reduce) {
+  #start-screen .app-intro-visual img { animation:none; transform:none; }
+  #start-screen .app-intro-visual::after { display:none; }
+}
