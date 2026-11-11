@@ -170,35 +170,34 @@
   <main id="app">
     <!-- 開始画面 -->
     <section id="start-screen" class="screen">
-      <div class="start-motion-scene" aria-hidden="true">
-        <span class="start-orbit"></span>
-        <span class="start-orbit start-orbit-alt"></span>
-        <span class="start-route"></span>
+      <div class="app-intro-visual start-hero">
+        <img src="assets/lp/start-night-rail-v1.jpg" width="1024" height="1536" fetchpriority="high" alt="" aria-hidden="true">
+        <header class="start-topbar">
+          <div class="start-brand"><span class="start-brand-mark" aria-hidden="true"><svg class="ic"><use href="#i-train"/></svg></span><span data-i18n="appName">エキココ</span><span class="start-beta">β</span></div>
+          <div class="start-language" role="group" aria-label="Language / 言語">
+            <button type="button" data-set-language="ja" lang="ja" aria-pressed="false">日本語</button>
+            <button type="button" data-set-language="en" lang="en" aria-pressed="false">English</button>
+          </div>
+        </header>
+        <div class="start-hero-copy">
+          <p class="start-kicker" data-i18n="startKicker">移動のそばに。</p>
+          <h1 class="app-intro-title" data-i18n-html="startHeadline">いま、<br><span>どの駅？</span></h1>
+          <p class="start-hero-sub" data-i18n="startHeroSub">見えない駅名を、手元で。</p>
+        </div>
+        <div class="start-travel-line" aria-hidden="true"><span></span></div>
+        <button id="start-motion-toggle" class="start-motion-toggle" type="button" aria-pressed="true" hidden>動きを止める</button>
       </div>
-      <div class="start-tools">
-      <button id="start-motion-toggle" class="start-motion-toggle" type="button" aria-pressed="true" hidden>動きを止める</button>
-      <div class="start-language" role="group" aria-label="Language / 言語">
-        <button type="button" data-set-language="ja" lang="ja" aria-pressed="false">日本語</button>
-        <button type="button" data-set-language="en" lang="en" aria-pressed="false">English</button>
+      <div class="start-panel">
+        <p class="start-panel-label"><svg class="ic" aria-hidden="true"><use href="#i-here"/></svg><span data-i18n="startPanelLabel">まずは、近くの駅を確認</span></p>
+        <button id="start-btn" class="big-btn" data-i18n="startBtn">現在地を確認する</button>
+        <p class="start-help" data-i18n="startHelp">位置情報を許可すると、近くの駅が表示されます。</p>
+        <button id="start-guide-btn" class="start-guide-action" type="button" aria-haspopup="dialog" aria-controls="guide-modal" aria-expanded="false">
+          <span class="start-guide-icon"><svg class="ic" aria-hidden="true"><use href="#i-ticket"/></svg></span>
+          <span class="start-guide-copy"><b data-i18n="startGuide">乗り方ガイドを見る</b><small data-i18n="startGuideHint">位置情報なしでも読めます</small></span><span class="start-guide-arrow" aria-hidden="true">↗</span>
+        </button>
+        <p class="note"><span data-i18n-html="startNote">正確な位置情報を運営者に送信・保存しません。</span><br>
+          <a class="policy-link" href="privacy.html" data-i18n="privacyLink">プライバシーポリシー</a> · <a class="policy-link" href="rights.html" data-i18n="rightsFooter">権利・出典</a></p>
       </div>
-      </div>
-      <p class="start-eyebrow" aria-hidden="true">
-        <span>EKIKOKO</span>
-        <span>LOCATION INSTRUMENT</span>
-      </p>
-      <div class="app-intro-copy">
-
-        <h1 class="app-intro-title"><span data-i18n="appName">エキココ</span><span class="beta">β</span></h1>
-        <p class="tagline" data-i18n-html="tagline">席に座って掲示板が見えなくても、<br>いまどの駅かひと目でわかる。</p>
-      </div>
-      <div class="app-intro-visual">
-        <img src="assets/lp/train-display.png" width="744" height="292" fetchpriority="high" data-i18n-alt="startPhotoAlt" alt="乗客の向こうに見える、電車の扉上の案内表示">
-      </div>
-      <button id="start-btn" class="big-btn" data-i18n="startBtn">現在地を確認する</button>
-      <p class="start-help" data-i18n="startHelp">位置情報を許可すると、近くの駅が表示されます。</p>
-      <button id="start-guide-btn" class="start-guide-action" type="button" aria-haspopup="dialog" aria-controls="guide-modal" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-ticket"/></svg><span><b data-i18n="startGuide">乗り方ガイドを見る</b><small data-i18n="startGuideHint">位置情報なしでも読めます</small></span><span aria-hidden="true">→</span></button>
-      <p class="note"><span data-i18n-html="startNote">正確な位置情報を運営者に送信・保存しません。</span><br>
-        <a class="policy-link" href="privacy.html" data-i18n="privacyLink">プライバシーポリシー</a> · <a class="policy-link" href="rights.html" data-i18n="rightsFooter">権利・出典</a></p>
     </section>
 
     <!-- メイン画面 -->
