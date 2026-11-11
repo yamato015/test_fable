@@ -29,13 +29,13 @@
   #start-screen.start-motion-ready:not(.start-motion-paused) .tagline,
   #start-screen.start-motion-ready:not(.start-motion-paused) #start-btn,
   #start-screen.start-motion-ready:not(.start-motion-paused) .start-help,
-  #start-screen.start-motion-ready:not(.start-motion-paused) .start-guide-action { animation:start-arrive .75s cubic-bezier(.16,1,.3,1) both; }
-  #start-screen.start-motion-ready:not(.start-motion-paused) .app-intro-visual { animation:start-photo-arrive 1.05s cubic-bezier(.16,1,.3,1) both; }
-  #start-screen .tagline { animation-delay:100ms; }
-  #start-screen .app-intro-visual { animation-delay:140ms; }
-  #start-screen #start-btn { animation-delay:240ms; }
-  #start-screen .start-help { animation-delay:300ms; }
-  #start-screen .start-guide-action { animation-delay:350ms; }
+  #start-screen.start-motion-ready:not(.start-motion-paused) .start-guide-action { animation:start-arrive .75s cubic-bezier(.16,1,.3,1) var(--start-delay,0ms) both; }
+  #start-screen.start-motion-ready:not(.start-motion-paused) .app-intro-visual { animation:start-photo-arrive 1.05s cubic-bezier(.16,1,.3,1) var(--start-delay,0ms) both; }
+  #start-screen .tagline { --start-delay:100ms; }
+  #start-screen .app-intro-visual { --start-delay:140ms; }
+  #start-screen #start-btn { --start-delay:240ms; }
+  #start-screen .start-help { --start-delay:300ms; }
+  #start-screen .start-guide-action { --start-delay:350ms; }
   #start-screen.start-motion-ready .start-motion-scene::before { animation:start-color-drift 9s ease-in-out infinite alternate; }
   #start-screen.start-motion-ready .start-orbit { animation:start-orbit-turn 22s linear infinite; }
   #start-screen.start-motion-ready .start-orbit-alt { animation-name:start-orbit-turn-alt; animation-duration:28s; animation-direction:reverse; }
