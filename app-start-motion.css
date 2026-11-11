@@ -1,45 +1,111 @@
-/* Start screen only: short entrances, then a quiet moving photograph. */
+/* Start screen only: a brighter, cinematic motion treatment. */
+#start-screen { isolation:isolate; }
+#start-screen > :not(.start-motion-scene) { position:relative; z-index:1; }
+#start-screen .start-motion-scene { position:absolute; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+.start-motion-scene::before { content:""; position:absolute; inset:-18%; background:radial-gradient(ellipse at 83% 27%,rgba(37,191,176,.28),transparent 45%),radial-gradient(ellipse at 5% 58%,rgba(242,165,66,.22),transparent 43%); }
+.start-orbit { position:absolute; width:560px; height:560px; top:70px; left:22%; border:1px solid rgba(48,167,159,.24); border-radius:50%; transform:rotate(-24deg); }
+.start-orbit::before { content:""; position:absolute; inset:34px; border:1px dashed rgba(48,167,159,.18); border-radius:50%; }
+.start-orbit::after { content:""; position:absolute; width:13px; height:13px; top:77px; left:77px; border:5px solid var(--bg); border-radius:50%; background:#34bba9; box-shadow:0 0 0 1px rgba(48,167,159,.4),0 0 22px rgba(48,167,159,.5); }
+.start-orbit-alt { width:460px; height:460px; top:340px; left:-270px; border-color:rgba(208,145,60,.23); transform:rotate(75deg); }
+.start-orbit-alt::before { border-color:rgba(208,145,60,.14); }
+.start-orbit-alt::after { background:#d79948; box-shadow:0 0 0 1px rgba(208,145,60,.4),0 0 22px rgba(208,145,60,.5); }
+.start-route { position:absolute; top:440px; left:-40%; width:180%; height:130px; transform:rotate(-28deg); border-top:1px solid rgba(48,167,159,.16); border-bottom:1px solid rgba(48,167,159,.12); }
+.start-route::before,.start-route::after { content:""; position:absolute; left:0; top:-2px; width:160px; height:3px; background:linear-gradient(90deg,transparent,#37bfae); border-radius:50%; opacity:0; }
+.start-route::after { top:auto; bottom:-2px; background:linear-gradient(90deg,transparent,#dfaa5f); }
 .start-tools { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
 .start-tools .start-language { margin-left:auto; }
 .start-motion-toggle { min-height:44px; padding:8px 10px; border:1px solid var(--line); border-radius:12px; background:var(--card); color:var(--sub); font:inherit; font-size:.72rem; cursor:pointer; }
-#start-screen .app-intro-visual { position:relative; overflow:hidden; isolation:isolate; }
-#start-screen .app-intro-visual::after { content:""; position:absolute; inset:-25% -70%; z-index:1; pointer-events:none; background:linear-gradient(110deg,transparent 40%,rgba(255,255,255,.14) 48%,rgba(255,255,255,.28) 50%,transparent 59%); opacity:0; transform:translateX(-38%); }
+#start-screen .app-intro-title { position:relative; width:fit-content; }
+#start-screen .app-intro-title::after { content:""; position:absolute; bottom:-8px; left:1px; width:72px; height:4px; border-radius:4px; background:linear-gradient(90deg,#24ad9c,#daa15b); transform-origin:left; }
+#start-screen .tagline { margin-top:22px; }
+#start-screen .app-intro-visual { position:relative; overflow:hidden; isolation:isolate; border-color:color-mix(in srgb,var(--accent2) 40%,var(--surface-edge)); box-shadow:0 0 0 1px var(--surface-light) inset,0 16px 38px -16px var(--surface-shadow),0 0 32px -12px rgba(34,174,158,.3); }
+#start-screen .app-intro-visual::after { content:""; position:absolute; inset:-40% -70%; z-index:1; pointer-events:none; background:linear-gradient(110deg,transparent 36%,rgba(242,210,150,.08) 43%,rgba(255,255,255,.46) 49%,rgba(114,229,216,.13) 54%,transparent 62%); opacity:0; transform:translateX(-52%); }
+#start-screen #start-btn { overflow:hidden; }
+#start-screen #start-btn::before { content:""; position:absolute; inset:-100% -35%; pointer-events:none; background:linear-gradient(110deg,transparent 40%,rgba(255,255,255,.28) 50%,transparent 60%); opacity:0; transform:translateX(-90%); }
+#start-screen #start-btn::after { z-index:1; }
 
 @media (prefers-reduced-motion:no-preference) {
-  #start-screen.start-motion-ready:not(.start-motion-paused) .app-intro-title,
+  #start-screen.start-motion-ready:not(.start-motion-paused) .app-intro-title { animation:start-title-arrive .85s cubic-bezier(.16,1,.3,1) both; }
   #start-screen.start-motion-ready:not(.start-motion-paused) .tagline,
-  #start-screen.start-motion-ready:not(.start-motion-paused) .app-intro-visual,
   #start-screen.start-motion-ready:not(.start-motion-paused) #start-btn,
   #start-screen.start-motion-ready:not(.start-motion-paused) .start-help,
-  #start-screen.start-motion-ready:not(.start-motion-paused) .start-guide-action {
-    animation:start-arrive .65s cubic-bezier(.2,.75,.2,1) both;
-  }
-  #start-screen .tagline { animation-delay:70ms !important; }
-  #start-screen .app-intro-visual { animation-delay:130ms !important; }
-  #start-screen #start-btn { animation-delay:210ms !important; }
-  #start-screen .start-help { animation-delay:250ms !important; }
-  #start-screen .start-guide-action { animation-delay:290ms !important; }
-  #start-screen.start-motion-ready .app-intro-visual img { animation:start-photo-drift 14s ease-in-out infinite; animation-play-state:paused; }
-  #start-screen.start-motion-ready .app-intro-visual::after { animation:start-window-light 10s ease-in-out infinite; animation-play-state:paused; }
+  #start-screen.start-motion-ready:not(.start-motion-paused) .start-guide-action { animation:start-arrive .75s cubic-bezier(.16,1,.3,1) both; }
+  #start-screen.start-motion-ready:not(.start-motion-paused) .app-intro-visual { animation:start-photo-arrive 1.05s cubic-bezier(.16,1,.3,1) both; }
+  #start-screen .tagline { animation-delay:100ms; }
+  #start-screen .app-intro-visual { animation-delay:140ms; }
+  #start-screen #start-btn { animation-delay:240ms; }
+  #start-screen .start-help { animation-delay:300ms; }
+  #start-screen .start-guide-action { animation-delay:350ms; }
+  #start-screen.start-motion-ready .start-motion-scene::before { animation:start-color-drift 9s ease-in-out infinite alternate; }
+  #start-screen.start-motion-ready .start-orbit { animation:start-orbit-turn 22s linear infinite; }
+  #start-screen.start-motion-ready .start-orbit-alt { animation-name:start-orbit-turn-alt; animation-duration:28s; animation-direction:reverse; }
+  #start-screen.start-motion-ready .start-route::before { animation:start-route-pass 4.4s cubic-bezier(.4,0,.2,1) infinite; }
+  #start-screen.start-motion-ready .start-route::after { animation:start-route-pass 5.6s cubic-bezier(.4,0,.2,1) -2.3s infinite; }
+  #start-screen.start-motion-ready .app-intro-visual img { animation:start-photo-drift 8s ease-in-out infinite; }
+  #start-screen.start-motion-ready .app-intro-visual::after { animation:start-window-light 5.2s ease-in-out -1s infinite; }
+  #start-screen.start-motion-ready #start-btn::before { animation:start-button-light 4.8s ease-in-out -1.2s infinite; }
+  #start-screen.start-motion-ready .app-intro-title::after { animation:start-title-line 4.8s ease-in-out infinite; }
+  /* Every repeating effect shares the same pause/visibility control. */
+  #start-screen .start-motion-scene::before,
+  #start-screen .start-orbit,
+  #start-screen .start-route::before,
+  #start-screen .start-route::after,
+  #start-screen .app-intro-visual img,
+  #start-screen .app-intro-visual::after,
+  #start-screen #start-btn::before,
+  #start-screen .app-intro-title::after { animation-play-state:paused !important; }
+  #start-screen.start-ambient-running .start-motion-scene::before,
+  #start-screen.start-ambient-running .start-orbit,
+  #start-screen.start-ambient-running .start-route::before,
+  #start-screen.start-ambient-running .start-route::after,
   #start-screen.start-ambient-running .app-intro-visual img,
-  #start-screen.start-ambient-running .app-intro-visual::after { animation-play-state:running; }
+  #start-screen.start-ambient-running .app-intro-visual::after,
+  #start-screen.start-ambient-running #start-btn::before,
+  #start-screen.start-ambient-running .app-intro-title::after { animation-play-state:running !important; }
 }
-
 @keyframes start-arrive {
-  from { opacity:.55; transform:translateY(16px); }
+  from { opacity:.4; transform:translateY(30px); }
   to { opacity:1; transform:translateY(0); }
 }
+@keyframes start-title-arrive {
+  from { opacity:.3; transform:translateX(-32px) rotate(-3deg); }
+  to { opacity:1; transform:translateX(0) rotate(0); }
+}
+@keyframes start-photo-arrive {
+  from { opacity:.45; transform:perspective(800px) translateY(38px) rotateX(9deg) rotateZ(-3deg) scale(.93); }
+  to { opacity:1; transform:perspective(800px) translateY(0) rotateX(0) rotateZ(0) scale(1); }
+}
 @keyframes start-photo-drift {
-  0%,100% { transform:scale(1.035) translateX(-.5%); }
-  50% { transform:scale(1.085) translateX(.5%); }
+  0%,100% { transform:scale(1.10) translateX(-1.7%) rotate(-1deg); }
+  50% { transform:scale(1.23) translateX(1.7%) rotate(1deg); }
 }
 @keyframes start-window-light {
-  0%,12% { opacity:0; transform:translateX(-38%); }
-  28% { opacity:.7; }
-  58% { opacity:0; transform:translateX(38%); }
-  100% { opacity:0; transform:translateX(38%); }
+  0% { opacity:0; transform:translateX(-52%); }
+  22% { opacity:.85; }
+  52%,100% { opacity:0; transform:translateX(52%); }
+}
+@keyframes start-color-drift {
+  from { transform:translate(-6%,-4%) scale(1); opacity:.65; }
+  to { transform:translate(7%,5%) scale(1.15); opacity:1; }
+}
+@keyframes start-orbit-turn { to { transform:rotate(336deg); } }
+@keyframes start-orbit-turn-alt { to { transform:rotate(435deg); } }
+@keyframes start-route-pass {
+  0% { opacity:0; transform:translateX(-180px); }
+  12%,55% { opacity:.85; }
+  85%,100% { opacity:0; transform:translateX(1100px); }
+}
+@keyframes start-button-light {
+  0%,12% { opacity:0; transform:translateX(-90%); }
+  28% { opacity:1; }
+  52%,100% { opacity:0; transform:translateX(90%); }
+}
+@keyframes start-title-line {
+  0%,100% { transform:scaleX(1); opacity:.8; }
+  50% { transform:scaleX(1.7); opacity:1; }
 }
 @media (prefers-reduced-motion:reduce) {
+  #start-screen .start-motion-scene { display:none; }
   #start-screen .app-intro-visual img { animation:none; transform:none; }
-  #start-screen .app-intro-visual::after { display:none; }
+  #start-screen .app-intro-visual::after,#start-screen #start-btn::before { display:none; }
 }
