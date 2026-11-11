@@ -27,6 +27,7 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="app-design.css">
   <link rel="stylesheet" href="app-ux.css">
+  <link rel="stylesheet" href="app-start-motion.css">
 </head>
 <body>
   <!-- アイコン定義 (絵文字を使わず、線幅を揃えた自前のSVGで統一する)。
@@ -169,9 +170,12 @@
   <main id="app">
     <!-- 開始画面 -->
     <section id="start-screen" class="screen">
+      <div class="start-tools">
+      <button id="start-motion-toggle" class="start-motion-toggle" type="button" aria-pressed="true" hidden>動きを止める</button>
       <div class="start-language" role="group" aria-label="Language / 言語">
         <button type="button" data-set-language="ja" lang="ja" aria-pressed="false">日本語</button>
         <button type="button" data-set-language="en" lang="en" aria-pressed="false">English</button>
+      </div>
       </div>
       <p class="start-eyebrow" aria-hidden="true">
         <span>EKIKOKO</span>
@@ -754,5 +758,6 @@
   <script src="config.js"></script>
   <script src="stations.js"></script>
   <script src="app.js"></script>
+  <script src="app-start-motion.js"></script>
 </body>
 </html>

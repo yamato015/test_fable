@@ -296,6 +296,8 @@ document.addEventListener("keydown", (event) => {
 // 駅名は元データが日本語のため両言語で日本語表示 (ローマ字対応は今後の課題)
 const STRINGS = {
   ja: {
+    startMotionPause: "動きを止める",
+    startMotionResume: "動きを再開",
     startHelp: "位置情報を許可すると、近くの駅が表示されます。",
     startGuide: "乗り方ガイドを見る",
     startGuideHint: "位置情報なしでも読めます",
@@ -553,6 +555,8 @@ const STRINGS = {
     wakeLockFail: "この端末では画面の常時点灯に対応していません。",
   },
   en: {
+    startMotionPause: "Pause motion",
+    startMotionResume: "Resume motion",
     startHelp: "Allow location access to see the nearest station.",
     startGuide: "Explore the riding guide",
     startGuideHint: "No location permission needed",
