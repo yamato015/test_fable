@@ -14,6 +14,7 @@ OUTPUT = ROOT / "dist"
 PUBLIC_FILES = (
     "index.html", "lp.html", "privacy.html", "rights.html",
     "lp-motion.css", "lp-motion.js", "app-start-motion.css", "app-start-motion.js",
+    "app-main-background.css",
     "style.css", "app-design.css", "app-ux.css", "app.js", "config.js",
     "stations.js", "stations_jp.js", "sw.js", "manifest.json",
     "icon.svg", "icon-512.png", "apple-touch-icon.png",
