@@ -5,7 +5,7 @@ no notifications, analytics or service worker, and never calls device GPS.
 """
 import os
 
-PREVIEW_BRANCHES = {"codex/app-ux-preview-20261107", "codex/app-main-background-20261112"}
+PREVIEW_BRANCHES = {"codex/app-ux-preview-20261107", "codex/app-main-background-20261112", "codex/app-bold-design-20261112"}
 
 
 def build_preview(output):
@@ -73,5 +73,7 @@ const previewGeolocation = (() => {
   };
 })();
 '''
+    if os.environ.get("CF_PAGES_BRANCH") == "codex/app-bold-design-20261112":
+        html = html.replace("</body>", '<script>document.getElementById("start-btn").click();</script></body>', 1)
     (output / "app-preview.html").write_text(html, encoding="utf-8")
     (output / "app-preview-runtime.js").write_text(provider + script, encoding="utf-8")

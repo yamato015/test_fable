@@ -1843,7 +1843,7 @@ function render(lat, lon) {
   stationName.classList.remove("is-state-message");
   stationName.classList.toggle(
     "is-long",
-    displayName.length > (lang === "en" ? 14 : 7)
+    displayName.length > (lang === "en" ? 12 : 3)
   );
   stationKana.textContent = dispSub(nearest);
   distanceEl.textContent = atStation ? "" : t("about", formatDistance(nearest.dist));
