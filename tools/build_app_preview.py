@@ -5,11 +5,11 @@ no notifications, analytics or service worker, and never calls device GPS.
 """
 import os
 
-PREVIEW_BRANCH = "codex/app-ux-preview-20261107"
+PREVIEW_BRANCHES = {"codex/app-ux-preview-20261107", "codex/app-main-background-20261112"}
 
 
 def build_preview(output):
-    if os.environ.get("CF_PAGES_BRANCH") != PREVIEW_BRANCH:
+    if os.environ.get("CF_PAGES_BRANCH") not in PREVIEW_BRANCHES:
         return
     html = (output / "index.html").read_text(encoding="utf-8")
     html = html.replace('<main id="app">', '''<main id="app">
