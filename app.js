@@ -296,6 +296,10 @@ document.addEventListener("keydown", (event) => {
 // 駅名は元データが日本語のため両言語で日本語表示 (ローマ字対応は今後の課題)
 const STRINGS = {
   ja: {
+    startKicker: "移動のそばに。",
+    startHeadline: "いま、<br><span>どの駅？</span>",
+    startHeroSub: "見えない駅名を、手元で。",
+    startPanelLabel: "まずは、近くの駅を確認",
     startMotionPause: "動きを止める",
     startMotionResume: "動きを再開",
     startHelp: "位置情報を許可すると、近くの駅が表示されます。",
@@ -555,6 +559,10 @@ const STRINGS = {
     wakeLockFail: "この端末では画面の常時点灯に対応していません。",
   },
   en: {
+    startKicker: "Along for the ride.",
+    startHeadline: "Which<br><span>station?</span>",
+    startHeroSub: "Your station, right in your hand.",
+    startPanelLabel: "Find the station near you",
     startMotionPause: "Pause motion",
     startMotionResume: "Resume motion",
     startHelp: "Allow location access to see the nearest station.",
