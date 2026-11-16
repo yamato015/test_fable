@@ -1428,6 +1428,7 @@ $("start-btn").addEventListener("click", () => {
   startScreen.classList.add("hidden");
   mainScreen.classList.remove("hidden");
   applyPlanUI();
+  restoreAlertDestination();
   requestAnimationFrame(() => {
     // 起動画面の下部で押しても、現在駅を先頭から読める位置へ戻す。
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -2564,8 +2565,27 @@ function formatDistance(m) {
 // =====================================================================
 // 降車アラート (プレミアム)
 // =====================================================================
-async function setAlert(station, opener = null) {
-  if (!requirePremium(opener)) return;
+// 降りる駅は端末内に保存し、再読み込みやタブの破棄で消えないようにする。
+// 前日の設定が残って誤って鳴らないよう、12時間で失効させる
+const SAVED_DEST_KEY = "alertDest";
+const SAVED_DEST_TTL_MS = 12 * 60 * 60 * 1000;
+
+function saveAlertDestination() {
+  try {
+    if (alertStation) {
+      localStorage.setItem(
+        SAVED_DEST_KEY,
+        JSON.stringify({ station: alertStation, savedAt: Date.now() })
+      );
+    } else {
+      localStorage.removeItem(SAVED_DEST_KEY);
+    }
+  } catch {
+    /* 保存できない環境では、開いている間だけ保持する */
+  }
+}
+
+function applyAlertDestination(station) {
   alertStation = normalizeDestination(station);
   pendingDestination = { ...alertStation };
   $("alert-status-text").textContent = t("alertSet", dispName(alertStation));
@@ -2573,6 +2593,33 @@ async function setAlert(station, opener = null) {
   $("r-alert").textContent = t("alertSet", dispName(alertStation));
   updateDestinationAction();
   renderPendingDestination();
+}
+
+function restoreAlertDestination() {
+  if (alertStation || !isPremium()) return;
+  let saved = null;
+  try {
+    saved = JSON.parse(localStorage.getItem(SAVED_DEST_KEY));
+  } catch {
+    saved = null;
+  }
+  const station = saved?.station;
+  const valid =
+    station?.name &&
+    Number.isFinite(Number(station.lat)) &&
+    Number.isFinite(Number(station.lon)) &&
+    Date.now() - Number(saved.savedAt) < SAVED_DEST_TTL_MS;
+  if (!valid) {
+    localStorage.removeItem(SAVED_DEST_KEY);
+    return;
+  }
+  applyAlertDestination(station);
+}
+
+async function setAlert(station, opener = null) {
+  if (!requirePremium(opener)) return;
+  applyAlertDestination(station);
+  saveAlertDestination();
   rememberDest(alertStation);
   if ("Notification" in window && Notification.permission === "default") {
     try {
@@ -2587,6 +2634,7 @@ async function setAlert(station, opener = null) {
 function cancelAlert() {
   alertStation = null;
   pendingDestination = null;
+  saveAlertDestination();
   $("alert-status").classList.add("hidden");
   $("r-alert").textContent = "";
   updateDestinationAction();
