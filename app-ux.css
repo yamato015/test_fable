@@ -74,8 +74,8 @@ button,a,select{-webkit-tap-highlight-color:transparent}
 .setting-options button[aria-pressed="true"]{border-color:var(--accent2);background:color-mix(in srgb,var(--accent2) 12%,var(--card));box-shadow:0 0 0 1px var(--accent2) inset;color:var(--fg)}
 .palette-options{grid-template-columns:repeat(3,minmax(0,1fr))}
 .palette-options button{flex-direction:column;gap:8px;font-size:.74rem}
-.palette-dot{width:17px;height:17px;border-radius:50%;box-shadow:0 0 0 3px var(--inset);background:#b08a52}
-.palette-dot.blue{background:#6f94a6}.palette-dot.pink{background:#c28194}
+.palette-dot{width:17px;height:17px;border-radius:50%;box-shadow:0 0 0 3px var(--inset);background:#1464ff}
+.palette-dot.blue{background:#1464ff}.palette-dot.pink{background:#c28194}
 .wake-setting{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;min-height:56px;padding:13px 15px;border:1px solid var(--line);border-radius:13px;background:var(--card);color:var(--fg);font:inherit;text-align:left;cursor:pointer}
 .wake-setting .pilot-lamp{display:none}
 .wake-setting .control-label{grid-column:1;grid-row:1;font-size:.84rem;color:var(--fg);letter-spacing:0}

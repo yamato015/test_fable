@@ -6,7 +6,7 @@ body {
   --surface-light: rgba(255,255,255,.10);
   --surface-shadow: rgba(0,0,0,.24);
   --inset: #152027;
-  --bg: #10181d;
+  --bg: #07142c;
   --card: #1b272e;
   --fg: #f0f4f3;
   --sub: #a5b5bc;
@@ -22,7 +22,7 @@ body[data-mode="light"] {
   --surface-light: rgba(255,255,255,.95);
   --surface-shadow: rgba(31,59,69,.11);
   --inset: #eaf0f1;
-  --bg: #f3f6f5;
+  --bg: #f1f6ff;
   --card: #fff;
   --fg: #182f3b;
   --sub: #5e727c;
@@ -161,8 +161,8 @@ body[data-mode="dark"] .scene { background: radial-gradient(ellipse at 50% 0%,#3
 .scene .sc-flap { fill: #b4dadb; stroke: #76b4b9; stroke-width: 1.5; }
 .sc-ground { fill: #143745; opacity: .13; }
 .sc-ic-face { fill: #d8ece0; stroke: #548c81; stroke-width: 1.2; }
-.scene .sc-chip { fill: #dbb96f; }
-.sc-ticket { fill: #fff9e9; stroke: #b8ad94; stroke-width: 1; }
+.scene .sc-chip { fill: #95badb; }
+.sc-ticket { fill: #f7faff; stroke: #9cafc5; stroke-width: 1; }
 .sc-counter { fill: #71919d; stroke: #557480; stroke-width: 1; }
 .sc-seam { fill: none; stroke: #8da7b1; stroke-width: 1; }
 .sc-flow { fill: none; stroke: #467a86; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }

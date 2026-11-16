@@ -2,8 +2,8 @@
   --bg: #131517;
   --fg: #f1f0ea;
   --sub: #a6aaac;
-  --accent: #b08a52;
-  --accent2: #6f94a6;
+  --accent: #7ed9ff;
+  --accent2: #9bbcff;
   --card: #1a1d20;
   --card-border: #34383b;
   --line: #34383b;
@@ -67,37 +67,26 @@ body[data-mode="light"] {
 }
 
 /* アクセントカラー切り替え */
-body[data-theme="amber"] {
-  --accent: #b08a52;
-  --accent2: #6f94a6;
-}
-
 body[data-theme="blue"] {
-  --accent: #6f94a6;
-  --accent2: #b08a52;
+  --accent: #7ed9ff;
+  --accent2: #9bbcff;
 }
 
 body[data-theme="pink"] {
   --accent: #c28194;
-  --accent2: #6f94a6;
+  --accent2: #9bbcff;
 }
 
 /* 明るい背景では、装飾色を同系色の濃い案内色にして文字のコントラストを保つ */
-body[data-mode="light"][data-theme="amber"] {
-  --accent: #76552b;
-  --accent2: #315f78;
-  --on-accent: #fffdf8;
-}
-
 body[data-mode="light"][data-theme="blue"] {
-  --accent: #315f78;
-  --accent2: #76552b;
+  --accent: #145be0;
+  --accent2: #244dab;
   --on-accent: #fff;
 }
 
 body[data-mode="light"][data-theme="pink"] {
   --accent: #8c455e;
-  --accent2: #315f78;
+  --accent2: #244dab;
   --on-accent: #fff;
 }
 
@@ -1737,17 +1726,10 @@ circle.dest-map-current {
 }
 
 /* ライトモードの濃い案内色を純黒画面へ持ち込まず、発光させずに視認性を戻す */
-body[data-theme="amber"] .riding,
-body[data-theme="amber"] .alert-overlay {
-  --accent: #ffb020;
-  --accent2: #ff6b4a;
-  --on-accent: #151007;
-}
-
 body[data-theme="blue"] .riding,
 body[data-theme="blue"] .alert-overlay {
   --accent: #4fc3f7;
-  --accent2: #ffb020;
+  --accent2: #a9c8ff;
   --on-accent: #151007;
 }
 

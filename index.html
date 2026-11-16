@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#10181d">
+  <meta name="theme-color" content="#07142c">
   <script>
     try {
       const savedMode = localStorage.getItem("mode") === "dark" ? "dark" : "light";
-      const initialColor = savedMode === "dark" ? "#10181d" : "#f3f6f5";
+      const initialColor = savedMode === "dark" ? "#07142c" : "#f1f6ff";
       document.documentElement.dataset.mode = savedMode;
       document.documentElement.style.backgroundColor = initialColor;
       document.querySelector('meta[name="theme-color"]').content = initialColor;
@@ -378,13 +378,13 @@
           </button>
           <button id="theme-btn" class="console-key" type="button">
             <span class="theme-swatch" aria-hidden="true"></span>
-            <span id="theme-btn-value" class="control-value">AMBER</span>
+            <span id="theme-btn-value" class="control-value">BLUE</span>
             <span class="control-label" data-i18n="controlTheme">配色</span>
           </button>
           </div>
           <section class="setting-section"><h3 id="language-title" data-i18n="settingsLanguage">言語</h3><div class="setting-options" role="group" aria-labelledby="language-title"><button type="button" data-set-language="ja" lang="ja" aria-pressed="false">日本語</button><button type="button" data-set-language="en" lang="en" aria-pressed="false">English</button></div></section>
           <section class="setting-section"><h3 id="appearance-title" data-i18n="settingsAppearance">明るさ</h3><div class="setting-options" role="group" aria-labelledby="appearance-title"><button type="button" data-set-mode="light" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg><span data-i18n="displayLight">ライト</span></button><button type="button" data-set-mode="dark" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-moon"/></svg><span data-i18n="displayDark">ダーク</span></button></div></section>
-          <section class="setting-section"><h3 id="palette-title" data-i18n="settingsPalette">配色</h3><div class="setting-options palette-options" role="group" aria-labelledby="palette-title"><button type="button" data-set-theme="amber" aria-pressed="false"><i class="palette-dot gold" aria-hidden="true"></i><span data-i18n="themeAmber">ゴールド</span></button><button type="button" data-set-theme="blue" aria-pressed="false"><i class="palette-dot blue" aria-hidden="true"></i><span data-i18n="themeBlue">ブルー</span></button><button type="button" data-set-theme="pink" aria-pressed="false"><i class="palette-dot pink" aria-hidden="true"></i><span data-i18n="themePink">ピンク</span></button></div></section>
+          <section class="setting-section"><h3 id="palette-title" data-i18n="settingsPalette">配色</h3><div class="setting-options palette-options" role="group" aria-labelledby="palette-title"><button type="button" data-set-theme="blue" aria-pressed="false"><i class="palette-dot blue" aria-hidden="true"></i><span data-i18n="themeBlue">ブルー</span></button><button type="button" data-set-theme="pink" aria-pressed="false"><i class="palette-dot pink" aria-hidden="true"></i><span data-i18n="themePink">ピンク</span></button></div></section>
           <section class="setting-section">          <button id="wakelock-btn" class="wake-setting" type="button" aria-pressed="false">
             <span class="pilot-lamp" aria-hidden="true"></span>
             <span id="wake-btn-value" class="control-value">OFF</span>

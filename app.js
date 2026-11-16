@@ -545,7 +545,6 @@ const STRINGS = {
     switchToLight: "ライト表示に切り替える",
     switchToDark: "ダーク表示に切り替える",
     changeTheme: (name) => `配色を変更する。現在は${name}`,
-    themeAmber: "ゴールド",
     themeBlue: "ブルー",
     themePink: "ピンク",
     enableWakeLock: "画面の常時点灯を有効にする",
@@ -806,7 +805,6 @@ const STRINGS = {
     switchToLight: "Switch to light display",
     switchToDark: "Switch to dark display",
     changeTheme: (name) => `Change color theme. Current: ${name}`,
-    themeAmber: "Gold",
     themeBlue: "Blue",
     themePink: "Pink",
     enableWakeLock: "Keep the screen awake",
@@ -833,11 +831,10 @@ function t(key, ...args) {
 
 function updateHeaderUI() {
   const mode = document.body.dataset.mode || "dark";
-  const theme = document.body.dataset.theme || "amber";
+  const theme = document.body.dataset.theme || "blue";
   const premium = isPremium();
   const wakeOn = Boolean(wakeLock);
   const themeNames = {
-    amber: t("themeAmber"),
     blue: t("themeBlue"),
     pink: t("themePink"),
   };
@@ -4062,9 +4059,9 @@ $("dest-map-locate").addEventListener("click", () => {
 });
 
 // =====================================================================
-// テーマ切り替え (アンバー / ブルー / ピンク)
+// テーマ切り替え (ブルー / ピンク)。旧アンバー設定はブルーへ移行。
 // =====================================================================
-const THEMES = ["amber", "blue", "pink"];
+const THEMES = ["blue", "pink"];
 
 function applyTheme(name) {
   document.body.dataset.theme = name;
@@ -4073,7 +4070,7 @@ function applyTheme(name) {
 }
 
 $("theme-btn").addEventListener("click", () => {
-  const current = document.body.dataset.theme || "amber";
+  const current = document.body.dataset.theme || "blue";
   const next = THEMES[(THEMES.indexOf(current) + 1) % THEMES.length];
   applyTheme(next);
 });
@@ -4081,13 +4078,13 @@ $("theme-btn").addEventListener("click", () => {
 applyTheme(
   THEMES.includes(localStorage.getItem("theme"))
     ? localStorage.getItem("theme")
-    : "amber"
+    : "blue"
 );
 
 // =====================================================================
 // ライト/ダークモード切り替え
 // =====================================================================
-const MODE_BG = { light: "#f3f6f5", dark: "#10181d" };
+const MODE_BG = { light: "#f1f6ff", dark: "#07142c" };
 
 function applyMode(mode) {
   document.body.dataset.mode = mode;
