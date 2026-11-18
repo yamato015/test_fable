@@ -38,12 +38,10 @@ def build_preview(output):
         raise SystemExit("Sample build could not find app initialization")
     labels = '''
 Object.assign(STRINGS.ja, {
-  startBtn: "サンプルで試す", startNote: "実際の位置情報は取得・送信しません。", startHelp: "新宿駅のサンプル画面を開きます。位置情報の許可は不要です。",
   previewTitle: "画面プレビュー", previewNote: "新宿駅のサンプルです。実際の現在地は使用しません。",
   previewLive: "公開中のアプリを開く"
 });
 Object.assign(STRINGS.en, {
-  startBtn: "Try the sample", startNote: "Your real location is not collected or sent.", startHelp: "Open a Shinjuku sample. No location permission is needed.",
   previewTitle: "Interface preview", previewNote: "Shinjuku sample. Your real location is not used.",
   previewLive: "Open the live app"
 });

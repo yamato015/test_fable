@@ -93,8 +93,6 @@ let pendingStationFetch = null;
 
 // ---- DOM ----
 const $ = (id) => document.getElementById(id);
-const startScreen = $("start-screen");
-const mainScreen = $("main-screen");
 const gpsStatus = $("gps-status");
 const statusLabel = $("status-label");
 const stationName = $("station-name");
@@ -296,15 +294,8 @@ document.addEventListener("keydown", (event) => {
 // 駅名は元データが日本語のため両言語で日本語表示 (ローマ字対応は今後の課題)
 const STRINGS = {
   ja: {
-    startKicker: "移動のそばに。",
-    startHeadline: "いま、<br><span>どの駅？</span>",
-    startHeroSub: "見えない駅名を、手元で。",
-    startPanelLabel: "まずは、近くの駅を確認",
     startMotionPause: "動きを止める",
     startMotionResume: "動きを再開",
-    startHelp: "位置情報を許可すると、近くの駅が表示されます。",
-    startGuide: "乗り方ガイドを見る",
-    startGuideHint: "位置情報なしでも読めます",
     primaryActionsLabel: "よく使う操作",
     navigationLabel: "主な操作",
     navHome: "近くの駅",
@@ -322,8 +313,6 @@ const STRINGS = {
     plusDemoBadge: "Plusデモ",
     appName: "エキココ",
     tagline: "近くの駅を、<br>手元ですぐに確認。",
-    startBtn: "現在地を確認する",
-    startNote: "正確な位置情報を運営者に送信・保存しません。",
     startPhotoAlt: "乗客の向こうに見える、電車の扉上の案内表示",
     guideReplay: "もう一度見る",
     privacyLink: "プライバシーポリシー",
@@ -558,15 +547,8 @@ const STRINGS = {
     wakeLockFail: "この端末では画面の常時点灯に対応していません。",
   },
   en: {
-    startKicker: "Along for the ride.",
-    startHeadline: "Which<br><span>station?</span>",
-    startHeroSub: "Your station, right in your hand.",
-    startPanelLabel: "Find the station near you",
     startMotionPause: "Pause motion",
     startMotionResume: "Resume motion",
-    startHelp: "Allow location access to see the nearest station.",
-    startGuide: "Explore the riding guide",
-    startGuideHint: "No location permission needed",
     primaryActionsLabel: "Quick actions",
     navigationLabel: "Main actions",
     navHome: "Nearby",
@@ -584,8 +566,6 @@ const STRINGS = {
     plusDemoBadge: "Plus demo",
     appName: "EkiKoko",
     tagline: "Know exactly which station you're at,<br>even on a packed train.",
-    startBtn: "Show my location",
-    startNote: "Please allow location access.<br>Your precise location is not sent to or stored by the app operator.",
     startPhotoAlt: "A train's overhead station display seen beyond standing passengers",
     guideReplay: "Replay",
     privacyLink: "Privacy Policy",
@@ -1421,19 +1401,6 @@ function initAds() {
 // =====================================================================
 // 起動
 // =====================================================================
-$("start-btn").addEventListener("click", () => {
-  startScreen.classList.add("hidden");
-  mainScreen.classList.remove("hidden");
-  applyPlanUI();
-  restoreAlertDestination();
-  requestAnimationFrame(() => {
-    // 起動画面の下部で押しても、現在駅を先頭から読める位置へ戻す。
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-    document.querySelector(".station-display")?.focus?.({ preventScroll: true });
-  });
-  startLocationWatch();
-});
-
 $("gps-retry-btn").addEventListener("click", startLocationWatch);
 
 function startLocationWatch() {
@@ -1503,7 +1470,7 @@ function setGpsState(state, detail = "") {
             : "");
   stateEl.classList.toggle("is-compact", isSuccess);
   detailEl.classList.toggle("hidden", isSuccess);
-  retry.classList.toggle("hidden", isSuccess || isRequesting || isDenied);
+  retry.classList.toggle("hidden", isSuccess || isRequesting);
   settingsHint.classList.toggle("hidden", !isDenied);
   if (!isSuccess && !isRequesting && !curPos) {
     stationName.textContent = gpsStatus.textContent;
@@ -4559,7 +4526,6 @@ document.querySelectorAll('[data-set-theme]').forEach(button => {
     if (THEMES.includes(button.dataset.setTheme)) applyTheme(button.dataset.setTheme);
   });
 });
-$('start-guide-btn').addEventListener('click', event => openGuide(event.currentTarget));
 $('nav-guide').addEventListener('click', event => openGuide(event.currentTarget));
 $('nav-settings').addEventListener('click', event => setSettingsOpen(true, false, event.currentTarget));
 $('nav-home').addEventListener('click', () => {
@@ -4569,4 +4535,5 @@ $('nav-home').addEventListener('click', () => {
 
 // ---- 起動時に言語と課金状態を初期化 ----
 applyLang();
-initBilling();
+initBilling().then(restoreAlertDestination);
+startLocationWatch();
